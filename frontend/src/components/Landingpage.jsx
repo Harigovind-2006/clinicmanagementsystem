@@ -4,7 +4,7 @@ import React from 'react';
 const Landingpage = () => {
   return (
     <>
-    <h1>Hii</h1>
+    <h1>Hii welcome to Clinic Management System</h1>
     </>
   );
 };
