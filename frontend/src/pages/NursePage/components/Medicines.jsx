@@ -59,6 +59,7 @@ export default function Medicines() {
       days,
       frequency,
       notes,
+      given:false
     };
 
     setPrescriptions([...prescriptions, newPrescription]);
@@ -71,13 +72,19 @@ export default function Medicines() {
     setNotes("");
   }
 
-  function handleDelete(index) {
-    setPrescriptions(
-      prescriptions.filter((_, i) => i !== index)
-    );
-  }
+  function handleGiven(index) {
+  const updated = [...prescriptions];
 
+  updated[index] = {
+    ...updated[index],
+    given: true,
+  };
+
+  setPrescriptions(updated);
+}
+  
   return (
+     <div>
     <div className="medicine-container">
       <h3>Add Medicine</h3>
 
@@ -175,6 +182,7 @@ export default function Medicines() {
                 <th>Qty</th>
                 <th>Days</th>
                 <th>Frequency</th>
+                <th>Status</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -188,20 +196,31 @@ export default function Medicines() {
                   <td>{item.days}</td>
                   <td>{item.frequency}</td>
 
-                  <td>
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDelete(index)}
-                    >
-                      Delete
-                    </button>
-                  </td>
+                <td>
+                  
+  {item.given ? (
+    <span className="status-given">Given</span>
+  ) : (
+    <span className="status-pending">Pending</span>
+  )}
+</td>
+<td>
+  <button
+    className={item.given ? "given-btn done" : "given-btn"}
+    onClick={() => handleGiven(index)}
+    disabled={item.given}
+  >
+    {item.given ? "Given ✓" : "Mark Given"}
+  </button>
+</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+      
     </div>
+   </div>
   );
 }

@@ -13,7 +13,7 @@ export default function NursePage() {
       gender: "Male",
       pname: "Ravi Kumar",
       pid: "P003",
-      date:"21/02/26",
+      date:"21/02/2026",
       medicines:"0/0",
       procedure:"0/0"
     },
@@ -23,7 +23,7 @@ export default function NursePage() {
       gender: "Male",
       pname: "Suresh Rao",
       pid: "P005",
-      date:"12/10/25",
+      date:"12/10/2025",
       medicines:"0/0",
       procedure:"0/0"
     },

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation,useNavigate } from "react-router-dom";
 import "./PatientDashboard.css";
 import Overview from "./components/Overview";
 import Medicines from "./components/Medicines";
 import Procedure from "./components/Procedure";
 
 export default function PatientDashboard() {
+  const navigate=useNavigate();
   const location = useLocation();
   const patient = location.state;
   const [activeTab, setActiveTab] = useState("overview");
@@ -13,7 +14,7 @@ export default function PatientDashboard() {
   return (
     <div className="dashboard-container">
       <div className="side-bar">
-        <button>Patient</button> {">"} <p>{patient.pname}</p>
+        <button onClick={()=>navigate("/")}>Patient</button> {">"} <p>{patient.pname}</p>
       </div>
       <div className="summary-cards">
   <div className="room-card">

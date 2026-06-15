@@ -304,6 +304,8 @@ border-color: #2563eb;
 outline: none;
 }
 
+
+
 /* =========================
 SEARCHABLE DROPDOWN
 ========================= */
@@ -439,4 +441,27 @@ border-bottom: 1px solid #e2e8f0;
 .prescription-list tr:hover,
 .procedure-list tr:hover {
 background: #f8fafc;
+}
+
+.given-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.given-btn:hover {
+  background: #1d4ed8;
+}
+
+.given-btn.done {
+  background: #16a34a;
+  cursor: default;
+}
+
+.given-btn:disabled {
+  opacity: 1;
 }

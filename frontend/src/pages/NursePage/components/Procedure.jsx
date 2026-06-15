@@ -54,11 +54,15 @@ export default function Procedure() {
     setSelectedProcedure("");
   }
 
-  function handleDelete(index) {
-    setProcedures(
-      procedures.filter((_, i) => i !== index)
-    );
-  }
+  function markProcedureDone(index) {
+  const updated = [...procedures];
+  updated[index] = { ...updated[index], done: true };
+  setProcedures(updated);
+}
+
+function handleDelete(index) {
+  setProcedures(procedures.filter((_, i) => i !== index));
+}
 
   return (
     <div className="procedure-container">
@@ -129,7 +133,8 @@ export default function Procedure() {
               <tr>
                 <th>Procedure</th>
                 <th>Description</th>
-                <th>Action</th>
+                <th>Status</th>
+                
               </tr>
             </thead>
 
@@ -140,13 +145,18 @@ export default function Procedure() {
                   <td>{item.description}</td>
 
                   <td>
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDelete(index)}
-                    >
-                      Delete
-                    </button>
-                  </td>
+  {item.done ? (
+    <span className="status-given">Done</span>
+  ) : (
+    <button
+      className="given-btn"
+      onClick={() => markProcedureDone(index)}
+    >
+      Mark as Done
+    </button>
+  )}
+</td>
+                  
                 </tr>
               ))}
             </tbody>
