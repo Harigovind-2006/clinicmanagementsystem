@@ -1,98 +1,85 @@
-import React, { useState } from "react";
+import React from "react";
+import SplitText from "./SplitText";
 
-export default function Landingpage() {
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
+const handleAnimationComplete = () => {
+  console.log("Animation Complete");
+};
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(formData);
-    alert("Login Successful");
-  };
-
+const Landingpage = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-6">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8">
+    <section
+      className="h-screen w-full flex items-center justify-end pr-29 bg-[url('/loginbg.png')] bg-cover bg-center bg-no-repeat"
+    >
+      <div className="w-[500px] bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-10">
+
         
-        {/* Logo Section */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center">
-            <div className="w-5 h-5 border-2 border-white rounded-sm"></div>
-          </div>
-
-          <div>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-              Clinic Management System
-            </h2>
-            <p className="text-sm text-gray-500">
-              Healthcare Portal
-            </p>
+        <div className="flex justify-center mb-6">
+         <div className="w-15 h-15 rounded-full bg-blue-200 flex items-center justify-center shadow-md">
+            <span className="text-4xl text-blue-500">+</span>
           </div>
         </div>
 
-        {/* Header Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-            Log In
-          </h1>
-          <p className="mt-2 text-sm sm:text-base text-gray-500">
-            Enter your credentials to access the system
-          </p>
-        </div>
+        
+        <div className="text-center mb-8">
+          <SplitText
+            text="Welcome Back!"
+            className="text-4xl font-bold text-slate-900"
+            delay={40}
+            duration={0.5}
+            ease="power3.out"
+            splitType="chars"
+            from={{ opacity: 0, y: 30 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0.1}
+            rootMargin="-100px"
+            onLetterAnimationComplete={handleAnimationComplete}
+            showCallback
+          />
 
-        {/* Form Section */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          
+          <SplitText
+            text="Sign in to continue to Clinic Management System"
+            className="text-gray-500 mt-3"
+            delay={15}
+            duration={0.3}
+            ease="power3.out"
+            splitType="words"
+            from={{ opacity: 0, y: 10 }}
+            to={{ opacity: 1, y: 0 }}
+          />
+        </div>
+        <form className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block mb-2 font-semibold text-slate-700">
               Username
             </label>
 
             <input
               type="text"
-              name="username"
-              placeholder="Enter username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter your username"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block mb-2 font-semibold text-slate-700">
               Password
             </label>
 
             <input
               type="password"
-              name="password"
-              placeholder="Enter password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter your password"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-200"
+          <button type="submit"className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:scale-105 transition duration-200"
           >
-            Log In
+            Sign In
           </button>
-
         </form>
       </div>
-    </div>
+    </section>
   );
-}
+};
+
+export default Landingpage;
