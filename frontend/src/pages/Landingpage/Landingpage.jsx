@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import SplitText from "./SplitText";
 
 const handleAnimationComplete = () => {
@@ -6,20 +6,52 @@ const handleAnimationComplete = () => {
 };
 
 const Landingpage = () => {
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const { username, password } = formData;
+
+    if (!username.trim()) {
+      setError("Username is required");
+      return;
+    }
+
+    if (!password.trim()) {
+      setError("Password is required");
+      return;
+    }
+
+    setError("");
+
+    console.log(formData);
+    alert("Login Successful");
+  };
+
   return (
     <section
       className="h-screen w-full flex items-center justify-end pr-29 bg-[url('/loginbg.png')] bg-cover bg-center bg-no-repeat"
     >
       <div className="w-[500px] bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-10">
-
-        
         <div className="flex justify-center mb-6">
-         <div className="w-15 h-15 rounded-full bg-blue-200 flex items-center justify-center shadow-md">
+          <div className="w-15 h-15 rounded-full bg-blue-200 flex items-center justify-center shadow-md">
             <span className="text-4xl text-blue-500">+</span>
           </div>
         </div>
 
-        
         <div className="text-center mb-8">
           <SplitText
             text="Welcome Back!"
@@ -47,7 +79,14 @@ const Landingpage = () => {
             to={{ opacity: 1, y: 0 }}
           />
         </div>
-        <form className="space-y-5">
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          {error && (
+            <p className="text-red-500 text-sm">
+              {error}
+            </p>
+          )}
+
           <div>
             <label className="block mb-2 font-semibold text-slate-700">
               Username
@@ -55,6 +94,9 @@ const Landingpage = () => {
 
             <input
               type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
               placeholder="Enter your username"
               className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
             />
@@ -67,12 +109,17 @@ const Landingpage = () => {
 
             <input
               type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               placeholder="Enter your password"
               className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
             />
           </div>
 
-          <button type="submit"className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:scale-105 transition duration-200"
+          <button
+            type="submit"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:scale-105 transition duration-200"
           >
             Sign In
           </button>
