@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function Procedure() {
+export default function Procedure({ role = "doctor" }) {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedProcedure, setSelectedProcedure] = useState("");
@@ -34,7 +34,7 @@ export default function Procedure() {
   ];
 
   const filteredProcedures = procedureMaster.filter((procedure) =>
-    procedure.name.toLowerCase().includes(search.toLowerCase()),
+    procedure.name.toLowerCase().includes(search.toLowerCase())
   );
 
   function handleAddProcedure() {
@@ -43,9 +43,16 @@ export default function Procedure() {
       return;
     }
 
-    const procedure = procedureMaster.find((p) => p.name === selectedProcedure);
+    const procedure = procedureMaster.find(
+      (p) => p.name === selectedProcedure
+    );
 
-    setProcedures([...procedures, procedure]);
+    const newProcedure = {
+      ...procedure,
+      done: false,
+    };
+
+    setProcedures([...procedures, newProcedure]);
 
     setSearch("");
     setSelectedProcedure("");
@@ -53,82 +60,105 @@ export default function Procedure() {
 
   function markProcedureDone(index) {
     const updated = [...procedures];
-    updated[index] = { ...updated[index], done: true };
+
+    updated[index] = {
+      ...updated[index],
+      done: true,
+    };
+
     setProcedures(updated);
   }
 
   function handleDelete(index) {
-    setProcedures(procedures.filter((_, i) => i !== index));
+    const updated = procedures.filter((_, i) => i !== index);
+    setProcedures(updated);
   }
 
   return (
-    <div className="procedure-container">
-      <h3>Add Procedure</h3>
+    <div className="procedure-page">
+      {/* Doctor Only */}
+      {role === "doctor" && (
+        <div className="procedure-container">
+          <h3>Add Procedure</h3>
 
-      <label>Procedure *</label>
+          <label>Procedure *</label>
 
-      <div className="searchable-dropdown">
-        <input
-          type="text"
-          placeholder="Search procedure..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setShowDropdown(true);
-          }}
-          onFocus={() => setShowDropdown(true)}
-        />
+          <div className="searchable-dropdown">
+            <input
+              type="text"
+              placeholder="Search procedure..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setShowDropdown(true);
+              }}
+              onFocus={() => setShowDropdown(true)}
+            />
 
-        {showDropdown && (
-          <div className="dropdown-menu">
-            {filteredProcedures.length > 0 ? (
-              filteredProcedures.map((procedure) => (
-                <div
-                  key={procedure.name}
-                  className="dropdown-item"
-                  onClick={() => {
-                    setSelectedProcedure(procedure.name);
-                    setSearch(procedure.name);
-                    setShowDropdown(false);
-                  }}
-                >
-                  <strong>{procedure.name}</strong>
-                  <p>{procedure.description}</p>
-                </div>
-              ))
-            ) : (
-              <div className="dropdown-item">No procedure found</div>
+            {showDropdown && (
+              <div className="dropdown-menu">
+                {filteredProcedures.length > 0 ? (
+                  filteredProcedures.map((procedure) => (
+                    <div
+                      key={procedure.name}
+                      className="dropdown-item"
+                      onClick={() => {
+                        setSelectedProcedure(procedure.name);
+                        setSearch(procedure.name);
+                        setShowDropdown(false);
+                      }}
+                    >
+                      <strong>{procedure.name}</strong>
+                      <p>{procedure.description}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="dropdown-item">
+                    No procedure found
+                  </div>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
 
-      <div className="button-group">
-        <button className="add-btn" onClick={handleAddProcedure}>
-          Add Procedure
-        </button>
+          <div className="button-group">
+            <button
+              className="add-btn"
+              onClick={handleAddProcedure}
+            >
+              Add Procedure
+            </button>
 
-        <button
-          className="cancel-btn"
-          onClick={() => {
-            setSearch("");
-            setSelectedProcedure("");
-          }}
-        >
-          Cancel
-        </button>
-      </div>
+            <button
+              className="cancel-btn"
+              onClick={() => {
+                setSearch("");
+                setSelectedProcedure("");
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
-      {procedures.length > 0 && (
-        <div className="procedure-list">
-          <h3>Current Procedures</h3>
+      {/* Common Procedure List */}
+      <div className="procedure-list">
+        <h3>Current Procedures</h3>
 
+        {procedures.length === 0 ? (
+          <p className="empty-text">
+            No procedures added yet
+          </p>
+        ) : (
           <table>
             <thead>
               <tr>
                 <th>Procedure</th>
                 <th>Description</th>
-                <th>Status</th>
+
+                {role === "nurse" && <th>Status</th>}
+
                 <th>Action</th>
               </tr>
             </thead>
@@ -139,32 +169,54 @@ export default function Procedure() {
                   <td>{item.name}</td>
                   <td>{item.description}</td>
 
+                  {role === "nurse" && (
+                    <td>
+                      {item.done ? (
+                        <span className="status-given">
+                          Done
+                        </span>
+                      ) : (
+                        <span className="status-pending">
+                          Pending
+                        </span>
+                      )}
+                    </td>
+                  )}
+
                   <td>
-                    {item.done ? (
-                      <span className="status-given">Done</span>
-                    ) : (
+                    {role === "doctor" && (
                       <button
-                        className="given-btn"
-                        onClick={() => markProcedureDone(index)}
+                        className="btn-delete"
+                        onClick={() => handleDelete(index)}
                       >
-                        Mark as Done
+                        Delete
                       </button>
                     )}
-                  </td>
-                  <td>
-                    <button
-                      className="btn-delete"
-                      onClick={() => handleDelete(index)}
-                    >
-                      Delete
-                    </button>
+
+                    {role === "nurse" && (
+                      <button
+                        className={
+                          item.done
+                            ? "given-btn done"
+                            : "given-btn"
+                        }
+                        onClick={() =>
+                          markProcedureDone(index)
+                        }
+                        disabled={item.done}
+                      >
+                        {item.done
+                          ? "Done ✓"
+                          : "Mark as Done"}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

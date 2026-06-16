@@ -92,22 +92,22 @@ export default function SeniorDashboard() {
           <h2>Appointment Details</h2>
 
           <div className="info-row">
-            <span>Token</span>
+            <span>Token:</span>
             <span>#{patient.token}</span>
           </div>
 
           <div className="info-row">
-            <span>Time</span>
+            <span>Time:</span>
             <span>{patient.time}</span>
           </div>
 
           <div className="info-row">
-            <span>Date</span>
+            <span>Date:</span>
             <span>{patient.date}</span>
           </div>
 
           <div className="info-row">
-            <span>Specialization</span>
+            <span>Specialization:</span>
             <span>Cardiology</span>
           </div>
         </div>
@@ -118,6 +118,7 @@ export default function SeniorDashboard() {
         <div className="sd-prescription-grid">
             <Procedure/>
         </div>
+
       </div>
     </>
   );
