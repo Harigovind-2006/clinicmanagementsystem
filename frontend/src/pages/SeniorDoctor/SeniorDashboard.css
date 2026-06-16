@@ -1,0 +1,137 @@
+/* Main Grid */
+.sd-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+  align-items: start;
+}
+
+/* Cards */
+.sd-patient-card,
+.sd-vitals-card,
+.sd-observation-card,
+.sd-appointment-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+/* Middle Column */
+.sd-middle-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Headings */
+.sd-patient-card h2,
+.sd-vitals-card h2,
+.sd-appointment-card h2 {
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Info Rows */
+.sd-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+
+.sd-info-row span:first-child {
+  color: #64748b;
+}
+
+.sd-info-row span:last-child {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+/* Change Button */
+.sd-change-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #d8b4fe;
+  background: white;
+  color: #9333ea;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sd-change-btn:hover {
+  background: #faf5ff;
+}
+
+/* Vitals */
+.sd-vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.sd-vital-box {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.sd-vital-box p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.sd-vital-box h3 {
+  margin-top: 6px;
+  margin-bottom: 0;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+/* Observation Card */
+.sd-observation-card h3 {
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.sd-observation-card p {
+  color: #475569;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* Header breadcrumb */
+.sd-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.sd-header button {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sd-header span {
+  color: #475569;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .sd-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -7,7 +7,7 @@ export default function Medicines() {
   
   const [days, setDays] = useState("");
   const [frequency, setFrequency] = useState("");
-  const [notes, setNotes] = useState("");
+  
   const [prescriptions, setPrescriptions] = useState([]);
 
   const medicineMaster = [
@@ -147,12 +147,7 @@ export default function Medicines() {
           onChange={(e) => setFrequency(e.target.value)}
         />
 
-        <label>Additional Notes</label>
-        <input
-          type="text"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
+        
 
         <div className="button-group">
           <button className="add-btn" onClick={handleAddMedicine}>
