@@ -4,7 +4,7 @@ export default function Medicines() {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  
   const [days, setDays] = useState("");
   const [frequency, setFrequency] = useState("");
   const [notes, setNotes] = useState("");
@@ -54,7 +54,7 @@ export default function Medicines() {
     const newPrescription = {
       medicine: medicine.name,
       scientificName: medicine.scientificName,
-      quantity,
+      
       days,
       frequency,
       notes,
@@ -65,7 +65,7 @@ export default function Medicines() {
 
     setSearch("");
     setSelectedMedicine("");
-    setQuantity(1);
+    
     setDays("");
     setFrequency("");
     setNotes("");

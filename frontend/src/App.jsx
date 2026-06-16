@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Landingpage from './pages/Landingpage/Landingpage';
 import NursePage from './pages/NursePage/NursePage';
@@ -9,7 +8,8 @@ import PharmacistPage from './pages/Pharmacist/PharmacistPage';
 import PrescriptionDispensing from './pages/Pharmacist/PrescriptionDispensing';
 import DispensingConfirmation from './pages/Pharmacist/DispensingConfirmation';
 import MedicineInventory from './components/MedicineInventory';
-import './App.css'
+import SeniorDoctor from "./pages/SeniorDoctor/SeniorDoctor"
+
 function App() {
 
   return (
@@ -23,6 +23,8 @@ function App() {
       <Route path="/pharmacist/prescriptions/:id"element={<PrescriptionDispensing />}/>
       <Route path="/pharmacist/prescriptions/:id/success" element={<DispensingConfirmation />}/>
       <Route path="/medicine-inventory" element={<MedicineInventory />} />
+      <Route path="/senior-doctor" element={<SeniorDoctor/>} />
+      <Route path="*" element={<div className="p-10 text-center">Page Not Found</div>} />
     </Routes>
   )
 }
