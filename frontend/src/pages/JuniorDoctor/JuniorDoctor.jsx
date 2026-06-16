@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
 
-
 export default function JuniorDoctor() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -51,195 +50,110 @@ export default function JuniorDoctor() {
   ];
 
   const displayedPatients =
-    activeTab === "assessment"
-      ? assessmentPatients
-      : submittedPatients;
+    activeTab === "assessment" ? assessmentPatients : submittedPatients;
 
   return (
-    <>
-      <Layout
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-      />
-
-      <div className="lg:ml-64 min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="h-16 bg-white flex items-center justify-between px-4 md:px-8 shadow-sm">
-          <div className="flex items-center gap-4">
-            <button
-              className="lg:hidden text-2xl"
-              onClick={() => setSidebarOpen(true)}
-            >
-              ☰
-            </button>
-
-            <h2 className="text-lg md:text-xl font-semibold">
-              Junior Doctor
-            </h2>
-          </div>
-
-          <button className="text-gray-600 hover:text-red-500">
-            Logout
-          </button>
-        </header>
-
-        {/* Main Content */}
-        <main className="p-4 md:p-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+    <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+      <div className="w-full">
+        {/* Title Block */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-[#0F172A] tracking-tight">
             Dashboard
           </h1>
-
-          <p className="mt-2 text-gray-500">
+          <p className="mt-1 text-[#64748B] text-[15px]">
             Click a patient to open their assessment page
           </p>
+        </div>
 
-          {/* Tabs */}
-          <div className="mt-8 flex">
-            <button
-              onClick={() => setActiveTab("assessment")}
-              className={`px-6 py-3 rounded-l-xl font-medium transition ${
-                activeTab === "assessment"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white border border-gray-200 text-gray-700"
-              }`}
-            >
-              For Assessment ({assessmentPatients.length})
-            </button>
+        {/* Custom Pill Tab Controls */}
+        <div className="flex gap-2 mb-8 bg-[#F1F5F9] p-1.5 rounded-xl w-fit border border-[#E2E8F0]">
+          <button
+            onClick={() => setActiveTab("assessment")}
+            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === "assessment"
+                ? "bg-[#0052FF] text-white shadow-sm"
+                : "text-[#64748B] hover:text-[#334155]"
+            }`}
+          >
+            For Assessment ({assessmentPatients.length})
+          </button>
 
-            <button
-              onClick={() => setActiveTab("submitted")}
-              className={`px-6 py-3 rounded-r-xl font-medium transition ${
-                activeTab === "submitted"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white border border-gray-200 text-gray-700"
-              }`}
-            >
-              Waiting / Submitted ({submittedPatients.length})
-            </button>
+          <button
+            onClick={() => setActiveTab("submitted")}
+            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === "submitted"
+                ? "bg-[#0052FF] text-white shadow-sm"
+                : "text-[#64748B] hover:text-[#334155]"
+            }`}
+          >
+            Waiting / Submitted ({submittedPatients.length})
+          </button>
+        </div>
+
+        {/* Main Records Frame Table */}
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden w-full">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-max table-auto text-left border-collapse">
+              <thead>
+                <tr className="bg-[#F8FAFC] text-[#64748B] font-semibold text-[13px] tracking-wider uppercase border-b border-[#E2E8F0]">
+                  <th className="px-6 py-4.5 font-semibold">Token</th>
+                  <th className="px-6 py-4.5 font-semibold">PID</th>
+                  <th className="px-6 py-4.5 font-semibold">Patient Name</th>
+                  <th className="px-6 py-4.5 font-semibold">Doctor</th>
+                  <th className="px-6 py-4.5 font-semibold">Specialization</th>
+                  <th className="px-6 py-4.5 font-semibold">Time</th>
+                  <th className="px-6 py-4.5 font-semibold">Status</th>
+                  <th className="px-6 py-4.5 text-right font-semibold pr-10">Action</th>
+                </tr>
+              </thead>
+              <tbody className="text-[#334155] text-[14px] divide-y divide-[#F1F5F9]">
+                {displayedPatients.map((patient) => (
+                  <tr
+                    key={patient.pid}
+                    className="hover:bg-[#F8FAFC] transition-colors"
+                  >
+                    <td className="px-6 py-4.5 text-[#0F172A] font-medium">{patient.token}</td>
+                    <td className="px-6 py-4.5 text-[#64748B]">{patient.pid}</td>
+                    <td className="px-6 py-4.5 font-semibold text-[#0F172A]">{patient.name}</td>
+                    <td className="px-6 py-4.5 text-[#64748B]">{patient.doctor}</td>
+                    <td className="px-6 py-4.5 text-[#64748B]">{patient.specialization}</td>
+                    <td className="px-6 py-4.5 text-[#64748B]">{patient.time}</td>
+                    <td className="px-6 py-4.5">
+                      <span
+                        className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
+                          patient.status === "Submitted"
+                            ? "bg-green-50 text-green-600 border border-green-100"
+                            : "bg-[#DBEAFE] text-[#2563EB]"
+                        }`}
+                      >
+                        {patient.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4.5 text-right pr-10">
+                      {activeTab === "assessment" ? (
+                        <button
+                          onClick={() =>
+                            navigate(`/assessment/${patient.pid}`, {
+                              state: patient,
+                            })
+                          }
+                          className="text-[#2563EB] hover:text-[#1d4ed8] font-semibold text-sm transition-colors"
+                        >
+                          Assess
+                        </button>
+                      ) : (
+                        <button className="text-[#64748B] hover:text-[#475569] font-semibold text-sm transition-colors">
+                          View
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          {/* Desktop Table */}
-          <div className="hidden lg:block mt-6 bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div className="grid grid-cols-8 bg-gray-50 px-6 py-4 text-sm font-semibold text-gray-600">
-              <div>Token</div>
-              <div>PID</div>
-              <div>Patient Name</div>
-              <div>Doctor</div>
-              <div>Specialization</div>
-              <div>Time</div>
-              <div>Status</div>
-              <div>Action</div>
-            </div>
-
-            {displayedPatients.map((patient) => (
-              <div
-                key={patient.pid}
-                className="grid grid-cols-8 px-6 py-4 border-t border-gray-100 items-center"
-              >
-                <div>{patient.token}</div>
-                <div>{patient.pid}</div>
-                <div>{patient.name}</div>
-                <div>{patient.doctor}</div>
-                <div>{patient.specialization}</div>
-                <div>{patient.time}</div>
-
-                <div>
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm ${
-                      patient.status === "Submitted"
-                        ? "bg-green-100 text-green-600"
-                        : "bg-blue-100 text-blue-600"
-                    }`}
-                  >
-                    {patient.status}
-                  </span>
-                </div>
-
-                {activeTab === "assessment" ? (
-                  <button
-                    onClick={() =>
-                      navigate(`/assessment/${patient.pid}`, {
-                        state: patient,
-                      })
-                    }
-                    className="text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    Assess
-                  </button>
-                ) : (
-                  <button
-                    className="text-green-600 font-medium"
-                  >
-                    View
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Mobile Cards */}
-          <div className="lg:hidden mt-6 space-y-4">
-            {displayedPatients.map((patient) => (
-              <div
-                key={patient.pid}
-                className="bg-white rounded-xl shadow-sm p-4"
-              >
-                <div className="space-y-2">
-                  <p>
-                    <strong>PID:</strong> {patient.pid}
-                  </p>
-
-                  <p>
-                    <strong>Name:</strong> {patient.name}
-                  </p>
-
-                  <p>
-                    <strong>Doctor:</strong> {patient.doctor}
-                  </p>
-
-                  <p>
-                    <strong>Specialization:</strong>{" "}
-                    {patient.specialization}
-                  </p>
-
-                  <p>
-                    <strong>Time:</strong> {patient.time}
-                  </p>
-
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm ${
-                      patient.status === "Submitted"
-                        ? "bg-green-100 text-green-600"
-                        : "bg-blue-100 text-blue-600"
-                    }`}
-                  >
-                    {patient.status}
-                  </span>
-                </div>
-
-                {activeTab === "assessment" ? (
-                  <button
-                    onClick={() =>
-                      navigate(`/assessment/${patient.pid}`, {
-                        state: patient,
-                      })
-                    }
-                    className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
-                  >
-                    Assess
-                  </button>
-                ) : (
-                  <button
-                    className="w-full mt-4 bg-green-600 text-white py-2 rounded-lg"
-                  >
-                    View
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </main>
+        </div>
       </div>
-    </>
+    </Layout>
   );
 }
