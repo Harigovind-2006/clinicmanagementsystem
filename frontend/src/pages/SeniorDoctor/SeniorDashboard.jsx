@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./SeniorDashboard.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import Medicines from "../NursePage/components/Medicines";
@@ -8,6 +8,8 @@ export default function SeniorDashboard() {
   const location = useLocation();
   const patient = location.state;
   const navigate = useNavigate();
+  const [consultation,setConsultation] = useState("");
+  const [changeip,setChangeIp] = useState(false);
   return (
     <>
       <header className="sd-header">
@@ -49,8 +51,22 @@ export default function SeniorDashboard() {
             <span>Phone</span>
             <span>{patient.phone}</span>
           </div>
+          <div className="sd-info-row">
+  <span>Type</span>
 
-          <button className="sd-change-btn">Change to IP</button>
+  <span className={`sd-type ${changeip ? "ip" : "op"}`}>
+    {changeip ? "IP" : "OP"}
+  </span>
+</div>
+
+<button
+  className="sd-change-btn"
+  onClick={() => setChangeIp(true)}
+  disabled={changeip}
+>
+  {changeip ? "Already IP" : "Change to IP"}
+</button>
+         
         </div>
 
         {/* Center Section */}
@@ -118,8 +134,15 @@ export default function SeniorDashboard() {
         <div className="sd-prescription-grid">
             <Procedure/>
         </div>
-
+        <div className="sd-consultation-grid">
+          <h1>Consultation Notes</h1>
+          <input type="text" placeholder="Observations" value={consultation} onChange={(e)=>setConsultation(e.target.value)}/>
+        </div>
+        
       </div>
+      <footer className="sd-footer-save">
+        <button>Save</button>
+      </footer>
     </>
   );
 }

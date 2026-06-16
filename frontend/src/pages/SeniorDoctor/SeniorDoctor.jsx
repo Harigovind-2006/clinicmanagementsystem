@@ -26,6 +26,7 @@ export default function SeniorDoctor() {
       pulse: "72 bpm",
       temp: "98.6 °F",
       weight: "75 kg",
+      ip: false,
     },
 
     {
@@ -45,6 +46,7 @@ export default function SeniorDoctor() {
       pulse: "78 bpm",
       temp: "99.1 °F",
       weight: "62 kg",
+      ip: false,
     },
 
     {
@@ -64,6 +66,7 @@ export default function SeniorDoctor() {
       pulse: "74 bpm",
       temp: "98.4 °F",
       weight: "81 kg",
+      ip: false,
     },
 
     {
@@ -83,6 +86,7 @@ export default function SeniorDoctor() {
       pulse: "70 bpm",
       temp: "98.2 °F",
       weight: "58 kg",
+      ip: false,
     },
 
     {
@@ -102,6 +106,7 @@ export default function SeniorDoctor() {
       pulse: "80 bpm",
       temp: "98.7 °F",
       weight: "84 kg",
+      ip: false,
     },
   ];
   const [activeTab, setActiveTab] = useState("waiting");

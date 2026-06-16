@@ -11,11 +11,27 @@
 .sd-patient-card,
 .sd-vitals-card,
 .sd-observation-card,
-.sd-appointment-card {
+.sd-appointment-card,
+.sd-medicine-grid,
+.sd-prescription-grid,
+.sd-consultation-grid {
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   padding: 20px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.sd-medicine-grid {
+  grid-column: span 2;
+}
+
+.sd-prescription-grid {
+  grid-column: span 1;
+}
+
+.sd-consultation-grid {
+  grid-column: span 3;
 }
 
 /* Middle Column */
@@ -28,7 +44,10 @@
 /* Headings */
 .sd-patient-card h2,
 .sd-vitals-card h2,
-.sd-appointment-card h2 {
+.sd-appointment-card h2,
+.sd-medicine-grid h1,
+.sd-consultation-grid h1 {
+  margin-top: 0;
   margin-bottom: 20px;
   font-size: 18px;
   font-weight: 600;
@@ -36,7 +55,8 @@
 }
 
 /* Info Rows */
-.sd-info-row {
+.sd-info-row,
+.info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -44,11 +64,13 @@
   font-size: 14px;
 }
 
-.sd-info-row span:first-child {
+.sd-info-row span:first-child,
+.info-row span:first-child {
   color: #64748b;
 }
 
-.sd-info-row span:last-child {
+.sd-info-row span:last-child,
+.info-row span:last-child {
   color: #0f172a;
   font-weight: 500;
 }
@@ -77,19 +99,19 @@
   gap: 12px;
 }
 
-.sd-vital-box {
+.vital-box {
   background: #f8fafc;
   border-radius: 12px;
   padding: 14px;
 }
 
-.sd-vital-box p {
+.vital-box p {
   margin: 0;
   color: #64748b;
   font-size: 13px;
 }
 
-.sd-vital-box h3 {
+.vital-box h3 {
   margin-top: 6px;
   margin-bottom: 0;
   font-size: 18px;
@@ -98,15 +120,35 @@
 
 /* Observation Card */
 .sd-observation-card h3 {
+  margin-top: 0;
   margin-bottom: 10px;
   font-size: 15px;
   color: #0f172a;
+  font-weight: 600;
 }
 
 .sd-observation-card p {
+  margin: 0;
   color: #475569;
   line-height: 1.6;
   font-size: 14px;
+}
+
+/* Consultation input */
+.sd-consultation-grid input {
+  width: 100%;
+  padding: 16px;
+  min-height: 100px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.sd-consultation-grid input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 /* Header breadcrumb */
@@ -123,10 +165,37 @@
   color: #2563eb;
   font-weight: 600;
   cursor: pointer;
+  padding: 0;
+}
+
+.sd-header button:hover {
+  text-decoration: underline;
 }
 
 .sd-header span {
   color: #475569;
+  font-size: 14px;
+}
+
+/* Medicines Override in Senior Dashboard */
+.sd-medicine-grid .medicine-container,
+.sd-medicine-grid .prescription-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  min-height: unset;
+  max-height: unset;
+  box-shadow: none;
+}
+
+.sd-medicine-grid .prescription-card {
+  overflow-y: auto;
+}
+
+.sd-medicine-grid,
+.sd-prescription-grid {
+  align-self: stretch;
 }
 
 /* Responsive */
@@ -134,4 +203,62 @@
   .sd-dashboard-grid {
     grid-template-columns: 1fr;
   }
+  .sd-medicine-grid,
+  .sd-prescription-grid,
+  .sd-consultation-grid {
+    grid-column: span 1;
+  }
+}
+
+.sd-footer-save {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.sd-footer-save button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transition: all 0.2s ease;
+}
+
+.sd-footer-save button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.sd-footer-save button:active {
+  transform: translateY(0);
+}
+
+.sd-type {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* OP - Green */
+.sd-type.op {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* IP - Purple */
+.sd-type.ip {
+  background: #ede9fe;
+  color: #7c3aed;
 }

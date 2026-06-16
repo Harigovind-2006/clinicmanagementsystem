@@ -3,10 +3,10 @@ DASHBOARD CONTAINER
 ========================= */
 
 .dashboard-container {
-padding: 24px;
-background: #f8fafc;
-min-height: 100vh;
-font-family: Arial, sans-serif;
+  padding: 24px;
+  background: #f8fafc;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
 }
 
 /* =========================
@@ -14,25 +14,25 @@ BREADCRUMB
 ========================= */
 
 .side-bar {
-display: flex;
-align-items: center;
-gap: 10px;
-margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 25px;
 }
 
 .side-bar button {
-border: none;
-background: transparent;
-color: #2563eb;
-font-size: 14px;
-font-weight: 600;
-cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .side-bar p {
-margin: 0;
-font-weight: 500;
-color: #0f172a;
+  margin: 0;
+  font-weight: 500;
+  color: #0f172a;
 }
 
 /* =========================
@@ -40,67 +40,67 @@ SUMMARY CARDS
 ========================= */
 
 .summary-cards {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-gap: 18px;
-margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
 }
 
 .room-card,
 .date-card,
 .medicine-card,
 .procedure-card {
-background: white;
-border-radius: 16px;
-padding: 18px;
-min-height: 110px;
-display: flex;
-flex-direction: column;
-justify-content: center;
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .room-card,
 .date-card {
-border: 1px solid #e2e8f0;
+  border: 1px solid #e2e8f0;
 }
 
 .medicine-card {
-background: #fffbeb;
-border: 1px solid #facc15;
+  background: #fffbeb;
+  border: 1px solid #facc15;
 }
 
 .procedure-card {
-background: #eff6ff;
-border: 1px solid #93c5fd;
+  background: #eff6ff;
+  border: 1px solid #93c5fd;
 }
 
 .room-card h2,
 .date-card h2,
 .medicine-card h2,
 .procedure-card h2 {
-margin: 0 0 12px;
-font-size: 14px;
-font-weight: 500;
-color: #64748b;
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
 }
 
 .room-card h1,
 .date-card h1 {
-margin: 0;
-font-size: 26px;
-color: #0f172a;
+  margin: 0;
+  font-size: 26px;
+  color: #0f172a;
 }
 
 .medicine-card h1 {
-margin: 0;
-font-size: 26px;
-color: #ea580c;
+  margin: 0;
+  font-size: 26px;
+  color: #ea580c;
 }
 
 .procedure-card h1 {
-margin: 0;
-font-size: 26px;
-color: #2563eb;
+  margin: 0;
+  font-size: 26px;
+  color: #2563eb;
 }
 
 /* =========================
@@ -139,6 +139,7 @@ TABS
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
+
 /* =========================
 OVERVIEW SECTION
 ========================= */
@@ -273,40 +274,40 @@ MEDICINE / PROCEDURE FORM
 
 .medicine-container,
 .procedure-container {
-background: white;
-border: 1px solid #dbeafe;
-border-radius: 16px;
-padding: 20px;
+  background: white;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  padding: 20px;
 }
 
 .medicine-container h3,
 .procedure-container h3 {
-margin-bottom: 16px;
-color: #1e293b;
+  margin-bottom: 16px;
+  color: #1e293b;
 }
 
 .medicine-container label,
 .procedure-container label {
-display: block;
-margin-bottom: 6px;
-color: #475569;
-font-size: 14px;
+  display: block;
+  margin-bottom: 6px;
+  color: #475569;
+  font-size: 14px;
 }
 
 .medicine-container input,
 .procedure-container input {
-width: 100%;
-padding: 12px 14px;
-border: 1px solid #cbd5e1;
-border-radius: 10px;
-margin-bottom: 16px;
-box-sizing: border-box;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
 }
 
 .medicine-container input:focus,
 .procedure-container input:focus {
-border-color: #2563eb;
-outline: none;
+  border-color: #2563eb;
+  outline: none;
 }
 
 
@@ -316,43 +317,43 @@ SEARCHABLE DROPDOWN
 ========================= */
 
 .searchable-dropdown {
-position: relative;
-margin-bottom: 16px;
+  position: relative;
+  margin-bottom: 16px;
 }
 
 .dropdown-menu {
-position: absolute;
-top: 105%;
-left: 0;
-width: 100%;
-max-height: 220px;
-overflow-y: auto;
-background: white;
-border: 1px solid #cbd5e1;
-border-radius: 10px;
-z-index: 1000;
-box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  position: absolute;
+  top: 105%;
+  left: 0;
+  width: 100%;
+  max-height: 220px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  z-index: 1000;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .dropdown-item {
-padding: 12px;
-cursor: pointer;
-border-bottom: 1px solid #f1f5f9;
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .dropdown-item:hover {
-background: #eff6ff;
+  background: #eff6ff;
 }
 
 .dropdown-item strong {
-display: block;
-color: #0f172a;
+  display: block;
+  color: #0f172a;
 }
 
 .dropdown-item p {
-margin-top: 4px;
-font-size: 12px;
-color: #64748b;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
 }
 
 /* =========================
@@ -360,9 +361,9 @@ FORM ROW
 ========================= */
 
 .row {
-display: block;
-grid-template-columns: 1fr 1fr;
-gap: 16px;
+  display: block;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 /* =========================
@@ -370,48 +371,49 @@ BUTTONS
 ========================= */
 
 .button-group {
-display: flex;
-gap: 12px;
-margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .add-btn {
-background: #2563eb;
-color: white;
-border: none;
-padding: 12px 18px;
-border-radius: 10px;
-cursor: pointer;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 .add-btn:hover {
-background: #1d4ed8;
+  background: #1d4ed8;
 }
 
 .cancel-btn {
-background: white;
-border: 1px solid #cbd5e1;
-padding: 12px 18px;
-border-radius: 10px;
-cursor: pointer;
+  background: white;
+  border: 1px solid #cbd5e1;
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 .cancel-btn:hover {
-background: #f8fafc;
+  background: #f8fafc;
 }
 
 .delete-btn {
-background: #dc2626;
-color: white;
-border: none;
-padding: 7px 12px;
-border-radius: 6px;
-cursor: pointer;
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .delete-btn:hover {
-background: #b91c1c;
+  background: #b91c1c;
 }
+
 .btn-delete {
   background: #dc2626;
   color: white;
@@ -431,33 +433,33 @@ TABLES
 
 .prescription-list,
 .procedure-list {
-margin-top: 25px;
+  margin-top: 25px;
 }
 
 .prescription-list table,
 .procedure-list table {
-width: 100%;
-border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .prescription-list th,
 .procedure-list th {
-background: #f8fafc;
-padding: 12px;
-text-align: left;
-color: #475569;
-border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 12px;
+  text-align: left;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .prescription-list td,
 .procedure-list td {
-padding: 12px;
-border-bottom: 1px solid #e2e8f0;
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .prescription-list tr:hover,
 .procedure-list tr:hover {
-background: #f8fafc;
+  background: #f8fafc;
 }
 
 .given-btn {
@@ -612,6 +614,7 @@ PRESCRIPTION CARD
 .prescription-card td:nth-child(4) .given-btn {
   display: inline-block;
 }
+
 /* Status */
 
 .status-given {
