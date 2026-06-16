@@ -1,62 +1,31 @@
-import React, { useState } from "react";
-import { useLocation,useNavigate } from "react-router-dom";
-import "./PatientDashboard.css";
-import Overview from "./components/Overview";
-import Medicines from "./components/Medicines";
-import Procedure from "./components/Procedure";
+import React from "react";
+import { useLocation } from "react-router-dom";
+import Layout from "../../components/Layout";
 
 export default function PatientDashboard() {
   const navigate=useNavigate();
   const location = useLocation();
   const patient = location.state;
-  const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="dashboard-container">
-      <div className="side-bar">
-        <button onClick={()=>navigate("/")}>Patient</button> {">"} <p>{patient.pname}</p>
-      </div>
-      <div className="summary-cards">
-  <div className="room-card">
-    <h2>Room</h2>
-    <h1>Room {patient.id}</h1>
-  </div>
+    <div className="flex">
+      <Layout />
 
-  <div className="date-card">
-    <h2>Admitted</h2>
-    <h1>{patient.date}</h1>
-  </div>
+      <main className="flex-1 p-6 bg-gray-50 min-h-screen">
+        <div className="flex items-center gap-2 mb-6 text-gray-600">
+          <button className="font-medium">Patient</button>
+          <span>{">"}</span>
+          <p>{patient?.pname}</p>
+        </div>
 
-  <div className="medicine-card">
-    <h2>Medicines Given</h2>
-    <h1> {patient.medicines}</h1>
-  </div>
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-gray-500 text-sm mb-2">Room</h2>
 
-  <div className="procedure-card">
-    <h2>Procedures Done</h2>
-    <h1>{patient.procedure}</h1>
-  </div>
-</div>
-      <div className="tabs">
-        <button onClick={() => setActiveTab("overview")}>Overview</button>
-
-        <button onClick={() => setActiveTab("medicines")}>
-          Medicines & Prescriptions 
-        </button>
-
-        <button onClick={() => setActiveTab("procedures")}>
-          Procedures
-        </button>
-      </div>
-      {activeTab === "overview" && (
-        <Overview patient={patient}/>
-      )}
-      {activeTab==="medicines"&&(
-        <Medicines />
-      )}
-      {activeTab==="procedures"&&(
-        <Procedure />
-      )}
+          <h1 className="text-3xl font-bold text-gray-900">
+            Room {patient?.id}
+          </h1>
+        </div>
+      </main>
     </div>
   );
 }
