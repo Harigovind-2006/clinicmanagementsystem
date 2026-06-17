@@ -16,8 +16,10 @@ import MedicineInventory from "./components/MedicineInventory";
 import SeniorDoctorDashboard from "./pages/SeniorDoctor/SeniorDoctorDashboard";
 import SeniorDoctorConsultation from "./pages/SeniorDoctor/SeniorDoctorConsultation";
 
-import BillPayment from "./components/BillComponent/BillDashboard";
-import BillDashboard from "./components/BillComponent/BillPayment";
+import BillPayment from "./components/BillComponent/BillPayment";
+import BillDashboard from "./components/BillComponent/BillDashboard";
+import Admission from "./components/AdmissionComponent/Admission";
+
 
 function App() {
   return (
@@ -54,6 +56,8 @@ function App() {
       <Route path="/bill-dashboard" element={<BillDashboard />} />
 
       <Route path="/billing/:pid" element={<BillPayment />} />
+
+      <Route path="/admission" element={<Admission />} />
 
       <Route
         path="*"
