@@ -1,0 +1,207 @@
+/* ===== Global ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #f5f7fb;
+  font-family: Arial, sans-serif;
+}
+
+/* ===== Header ===== */
+header {
+  background: white;
+  padding: 20px 30px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+header h1 {
+  color: #1f2937;
+  font-size: 28px;
+}
+
+header button {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+header button:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+header span {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* ===== Search ===== */
+.search-bar {
+  margin: 25px;
+}
+
+.search-bar input {
+  width: 350px;
+  padding: 12px 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+}
+
+.search-bar input:focus {
+  border-color: #2563eb;
+}
+
+/* ===== Tables ===== */
+table {
+  width: calc(100% - 50px);
+  margin: 0 25px 25px;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+thead {
+  background: #eff6ff;
+}
+
+th {
+  padding: 15px;
+  text-align: left;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+td {
+  padding: 15px;
+  border-top: 1px solid #e5e7eb;
+}
+
+tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* ===== Amount Status ===== */
+.paid-amount {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.pending-amount {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.cleared-status {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+/* ===== Buttons ===== */
+.view-details-btn {
+  border: none;
+  background: #2563eb;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.view-details-btn:hover {
+  background: #1d4ed8;
+}
+
+/* ===== Dashboard Cards ===== */
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 25px;
+}
+
+.total-card,
+.paid-card,
+.balance-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.total-card h1:first-child,
+.paid-card h1:first-child,
+.balance-card h1:first-child {
+  font-size: 18px;
+  color: #6b7280;
+  margin-bottom: 10px;
+}
+
+.total-card h1:last-child {
+  color: #2563eb;
+}
+
+.paid-card h1:last-child {
+  color: #16a34a;
+}
+
+.balance-card h1:last-child {
+  color: #dc2626;
+}
+
+/* ===== Transaction Table ===== */
+.table-container {
+  margin: 0 25px 25px;
+}
+
+.table-container h1 {
+  margin-bottom: 15px;
+  color: #1f2937;
+  font-size: 24px;
+}
+
+.table-container table {
+  width: 100%;
+  margin: 0;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .card-container {
+    grid-template-columns: 1fr;
+  }
+
+  .search-bar input {
+    width: 100%;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+.mark-paid-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.mark-paid-btn:hover {
+  background: #1d4ed8;
+}
