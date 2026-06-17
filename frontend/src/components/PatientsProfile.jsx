@@ -52,7 +52,7 @@ export default function PatientDetails() {
       </div>
       <div className="grid grid-cols-3 gap-6">
         
-        <div className="col-span-2 bg-white border border-gray-200 rounded-2xl p-6">
+        <div className="col-span-2 bg-white border border-gray-300 rounded-2xl p-6">
           <h2 className="text-2xl font-semibold mb-8">
             Personal Information
           </h2>
@@ -105,10 +105,10 @@ export default function PatientDetails() {
           </div>
         </div>
 
-        {/* Right Side Cards */}
+       
         <div className="space-y-6">
-          {/* Current Status */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+       
+          <div className="bg-white border border-gray-300 rounded-2xl p-6">
             <h2 className="text-2xl font-semibold mb-6">
               Current Status
             </h2>
@@ -116,7 +116,7 @@ export default function PatientDetails() {
             <div className="flex justify-between mb-4">
               <span className="text-gray-500">Type</span>
 
-              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-md text-sm font-medium">
+              <span className="bg-green-100 t   ext-green-700 px-3 py-1 rounded-md text-sm font-medium">
                 {status.type}
               </span>
             </div>
@@ -127,8 +127,8 @@ export default function PatientDetails() {
             </div>
           </div>
 
-          {/* Appointment */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+         
+          <div className="bg-white border border-gray-300 rounded-2xl p-6">
             <h2 className="text-2xl font-semibold mb-6">
               Current Appointment
             </h2>
