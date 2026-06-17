@@ -9,8 +9,7 @@ const handleAnimationComplete = () => {
 export default function Landingpage() {
   const navigate = useNavigate();
 
-  const [selectedRole, setSelectedRole] =
-    useState("");
+  const [selectedRole, setSelectedRole] = useState("");
 
   const [formData, setFormData] = useState({
     username: "",
@@ -64,10 +63,8 @@ export default function Landingpage() {
 
     if (roleCredentials[role]) {
       setFormData({
-        username:
-          roleCredentials[role].username,
-        password:
-          roleCredentials[role].password,
+        username: roleCredentials[role].username,
+        password: roleCredentials[role].password,
       });
     } else {
       setFormData({
@@ -92,14 +89,17 @@ export default function Landingpage() {
       return;
     }
 
-    const role =
-      roleCredentials[selectedRole];
+    const role = roleCredentials[selectedRole];
 
     if (
       formData.username === role.username &&
       formData.password === role.password
     ) {
       setError("");
+
+      // SAVE ROLE FOR LAYOUT
+      localStorage.setItem("role", selectedRole);
+
       navigate(role.route);
     } else {
       setError("Invalid username or password");
@@ -112,9 +112,7 @@ export default function Landingpage() {
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center shadow-md">
-            <span className="text-4xl text-blue-600">
-              +
-            </span>
+            <span className="text-4xl text-blue-600">+</span>
           </div>
         </div>
 
@@ -137,9 +135,7 @@ export default function Landingpage() {
             }}
             threshold={0.1}
             rootMargin="-100px"
-            onLetterAnimationComplete={
-              handleAnimationComplete
-            }
+            onLetterAnimationComplete={handleAnimationComplete}
             showCallback
           />
 
@@ -162,10 +158,7 @@ export default function Landingpage() {
         </div>
 
         {/* Form */}
-        <form
-          className="space-y-5"
-          onSubmit={handleSubmit}
-        >
+        <form className="space-y-5" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-sm">
               {error}
@@ -183,33 +176,19 @@ export default function Landingpage() {
               onChange={handleRoleChange}
               className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
             >
-              <option value="">
-                Select Role
-              </option>
+              <option value="">Select Role</option>
 
-              <option value="manager">
-                Manager
-              </option>
+              <option value="manager">Manager</option>
 
-              <option value="frontoffice">
-                Front Office
-              </option>
+              <option value="frontoffice">Front Office</option>
 
-              <option value="seniordoctor">
-                Senior Doctor
-              </option>
+              <option value="seniordoctor">Senior Doctor</option>
 
-              <option value="juniordoctor">
-                Junior Doctor
-              </option>
+              <option value="juniordoctor">Junior Doctor</option>
 
-              <option value="nurse">
-                Nurse
-              </option>
+              <option value="nurse">Nurse</option>
 
-              <option value="pharmacist">
-                Pharmacist
-              </option>
+              <option value="pharmacist">Pharmacist</option>
             </select>
           </div>
 
@@ -255,7 +234,6 @@ export default function Landingpage() {
         </form>
 
         {/* Demo Credentials */}
-        
       </div>
     </section>
   );

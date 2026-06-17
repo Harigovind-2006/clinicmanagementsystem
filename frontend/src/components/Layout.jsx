@@ -1,19 +1,124 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 export default function Layout({
   children,
-  sidebarOpen,
-  setSidebarOpen,
+  sidebarOpen = false,
+  setSidebarOpen = () => {},
 }) {
-  const menuItems = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Patients", path: "/patients" },
-    { name: "Admissions", path: "/admissions" },
-    { name: "Bills & Payments", path: "/billing" },
-    { name: "Medicines", path: "/medicines" },
-    { name: "Users", path: "/users" },
-  ];
+  const navigate = useNavigate();
+
+  const role =
+    localStorage.getItem("role") || "";
+
+  console.log("ROLE =", role);
+
+  let menuItems = [];
+
+  switch (role) {
+    case "manager":
+      menuItems = [
+        {
+          name: "Dashboard",
+          path: "/bill-dashboard",
+        },
+        {
+          name: "Patients",
+          path: "/patients",
+        },
+        {
+          name: "Admissions",
+          path: "/admission",
+        },
+        {
+          name: "Bills & Payments",
+          path: "/bill-dashboard",
+        },
+        {
+          name: "Medicines",
+          path: "/medicine-inventory",
+        },
+        {
+          name: "Users",
+          path: "/users",
+        },
+      ];
+      break;
+
+    case "frontoffice":
+      menuItems = [
+        {
+          name: "Dashboard",
+          path: "/admission",
+        },
+        {
+          name: "Patients",
+          path: "/patients",
+        },
+        {
+          name: "Admissions",
+          path: "/admission",
+        },
+        {
+          name: "Bills & Payments",
+          path: "/bill-dashboard",
+        },
+      ];
+      break;
+
+    case "seniordoctor":
+      menuItems = [
+        {
+          name: "Dashboard",
+          path: "/senior-doctor",
+        },
+      ];
+      break;
+
+    case "juniordoctor":
+      menuItems = [
+        {
+          name: "Dashboard",
+          path: "/junior-doctor",
+        },
+      ];
+      break;
+
+    case "nurse":
+      menuItems = [
+        {
+          name: "Patients",
+          path: "/nurse",
+        },
+      ];
+      break;
+
+    case "pharmacist":
+      menuItems = [
+        {
+          name: "Patient Medicines",
+          path: "/pharmacist",
+        },
+        {
+          name: "Medicines",
+          path: "/medicine-inventory",
+        },
+      ];
+      break;
+
+    default:
+      menuItems = [
+        {
+          name: "Dashboard",
+          path: "/",
+        },
+      ];
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("role");
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -28,24 +133,30 @@ export default function Layout({
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-screen w-64 bg-white z-50 border-r border-gray-200
-          flex flex-col
-          transform transition-transform duration-300
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 z-50
+          flex flex-col transition-transform duration-300
+          ${
+            sidebarOpen
+              ? "translate-x-0"
+              : "-translate-x-full"
+          }
           lg:translate-x-0
         `}
       >
         {/* Logo */}
-        <div className="h-20 flex items-center justify-between px-6">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-            <h1 className="ml-3 text-xl font-semibold text-gray-900">
+        <div className="h-20 flex items-center justify-between px-6 border-b">
+          <div>
+            <h1 className="text-2xl font-bold text-blue-600">
               CMS
             </h1>
+
+            <p className="text-sm text-gray-500 capitalize">
+              {role || "Guest"}
+            </p>
           </div>
 
           <button
-            className="lg:hidden text-2xl"
+            className="lg:hidden text-xl"
             onClick={() => setSidebarOpen(false)}
           >
             ✕
@@ -53,17 +164,19 @@ export default function Layout({
         </div>
 
         {/* Menu */}
-        <nav className="flex-1 px-4 py-2 overflow-y-auto">
+        <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
             {menuItems.map((item) => (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={() =>
+                    setSidebarOpen(false)
+                  }
                   className={({ isActive }) =>
-                    `block px-4 py-3 rounded-lg transition ${
+                    `block px-4 py-3 rounded-xl transition ${
                       isActive
-                        ? "bg-blue-50 text-blue-600 font-medium"
+                        ? "bg-blue-50 text-blue-600 font-semibold"
                         : "text-gray-700 hover:bg-gray-100"
                     }`
                   }
@@ -75,19 +188,20 @@ export default function Layout({
           </ul>
         </nav>
 
-        {/* Logout at Bottom */}
-        <div className="p-4 border-t border-gray-100">
-          <button className="w-full text-left px-4 py-3 rounded-lg text-red-500 font-medium hover:bg-red-50">
+        {/* Logout */}
+        <div className="p-4 border-t">
+          <button
+            onClick={handleLogout}
+            className="w-full px-4 py-3 rounded-xl text-left text-red-600 hover:bg-red-50 font-medium"
+          >
             Logout
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area Container Frame */}
-      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen w-full">
-        <main className="flex-1 block">
-          {children}
-        </main>
+      {/* Main Content */}
+      <div className="flex-1 lg:pl-64">
+        <main>{children}</main>
       </div>
     </div>
   );

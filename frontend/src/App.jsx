@@ -55,7 +55,7 @@ function App()  {
 
       <Route path="/bill-dashboard" element={<BillDashboard />} />
 
-      <Route path="/billing/:pid" element={<BillPayment />} />
+      <Route path="/billing-dashboard" element={<BillPayment />} />
 
       <Route path="/admission" element={<Admission />} />
 
