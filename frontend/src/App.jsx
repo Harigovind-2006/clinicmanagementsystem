@@ -5,6 +5,7 @@ import NursePage from './pages/NursePage/NursePage';
 import PatientDashboard from './pages/NursePage/PatientDashboard';
 import JuniorDoctor from './pages/JuniorDoctor/JuniorDoctor';
 import PatientAssessment from './pages/JuniorDoctor/PatientAssessment';
+import PatientsList from './components/PatientsList';
 import './App.css'
 function App() {
 
@@ -14,6 +15,7 @@ function App() {
       <Route path="/nurse" element={<NursePage />} />
       <Route path="/junior-doctor" element={<JuniorDoctor />} />
       <Route path="/patient/:pid" element={<PatientDashboard />} />
+      <Route path='/PatientsList' element={<PatientsList/>} />
       <Route
         path="/assessment/:pid"
         element={<PatientAssessment />}
