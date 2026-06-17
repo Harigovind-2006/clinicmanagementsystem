@@ -5,8 +5,8 @@ import './App.css'
 import PatientDashboard from './pages/NursePage/PatientDashboard';
 import SeniorDoctor from "./pages/SeniorDoctor/SeniorDoctor"
 import SeniorDashboard from './pages/SeniorDoctor/SeniorDashboard';
-import BillPayment from './components/BillPayment';
-import BillDashboard from './components/BillDashboard';
+import BillPayment from './components/BillComponent/BillPayment';
+import BillDashboard from './components/BillComponent/BillDashboard';
 function App() {
       const [billSummary, setBillSummary] = useState([
   {
