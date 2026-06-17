@@ -1,6 +1,12 @@
 import React from "react";
 
-export default function Overview({ patient }) {
+export default function Overview({ patient, setPatient }) {
+  function handleDischarge() {
+    setPatient({
+      ...patient,
+      type: "OP",
+    });
+  }
   return (
     <div className="content-grid">
       <div className="profile-card">
@@ -9,6 +15,12 @@ export default function Overview({ patient }) {
         <p>Name: {patient.pname}</p>
         <p>Gender: {patient.gender}</p>
         <p>Blood Group: {patient.blood}</p>
+        <p>Type:{patient.type}</p>
+        {patient.type === "IP" && (
+          <button onClick={handleDischarge} className="discharge-btn">
+            Discharge
+          </button>
+        )}
       </div>
 
       <div className="notes-card">

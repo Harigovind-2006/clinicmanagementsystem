@@ -6,7 +6,7 @@ import "./NursePage.css";
 export default function NursePage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
-  const rooms = [
+  const [rooms,setRooms] = useState([
     {
       id: 101,
       blood: "O+",
@@ -15,7 +15,8 @@ export default function NursePage() {
       pid: "P003",
       date:"21/02/2026",
       medicines:"0/0",
-      procedure:"0/0"
+      procedure:"0/0",
+      type:"IP"
     },
     {
       id: 102,
@@ -25,9 +26,10 @@ export default function NursePage() {
       pid: "P005",
       date:"12/10/2025",
       medicines:"0/0",
-      procedure:"0/0"
+      procedure:"0/0",
+      type:"IP"
     },
-  ];
+  ])
    console.log(rooms);
   const filteredRooms = rooms.filter(
     (room) =>
@@ -63,6 +65,7 @@ export default function NursePage() {
                 className="btn-class"
                 onClick={() => navigate(`/patient/${room.pid}`,{
                     state: room
+
                 })}
               >
                 View Patient

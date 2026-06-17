@@ -8,12 +8,12 @@ export default function SeniorDashboard() {
   const location = useLocation();
   const patient = location.state;
   const navigate = useNavigate();
-  const [consultation,setConsultation] = useState("");
-  const [changeip,setChangeIp] = useState(false);
+  const [consultation, setConsultation] = useState("");
+  const [changeip, setChangeIp] = useState(false);
   return (
     <>
       <header className="sd-header">
-        <button onClick={() => navigate("/")}>Back to Queue</button>
+        <button onClick={() => navigate("/sdoctor")}>Back to Queue</button>
         <span>&gt;</span>
         <span>{patient.pname}</span>
       </header>
@@ -52,21 +52,20 @@ export default function SeniorDashboard() {
             <span>{patient.phone}</span>
           </div>
           <div className="sd-info-row">
-  <span>Type</span>
+            <span>Type</span>
 
-  <span className={`sd-type ${changeip ? "ip" : "op"}`}>
-    {changeip ? "IP" : "OP"}
-  </span>
-</div>
+            <span className={`sd-type ${changeip ? "ip" : "op"}`}>
+              {changeip ? "IP" : "OP"}
+            </span>
+          </div>
 
-<button
-  className="sd-change-btn"
-  onClick={() => setChangeIp(true)}
-  disabled={changeip}
->
-  {changeip ? "Already IP" : "Change to IP"}
-</button>
-         
+          <button
+            className="sd-change-btn"
+            onClick={() => setChangeIp(true)}
+            disabled={changeip}
+          >
+            {changeip ? "Already IP" : "Change to IP"}
+          </button>
         </div>
 
         {/* Center Section */}
@@ -79,7 +78,7 @@ export default function SeniorDashboard() {
                 <p>BP</p>
                 <h3>{patient.bp}</h3>
               </div>
-      
+
               <div className="vital-box">
                 <p>Pulse</p>
                 <h3>{patient.pulse}</h3>
@@ -128,17 +127,21 @@ export default function SeniorDashboard() {
           </div>
         </div>
         <div className="sd-medicine-grid">
-            <h1>Presciption</h1>
-           <Medicines />
+          <h1>Presciption</h1>
+          <Medicines />
         </div>
         <div className="sd-prescription-grid">
-            <Procedure/>
+          <Procedure />
         </div>
         <div className="sd-consultation-grid">
           <h1>Consultation Notes</h1>
-          <input type="text" placeholder="Observations" value={consultation} onChange={(e)=>setConsultation(e.target.value)}/>
+          <input
+            type="text"
+            placeholder="Observations"
+            value={consultation}
+            onChange={(e) => setConsultation(e.target.value)}
+          />
         </div>
-        
       </div>
       <footer className="sd-footer-save">
         <button>Save</button>

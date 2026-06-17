@@ -9,10 +9,10 @@ function App() {
 
   return (
     <Routes> 
-      {/*<Route path="/" element={<NursePage />} />
-      <Route path="/patient/:pid" element={<PatientDashboard />} />*/}
-      <Route path="/" element={<SeniorDoctor/>} />
-      <Route path="/patient/:pid" element={<SeniorDashboard />} /> 
+      <Route path="/nurse" element={<NursePage />} />
+      <Route path="/patient/:pid" element={<PatientDashboard />} />
+      <Route path="/sdoctor" element={<SeniorDoctor/>} />
+      <Route path="/patients/:pid" element={<SeniorDashboard />} /> 
     </Routes>
   )
 }

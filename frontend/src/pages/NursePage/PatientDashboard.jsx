@@ -8,13 +8,13 @@ import Procedure from "./components/Procedure";
 export default function PatientDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const patient = location.state;
+  const [patient, setPatient] = useState(location.state);
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
     <div className="dashboard-container">
       <div className="side-bar">
-        <button onClick={() => navigate("/")}>Patient</button> {">"}{" "}
+        <button onClick={() => navigate("/nurse")}>Patient</button> {">"}{" "}
         <p>{patient.pname}</p>
       </div>
       <div className="summary-cards">
@@ -47,7 +47,7 @@ export default function PatientDashboard() {
 
         <button onClick={() => setActiveTab("procedures")}>Procedures</button>
       </div>
-      {activeTab === "overview" && <Overview patient={patient} />}
+      {activeTab === "overview" && <Overview patient={patient} setPatient={setPatient} />}
       {activeTab === "medicines" && (
         <div className="nurse-medicine-grid">
           <Medicines />
