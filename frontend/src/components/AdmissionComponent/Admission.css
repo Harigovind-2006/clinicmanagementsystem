@@ -1,0 +1,175 @@
+/* Page */
+
+header h1 {
+  font-size: 38px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 20px;
+}
+header button{
+    display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Assign Room Button */
+
+
+
+
+header button:hover {
+  background: #1d4ed8;
+}
+
+/* Table Card */
+
+.table-class {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Search Input */
+
+.table-class input {
+  width: calc(100% - 40px);
+  margin: 20px;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+.table-class input:focus {
+  border-color: #2563eb;
+}
+
+/* Table */
+
+.table-class table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-class th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-class td {
+  padding: 16px;
+  font-size: 14px;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.table-class tr:last-child td {
+  border-bottom: none;
+}
+
+.table-class tr:hover {
+  background: #f8fafc;
+}
+
+/* Status */
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.occupied {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.status-badge.available {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status-badge.closed {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* Patient Name */
+
+.table-class td:nth-child(5) {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* Discharge Button */
+
+.discharge-btn {
+  background: white;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.discharge-btn:hover {
+  background: #fef2f2;
+}
+
+/* Responsive */
+
+@media (max-width: 1024px) {
+  .table-class {
+    overflow-x: auto;
+  }
+
+  .table-class table {
+    min-width: 1000px;
+  }
+}
+.admission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.admission-header h1 {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.assign-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.assign-btn:hover {
+  background: #1d4ed8;
+  color: #ffff;
+}
