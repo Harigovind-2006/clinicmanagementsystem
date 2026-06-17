@@ -6,6 +6,8 @@ import PatientDashboard from './pages/NursePage/PatientDashboard';
 import JuniorDoctor from './pages/JuniorDoctor/JuniorDoctor';
 import PatientAssessment from './pages/JuniorDoctor/PatientAssessment';
 import ManagerDashboard from './pages/ManagerDashboard/ManagerDashboard';
+import PatientsList from './components/PatientsList';
+import PatientsProfile from './components/PatientsProfile'
 import './App.css'
 function App() {
   const role='Manager';
@@ -16,6 +18,7 @@ function App() {
       <Route path="/junior-doctor" element={<JuniorDoctor />} />
       <Route path="/patient/:pid" element={<PatientDashboard />} />
       <Route path='/PatientsList' element={<PatientsList/>} />
+      <Route path='/PatientsProfile' element={<PatientsProfile/>}/>
       <Route
         path="/assessment/:pid"
         element={<PatientAssessment />}
