@@ -8,7 +8,36 @@ import SeniorDashboard from './pages/SeniorDoctor/SeniorDashboard';
 import BillPayment from './components/BillPayment';
 import BillDashboard from './components/BillDashboard';
 function App() {
-
+      const [billSummary, setBillSummary] = useState([
+  {
+    pid: "P001",
+    pname: "John Doe",
+    total: 700,
+    paid: 700,
+    pending: 0,
+    transactions: [
+      {
+        id: 1,
+        purpose: "Registration",
+        amount: 200,
+        method: "Cash",
+        reference: "-",
+        date: "2026-05-20",
+        status: "Paid",
+      },
+      {
+        id: 2,
+        purpose: "Consultation",
+        amount: 500,
+        method: "UPI",
+        reference: "UPI123456",
+        date: "2026-05-20",
+        status: "Paid",
+      },
+    ],
+  },
+  // other patients...
+]);
   return (
     <Routes> 
       <Route path='/bill' element={<BillPayment/>}/>
