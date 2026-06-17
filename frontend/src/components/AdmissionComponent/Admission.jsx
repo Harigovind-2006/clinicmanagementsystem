@@ -69,22 +69,7 @@ export default function Admission() {
       room.patient?.toLowerCase().includes(name.toLowerCase()),
   );
 
-  function handleDischarge(roomNo) {
-    const updatedRooms = roomData.map((room) =>
-      room.roomNo === roomNo
-        ? {
-            ...room,
-            status: "Available",
-            patient: null,
-            pid: null,
-            admitted: null,
-            advance: null,
-          }
-        : room,
-    );
-
-    setRoomData(updatedRooms);
-  }
+  
   const today = new Date().toISOString().split("T")[0];
   function handleAssignRoom() {
     if (!selectedPatient || !selectedRoom) {
@@ -161,7 +146,7 @@ export default function Admission() {
                   {room.status === "Occupied" && (
                     <button
                       className="discharge-btn"
-                      onClick={() => handleDischarge(room.roomNo)}
+                      
                     >
                       Discharge
                     </button>
