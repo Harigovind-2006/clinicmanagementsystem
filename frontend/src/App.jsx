@@ -20,6 +20,8 @@ import BillPayment from "./components/BillComponent/BillPayment";
 import BillDashboard from "./components/BillComponent/BillDashboard";
 import Admission from "./components/AdmissionComponent/Admission";
 
+import Users from "./components/Users";
+
 
 function App()  {
   return (
@@ -58,6 +60,9 @@ function App()  {
       <Route path="/billing/:pid" element={<BillDashboard />} />
 
       <Route path="/admission" element={<Admission />} />
+
+      <Route path="/users" element={<Users />} />
+
 
       <Route
         path="*"
