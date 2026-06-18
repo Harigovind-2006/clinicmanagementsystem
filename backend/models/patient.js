@@ -47,6 +47,11 @@ const patientSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Address is required'],
     trim: true
+  },
+  pendingAmount:{
+    type: Number,
+    default: 0,
+    
   }
 
 }, 
