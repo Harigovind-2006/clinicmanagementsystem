@@ -9,6 +9,10 @@ export default function MedicineInventory() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
 
+  // Directly pulling active role matching your layout check
+  const role = localStorage.getItem("role") || "";
+  const isManager = role === "manager";
+
   const [medicines, setMedicines] = useState([
     {
       id: "M001",
@@ -50,6 +54,11 @@ export default function MedicineInventory() {
   );
 
   const handleAddMedicine = () => {
+    if (!isManager) {
+      alert("Access Denied: Only managers can add medicine items.");
+      return;
+    }
+
     const newMedicine = {
       id: `M${String(medicines.length + 1).padStart(3, "0")}`,
       name: form.name,
@@ -64,6 +73,7 @@ export default function MedicineInventory() {
   };
 
   const openEditModal = (medicine) => {
+    if (!isManager) return;
     setSelectedMedicine(medicine);
     setForm({
       name: medicine.name,
@@ -75,6 +85,7 @@ export default function MedicineInventory() {
   };
 
   const handleUpdateMedicine = () => {
+    if (!isManager) return;
     setMedicines(
       medicines.map((medicine) =>
         medicine.id === selectedMedicine.id
@@ -92,13 +103,17 @@ export default function MedicineInventory() {
   };
 
   const handleDeleteMedicine = (id) => {
+    if (!isManager) {
+      alert("Access Denied: Only managers can delete records.");
+      return;
+    }
     if (window.confirm("Delete this medicine?")) {
       setMedicines(medicines.filter((medicine) => medicine.id !== id));
     }
   };
 
   const handleRestock = (id) => {
-    const qty = Number(prompt("Enter quantity"));
+    const qty = Number(prompt("Enter quantity to add:"));
     if (!qty || qty <= 0) return;
 
     setMedicines(
@@ -112,28 +127,33 @@ export default function MedicineInventory() {
 
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
-      <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+      <div className="w-full max-w-full block overflow-hidden bg-gray-50 p-4 md:p-6 lg:p-8">
         
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 w-full">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Medicine Inventory</h1>
-            <p className="text-gray-500 text-sm mt-1">Monitor and manage pharmaceutical stock levels</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">Medicine Inventory</h1>
+            <p className="text-gray-500 text-xs sm:text-sm mt-1 break-words">
+              Role Permission Level: <span className="font-semibold text-blue-600 capitalize">{role || "Guest"}</span>
+            </p>
           </div>
 
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl transition font-medium text-sm shadow-sm"
-          >
-            + Add Medicine
-          </button>
+          {/* MANAGER ONLY VIEWABLE BUTTON */}
+          {isManager && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl transition font-medium text-sm shadow-sm whitespace-nowrap self-start sm:self-auto"
+            >
+              + Add Medicine
+            </button>
+          )}
         </div>
 
         {/* Filters & Tabs */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-3 mb-6 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
           <button
             onClick={() => setActiveTab("all")}
-            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition ${
+            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition whitespace-nowrap ${
               activeTab === "all"
                 ? "bg-blue-600 text-white shadow-sm"
                 : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
@@ -144,7 +164,7 @@ export default function MedicineInventory() {
 
           <button
             onClick={() => setActiveTab("low")}
-            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition ${
+            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition whitespace-nowrap ${
               activeTab === "low"
                 ? "bg-red-600 text-white shadow-sm"
                 : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
@@ -155,42 +175,42 @@ export default function MedicineInventory() {
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 border border-gray-200">
+        <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 border border-gray-200 w-full">
           <input
             type="text"
-            placeholder="Search medicines by name or scientific structure..."
+            placeholder="Search medicines..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full max-w-md border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-gray-50/50"
           />
         </div>
 
-        {/* Desktop Data Table */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+        {/* Responsive Table Data Box Wrapper */}
+        <div className="w-full max-w-full block bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="w-full block overflow-x-auto">
+            <table className="w-full min-w-[750px] border-collapse table-auto">
               <thead className="bg-gray-50/70 border-b border-gray-200">
                 <tr>
                   <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Scientific Name</th>
-                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cost</th>
-                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Quantity</th>
-                  <th className="p-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pr-6">Actions</th>
+                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Cost</th>
+                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Quantity</th>
+                  <th className="p-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pr-6 w-44">Actions</th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 bg-white">
                 {filteredMedicines.map((medicine) => (
-                  <tr key={medicine.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={medicine.id} className="hover:bg-gray-50/50 transition-colors whitespace-nowrap">
                     <td className="p-4 text-sm font-medium text-gray-900">{medicine.name}</td>
                     <td className="p-4 text-sm text-gray-600 italic">{medicine.scientificName}</td>
                     <td className="p-4 text-sm text-gray-900 font-medium">₹{medicine.unitCost}</td>
                     <td className="p-4 text-sm">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                           medicine.quantity < 50
-                            ? "bg-red-50 text-red-700"
-                            : "bg-green-50 text-green-700"
+                            ? "bg-red-50 text-red-700 border-red-100"
+                            : "bg-green-50 text-green-700 border-green-100"
                         }`}
                       >
                         {medicine.quantity} units
@@ -198,7 +218,7 @@ export default function MedicineInventory() {
                     </td>
                     <td className="p-4 text-sm pr-6">
                       <div className="flex items-center justify-end gap-2">
-                        {/* Restock Trigger Button */}
+                        {/* Allowed for both Manager and Pharmacist */}
                         <button
                           onClick={() => handleRestock(medicine.id)}
                           className="px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 hover:text-gray-900 transition mr-2"
@@ -206,34 +226,38 @@ export default function MedicineInventory() {
                           Restock
                         </button>
 
-                        {/* Interactive Edit Button */}
-                        <button
-                          onClick={() => openEditModal(medicine)}
-                          title="Edit Medicine"
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                        >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                        </button>
+                        {/* MANAGER ONLY VIEWABLE EDIT CONTROLS */}
+                        {isManager && (
+                          <button
+                            onClick={() => openEditModal(medicine)}
+                            title="Edit Medicine"
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+                        )}
 
-                        {/* Interactive Delete Button */}
-                        <button
-                          onClick={() => handleDeleteMedicine(medicine.id)}
-                          title="Delete Medicine"
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                        >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-14v4M1 7h22" />
-                          </svg>
-                        </button>
+                        {/* MANAGER ONLY VIEWABLE DELETE CONTROLS */}
+                        {isManager && (
+                          <button
+                            onClick={() => handleDeleteMedicine(medicine.id)}
+                            title="Delete Medicine"
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-14v4M1 7h22" />
+                            </svg>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
                 ))}
                 {filteredMedicines.length === 0 && (
                   <tr>
-                    <td colSpan="5" className="p-8 text-center text-sm text-gray-400 italic">
+                    <td colSpan="5" className="p-8 text-center text-sm text-gray-400 italic bg-white">
                       No medicines matched your query.
                     </td>
                   </tr>
@@ -243,8 +267,8 @@ export default function MedicineInventory() {
           </div>
         </div>
 
-        {/* Add / Edit Form Modal Wrapper */}
-        {(showAddModal || showEditModal) && (
+        {/* Modal Sheet Protection Guardrail */}
+        {(showAddModal || showEditModal) && isManager && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
             <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl border border-gray-100 transform transition-all">
               <h2 className="text-xl font-bold text-gray-900 mb-5 pb-3 border-b border-gray-100">
@@ -266,7 +290,7 @@ export default function MedicineInventory() {
                 <div>
                   <input
                     type="text"
-                    placeholder="Active Ingredients / Structural Compound Name"
+                    placeholder="Active Ingredients"
                     value={form.scientificName}
                     onChange={(e) => setForm({ ...form, scientificName: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
@@ -310,7 +334,7 @@ export default function MedicineInventory() {
 
                 <button
                   onClick={showAddModal ? handleAddMedicine : handleUpdateMedicine}
-                  className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition shadow-sm shadow-blue-100"
+                  className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition"
                 >
                   {showAddModal ? "Commit Registry" : "Save Changes"}
                 </button>
