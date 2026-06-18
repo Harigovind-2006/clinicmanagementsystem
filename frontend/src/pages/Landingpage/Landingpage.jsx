@@ -22,7 +22,7 @@ export default function Landingpage() {
     manager: {
       username: "manager",
       password: "manager123",
-      route: "/bill-dashboard",
+      route: "/dashboard",
     },
 
     frontoffice: {
