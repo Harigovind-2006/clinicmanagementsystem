@@ -17,21 +17,32 @@ export default function PatientDetails() {
     type: "OP",
     lastBill: "2026-05-20",
     admitted: "2026-06-01",
-    paymentUpto : "2026-06-10"
+    paymentUpto: "2026-06-10",
   };
 
-  const DoctorNotes = {
+  const appointment = {
+    token: "#1",
     doctor: "Dr. Amit Sharma",
-    DoctorNotes: "Patient recovering well. Continue current medication.",
-    bp: "Blood Pressure: 130/85",
+    time: "09:00 AM",
+    date: "2026-06-17",
+    status: "Waiting",
   };
-    const bill = {
-    
 
-    };
+  const Observation = {
+    DoctorNotes: "Patient recovering well. Continue current medication.",
+  };
+
+  const Vitals = {
+    BP: "120/80",
+    BloodGroup: "O+",
+    Pulse: "72 bpm",
+    Temperature: "98.6 F",
+    Weight: "75 kg",
+  };
 
   return (
-    <div className="p-6 ml-8">
+    <div className="p-8 ml-3">
+      {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-3 text-sm">
           <span className="text-blue-600 font-medium cursor-pointer">
@@ -45,6 +56,8 @@ export default function PatientDetails() {
           Edit Details
         </button>
       </div>
+
+      {/* Tabs */}
       <div className="flex mb-6">
         <button className="bg-blue-600 text-white px-6 py-2 rounded-l-xl font-medium">
           Current Visit
@@ -54,8 +67,10 @@ export default function PatientDetails() {
           History (1)
         </button>
       </div>
+
+      {/* Top Section */}
       <div className="grid grid-cols-3 gap-6">
-        
+        {/* Personal Information */}
         <div className="col-span-2 bg-white border border-gray-300 rounded-2xl p-6">
           <h2 className="text-2xl font-semibold mb-8">
             Personal Information
@@ -109,65 +124,135 @@ export default function PatientDetails() {
           </div>
         </div>
 
-       
+        {/* Right Side */}
         <div className="space-y-6">
-       
+          {/* Current Status */}
           <div className="bg-white border border-gray-300 rounded-2xl p-6">
             <h2 className="text-2xl font-semibold mb-6">
               Current Status
             </h2>
 
             <div className="flex justify-between mb-4">
-                 <span className="text-gray-500"> Type</span>
-                <span
-                    className={`px-3 py-1 rounded-md text-sm font-medium ${
-                      status.type === "OP"
-                        ? "bg-blue-100 text-blue-700"
-                         : "bg-green-100 text-green-700"
-                    }`}
-                 >
-                  {status.type}
-                 </span>
+              <span className="text-gray-500">Type</span>
+
+              <span
+                className={`px-3 py-1 rounded-md text-sm font-medium ${
+                  status.type === "OP"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}
+              >
+                {status.type}
+              </span>
             </div>
-             <div className="flex justify-between mb-4">
-              <span className="text-gray-500"> Admitted</span>
+
+            <div className="flex justify-between mb-4">
+              <span className="text-gray-500">Admitted</span>
               <span>{status.admitted}</span>
             </div>
-            <div className="flex justify-between  mb-4">
-              <span className="text-gray-500"> Payment Up To</span>
+
+            <div className="flex justify-between mb-4">
+              <span className="text-gray-500">Payment Up To</span>
               <span>{status.paymentUpto}</span>
             </div>
 
-            <div className="flex justify-between  mb-4">
+            <div className="flex justify-between">
               <span className="text-gray-500">Last Bill</span>
               <span>{status.lastBill}</span>
             </div>
           </div>
 
-         
+          {/* Appointment */}
           <div className="bg-white border border-gray-300 rounded-2xl p-6">
             <h2 className="text-2xl font-semibold mb-6">
-             Doctor Notes
+              Current Appointment
             </h2>
 
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-gray-500">{DoctorNotes.token}</span>
+                <span className="text-gray-500">Token</span>
+                <span>{appointment.token}</span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-gray-500">{DoctorNotes.doctor}</span>
+                <span className="text-gray-500">Doctor</span>
+                <span>{appointment.doctor}</span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-gray-500">{DoctorNotes.DoctorNotes}</span>
+                <span className="text-gray-500">Time</span>
+                <span>{appointment.time}</span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-gray-500">{DoctorNotes.bp}</span>
+                <span className="text-gray-500">Date</span>
+                <span>{appointment.date}</span>
               </div>
-            
+
+              <div className="flex justify-between">
+                <span className="text-gray-500">Status</span>
+
+                <span
+                  className={`px-3 py-1 rounded-md text-sm font-medium ${
+                    appointment.status === "Waiting"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {appointment.status}
+                </span>
+              </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Section */}
+      <div className="grid grid-cols-2 gap-6 mt-6">
+        {/* Vitals */}
+        <div className="bg-white border border-gray-300 rounded-2xl p-6">
+          <h2 className="text-2xl font-semibold mb-6">
+            Today's Vitals
+          </h2>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-slate-50 rounded-xl p-4">
+              <p className="text-sm text-gray-500">Blood Pressure</p>
+              <p className="text-lg font-semibold">{Vitals.BP}</p>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-4">
+              <p className="text-sm text-gray-500">Blood Group</p>
+              <p className="text-lg font-semibold">{Vitals.BloodGroup}</p>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-4">
+              <p className="text-sm text-gray-500">Pulse</p>
+              <p className="text-lg font-semibold">{Vitals.Pulse}</p>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-4">
+              <p className="text-sm text-gray-500">Temperature</p>
+              <p className="text-lg font-semibold">{Vitals.Temperature}</p>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-4 col-span-2">
+              <p className="text-sm text-gray-500">Weight</p>
+              <p className="text-lg font-semibold">{Vitals.Weight}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Observation */}
+        <div className="bg-white border border-gray-300 rounded-2xl p-6">
+          <h2 className="text-2xl font-semibold mb-6">
+            Today's Observations
+          </h2>
+
+          <div className="bg-slate-50 rounded-xl p-4">
+            <p className="text-lg  text-gray-500">
+              {Observation.DoctorNotes}
+            </p>
           </div>
         </div>
       </div>
