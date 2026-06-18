@@ -5,17 +5,11 @@ import Layout from "../../components/Layout";
 export default function SeniorDoctorDashboard() {
   const navigate = useNavigate();
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
-
-  const [activeTab, setActiveTab] =
-    useState("waiting");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("waiting");
 
   const current = new Date();
-
-  const formattedDate = `${current.getDate()}/${
-    current.getMonth() + 1
-  }/${current.getFullYear()}`;
+  const formattedDate = `${current.getDate()}/${current.getMonth() + 1}/${current.getFullYear()}`;
 
   const patients = [
     {
@@ -29,10 +23,8 @@ export default function SeniorDoctorDashboard() {
       status: false,
       dob: "1985-04-12",
       phone: "9001234567",
-      notes:
-        "Patient recovering well. Continue medication.",
-      observations:
-        "Patient complains of chest pain and shortness of breath.",
+      notes: "Patient recovering well. Continue medication.",
+      observations: "Patient complains of chest pain and shortness of breath.",
       bp: "120/80",
       pulse: "72 bpm",
       temp: "98.6°F",
@@ -50,8 +42,7 @@ export default function SeniorDoctorDashboard() {
       dob: "1992-08-25",
       phone: "9876543210",
       notes: "Responding well to treatment.",
-      observations:
-        "Mild fever and fatigue.",
+      observations: "Mild fever and fatigue.",
       bp: "118/76",
       pulse: "78 bpm",
       temp: "99.1°F",
@@ -68,10 +59,8 @@ export default function SeniorDoctorDashboard() {
       status: false,
       dob: "1972-01-15",
       phone: "9003456789",
-      notes:
-        "Stable condition. Under observation.",
-      observations:
-        "History of hypertension.",
+      notes: "Stable condition. Under observation.",
+      observations: "History of hypertension.",
       bp: "130/85",
       pulse: "74 bpm",
       temp: "98.4°F",
@@ -88,10 +77,8 @@ export default function SeniorDoctorDashboard() {
       status: true,
       dob: "1988-11-05",
       phone: "9812345678",
-      notes:
-        "Post-surgery recovery progressing well.",
-      observations:
-        "No signs of infection.",
+      notes: "Post-surgery recovery progressing well.",
+      observations: "No signs of infection.",
       bp: "115/72",
       pulse: "70 bpm",
       temp: "98.2°F",
@@ -108,10 +95,8 @@ export default function SeniorDoctorDashboard() {
       status: false,
       dob: "1968-09-18",
       phone: "9123456780",
-      notes:
-        "Diabetic patient. Monitor sugar levels.",
-      observations:
-        "Occasional dizziness reported.",
+      notes: "Diabetic patient. Monitor sugar levels.",
+      observations: "Occasional dizziness reported.",
       bp: "140/90",
       pulse: "80 bpm",
       temp: "98.7°F",
@@ -119,220 +104,133 @@ export default function SeniorDoctorDashboard() {
     },
   ];
 
-  const waitingCount = patients.filter(
-    (patient) => !patient.status
-  ).length;
+  const waitingCount = patients.filter((patient) => !patient.status).length;
+  const completedCount = patients.filter((patient) => patient.status).length;
 
-  const completedCount = patients.filter(
-    (patient) => patient.status
-  ).length;
-
-  const filteredPatients = patients.filter(
-    (patient) =>
-      activeTab === "waiting"
-        ? !patient.status
-        : patient.status
+  const filteredPatients = patients.filter((patient) =>
+    activeTab === "waiting" ? !patient.status : patient.status
   );
 
   return (
-    <Layout
-      sidebarOpen={sidebarOpen}
-      setSidebarOpen={setSidebarOpen}
-    >
-      <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
-        {/* Header */}
-        <div className="flex flex-col gap-2 mb-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() =>
-                setSidebarOpen(true)
-              }
-              className="lg:hidden p-2 border rounded-lg bg-white"
-            >
-              ☰
-            </button>
-
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Senior Doctor Dashboard
-              </h1>
-
-              <p className="text-gray-500 mt-1">
-                {formattedDate} • Patient Queue
-              </p>
-            </div>
+    <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+      {/* Outer viewport boundary container */}
+      <div className="w-full max-w-full block overflow-hidden bg-gray-50 p-4 sm:p-6 lg:p-8">
+        
+        {/* Header Section */}
+        <div className="mb-6 w-full flex items-center gap-4">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden p-2 border border-gray-200 rounded-lg bg-white"
+          >
+            ===
+          </button>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">
+              Senior Doctor Dashboard
+            </h1>
+            <p className="text-gray-500 text-xs sm:text-sm mt-1 break-words">
+              {formattedDate} &bull; Patient Queue Management
+            </p>
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Navigation Tabs */}
         <div className="flex flex-wrap gap-3 mb-6">
           <button
-            onClick={() =>
-              setActiveTab("waiting")
-            }
-            className={`px-5 py-3 rounded-xl font-medium transition ${
+            onClick={() => setActiveTab("waiting")}
+            className={`px-5 py-2.5 text-sm font-medium rounded-xl border transition-all ${
               activeTab === "waiting"
-                ? "bg-blue-600 text-white"
-                : "bg-white border text-gray-700"
+                ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
             }`}
           >
             Waiting ({waitingCount})
           </button>
 
           <button
-            onClick={() =>
-              setActiveTab("completed")
-            }
-            className={`px-5 py-3 rounded-xl font-medium transition ${
+            onClick={() => setActiveTab("completed")}
+            className={`px-5 py-2.5 text-sm font-medium rounded-xl border transition-all ${
               activeTab === "completed"
-                ? "bg-blue-600 text-white"
-                : "bg-white border text-gray-700"
+                ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
             }`}
           >
             Completed ({completedCount})
           </button>
         </div>
 
-        {/* Desktop Table */}
-        <div className="hidden lg:block bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="grid grid-cols-7 bg-gray-100 px-6 py-4 text-sm font-semibold text-gray-600">
-            <div>Token</div>
-            <div>PID</div>
-            <div>Patient</div>
-            <div>Date</div>
-            <div>Time</div>
-            <div>Status</div>
-            <div>Action</div>
-          </div>
+        {/* Scrollable Table View Wrapper */}
+        <div className="w-full max-w-full block bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="w-full block overflow-x-auto">
+            <table className="w-full min-w-[850px] border-collapse table-auto">
+              <thead className="bg-gray-50/70 border-b border-gray-200">
+                <tr>
+                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Token</th>
+                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">PID</th>
+                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Patient Name</th>
+                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Date</th>
+                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Scheduled Time</th>
+                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Status</th>
+                  <th className="p-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pr-6 w-44">Action</th>
+                </tr>
+              </thead>
 
-          {filteredPatients.map(
-            (patient) => (
-              <div
-                key={patient.pid}
-                className="grid grid-cols-7 px-6 py-4 border-t items-center"
-              >
-                <div>
-                  #{patient.token}
-                </div>
-
-                <div>{patient.pid}</div>
-
-                <div>
-                  {patient.pname}
-                </div>
-
-                <div>{patient.date}</div>
-
-                <div>{patient.time}</div>
-
-                <div>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      patient.status
-                        ? "bg-green-100 text-green-600"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {patient.status
-                      ? "Completed"
-                      : "Waiting"}
-                  </span>
-                </div>
-
-                <div>
-                  <button
-                    onClick={() =>
-                      navigate(
-                        `/senior-dashboard/${patient.pid}`,
-                        {
-                          state: patient,
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {filteredPatients.map((patient) => (
+                  <tr key={patient.pid} className="hover:bg-gray-50/50 transition-colors whitespace-nowrap">
+                    <td className="p-4 text-sm font-semibold text-blue-600">
+                      #{patient.token}
+                    </td>
+                    <td className="p-4 text-sm font-medium text-gray-900">
+                      {patient.pid}
+                    </td>
+                    <td className="p-4 text-sm font-medium text-gray-700">
+                      {patient.pname}
+                    </td>
+                    <td className="p-4 text-sm text-gray-600">
+                      {patient.date}
+                    </td>
+                    <td className="p-4 text-sm text-gray-600">
+                      {patient.time}
+                    </td>
+                    <td className="p-4 text-sm">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          patient.status
+                            ? "bg-green-50 text-green-700 border-green-100"
+                            : "bg-yellow-50 text-yellow-700 border-yellow-100"
+                        }`}
+                      >
+                        {patient.status ? "Completed" : "Waiting"}
+                      </span>
+                    </td>
+                    <td className="p-4 text-sm pr-6 text-right">
+                      <button
+                        onClick={() =>
+                          navigate(`/senior-dashboard/${patient.pid}`, {
+                            state: patient,
+                          })
                         }
-                      )
-                    }
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-                  >
-                    Open Consultation
-                  </button>
-                </div>
-              </div>
-            )
-          )}
+                        className="inline-flex items-center px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200 transition-all"
+                      >
+                        Open Consultation
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+                {filteredPatients.length === 0 && (
+                  <tr>
+                    <td colSpan="7" className="p-8 text-center text-sm text-gray-400 italic bg-gray-50/30">
+                      No matching queue assignments recorded under this category.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* Mobile Cards */}
-        <div className="lg:hidden space-y-4">
-          {filteredPatients.map(
-            (patient) => (
-              <div
-                key={patient.pid}
-                className="bg-white rounded-xl shadow-sm p-5"
-              >
-                <div className="space-y-2">
-                  <p>
-                    <strong>
-                      Token:
-                    </strong>{" "}
-                    #{patient.token}
-                  </p>
-
-                  <p>
-                    <strong>
-                      PID:
-                    </strong>{" "}
-                    {patient.pid}
-                  </p>
-
-                  <p>
-                    <strong>
-                      Patient:
-                    </strong>{" "}
-                    {patient.pname}
-                  </p>
-
-                  <p>
-                    <strong>
-                      Date:
-                    </strong>{" "}
-                    {patient.date}
-                  </p>
-
-                  <p>
-                    <strong>
-                      Time:
-                    </strong>{" "}
-                    {patient.time}
-                  </p>
-
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                      patient.status
-                        ? "bg-green-100 text-green-600"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {patient.status
-                      ? "Completed"
-                      : "Waiting"}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() =>
-                    navigate(
-                      `/senior-dashboard/${patient.pid}`,
-                      {
-                        state: patient,
-                      }
-                    )
-                  }
-                  className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl"
-                >
-                  Open Consultation
-                </button>
-              </div>
-            )
-          )}
-        </div>
       </div>
     </Layout>
   );

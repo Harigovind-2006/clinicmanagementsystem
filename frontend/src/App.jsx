@@ -26,6 +26,8 @@ import Admission from "./components/AdmissionComponent/Admission";
 import Users from "./components/Users";
 import PharmacyBill from "./pages/Pharmacist/PharmacyBill";
 
+import PatientsList from "./components/PatientComponent/PatientsList";
+
 
 function App()  {
   return (
@@ -70,6 +72,8 @@ function App()  {
       <Route path="/pharmacy-bill" element={<PharmacyBill />} />
 
       <Route path="/users" element={<Users />} />
+
+      <Route path="/patients" element={<PatientsList />} />
 
 
       <Route
