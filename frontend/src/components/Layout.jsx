@@ -61,7 +61,7 @@ export default function Layout({
         },
         {
           name: "Bills & Payments",
-          path: "/bill-dashboard",
+          path: "/bill-payments",
         },
       ];
       break;
