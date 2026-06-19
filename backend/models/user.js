@@ -51,6 +51,16 @@ const userSchema = new mongoose.Schema({
         enum: ['manager', 'fos', 'seniordoctor', 'juniordoctor', 'nurse', 'pharmacist', 'labtechnician', 'receptionist'],
         required: true
     },
+    specialisation: {
+        type: String,
+        enum: ['Neurology', 'Orthopedics', 'Pediatrics', 'General medicine', 'Cardiology', 'Dermatology', 'Gynaecology', 'Ent', 'Ophthalmology', 'General Surgery' ],
+        trim: true,
+        // CONDITIONAL VALIDATION LOGIC:
+        required: [
+            function() { return this.role === 'seniordoctor'; }, 
+            'Specialisation is required for senior doctors'
+        ]
+    },
     address:{
         type: String,
         required: true,

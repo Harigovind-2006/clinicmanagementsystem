@@ -9,4 +9,6 @@ route.put("/update/medicine/:id", updateMedicine);
 route.delete("/delete/medicine/:id", deleteMedicine);
 route.put("/update/medicinequantity/:id", updateQuantity);
 
+
+
 export default route;

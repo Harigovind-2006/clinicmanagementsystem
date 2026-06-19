@@ -1,11 +1,25 @@
-import express from "express"
-import { createPatient, getAllPatients, getPatientById, updatePatient,  deletePatient} from "../controller/patientController.js"
+import express from "express";
+import { 
+  createPatient, 
+  getAllPatients, 
+  getPatientById, 
+  updatePatient,  
+  deletePatient, 
+  updatePatientBills 
+} from "../controller/patientController.js";
 
 const route = express.Router();
-route.post("/patientin", createPatient);
-route.get("/patientget", getAllPatients);
-route.get("/patientget/:id", getPatientById);
-route.put("/update/patient/:id", updatePatient);
-route.delete("/delete/patient/:id", deletePatient);
+
+route.route("/")
+  .post(createPatient)     
+  .get(getAllPatients);     
+
+route.route("/:id")
+  .get(getPatientById)      
+  .put(updatePatient)       
+  .delete(deletePatient);   
+
+// 3. Specialized sub-route for handling billing updates
+route.put("/:id/bills", updatePatientBills); 
 
 export default route;

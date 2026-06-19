@@ -22,7 +22,7 @@ export const createPatient = async (req, res) => {
 
 export const getAllPatients = async (req, res) => {
     try {
-        const patients = await patient.find();
+        const patients = await Patient.find();
         if (!patients || patients.length === 0) {
             return res.status(404).json({ message: "No patients found" });
         }
@@ -37,7 +37,7 @@ export const getAllPatients = async (req, res) => {
 export const getPatientById = async (req, res) => {
     try {
         const patientId = req.params.id;
-        const foundPatient = await patient.findById(patientId);
+        const foundPatient = await Patient.findById(patientId);
         if (!foundPatient) {
             return res.status(404).json({ message: "Patient not found" });
         }
@@ -53,7 +53,7 @@ export const updatePatient = async (req, res) => {
         const patientId = req.params.id;
         const updatedData = req.body;
 
-        const updatedPatient = await patient.findByIdAndUpdate(patientId, updatedData, { new: true });
+        const updatedPatient = await Patient.findByIdAndUpdate(patientId, updatedData, { new: true });
         if (!updatedPatient) {
             return res.status(404).json({ message: "Patient not found" });
         }
@@ -68,7 +68,7 @@ export const updatePatient = async (req, res) => {
 export const deletePatient = async (req, res) => {
     try {
         const patientId = req.params.id;
-        const deletedPatient = await patient.findByIdAndDelete(patientId);
+        const deletedPatient = await Patient.findByIdAndDelete(patientId);
         if (!deletedPatient) {
             return res.status(404).json({ message: "Patient not found" });
         }
@@ -79,3 +79,32 @@ export const deletePatient = async (req, res) => {
 }
 
 
+
+export const updatePatientBills = async (req, res) => {
+  try {
+    const { id } = req.params; // MongoDB _id of the patient
+    const { newBills } = req.body; // Expecting e.g., { "Pharmacy Bill": { "amount": 450, "status": "unpaid" } }
+
+    const updateFields = {};
+    
+    // Loop through the incoming entries to structure the dot notation updates
+    for (const [billName, details] of Object.entries(newBills)) {
+      updateFields[`billItems.${billName}`] = details;
+    }
+
+    // Update the patient document
+    const updatedPatient = await Patient.findByIdAndUpdate(
+      id,
+      { $set: updateFields },
+      { new: true, runValidators: true } // runValidators ensures 'paid'/'unpaid' values are accurate
+    );
+
+    if (!updatedPatient) {
+      return res.status(404).json({ success: false, message: 'Patient not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Bills updated!', data: updatedPatient });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+};
