@@ -4,7 +4,7 @@ export default function Medicines({ role = "doctor" }) {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState("");
-
+  const [quantity, setQuantity] = useState(1);
   const [days, setDays] = useState("");
   const [frequency, setFrequency] = useState("");
 
@@ -38,22 +38,23 @@ export default function Medicines({ role = "doctor" }) {
   ];
 
   const filteredMedicines = medicineMaster.filter((med) =>
-    med.name.toLowerCase().includes(search.toLowerCase()),
+    med.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  function handleAddMedicine() {
+  const handleAddMedicine = () => {
     if (!selectedMedicine) {
       alert("Please select a medicine");
       return;
     }
 
     const medicine = medicineMaster.find(
-      (med) => med.name === selectedMedicine,
+      (med) => med.name === selectedMedicine
     );
 
     const newPrescription = {
       medicine: medicine.name,
       scientificName: medicine.scientificName,
+      quantity,
       days,
       frequency,
       given: false,
@@ -63,11 +64,13 @@ export default function Medicines({ role = "doctor" }) {
 
     setSearch("");
     setSelectedMedicine("");
+    setQuantity(1);
     setDays("");
     setFrequency("");
-  }
+    setNotes("");
+  };
 
-  function handleGiven(index) {
+  const handleGiven = (index) => {
     const updated = [...prescriptions];
 
     updated[index] = {
@@ -76,22 +79,22 @@ export default function Medicines({ role = "doctor" }) {
     };
 
     setPrescriptions(updated);
-  }
-  function handleDelete(index) {
-    const updated = prescriptions.filter((_, i) => i !== index);
-    setPrescriptions(updated);
-  }
+  };
 
   return (
-    <div className="medicine-page">
-      {/* Doctor Only */}
-      {role === "doctor" && (
-        <div className="medicine-container">
-          <h3>Add Medicine</h3>
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      {/* Add Medicine */}
+      <div className="bg-white rounded-2xl shadow-sm p-6">
+        <h2 className="text-xl font-semibold mb-6">
+          Add Medicine
+        </h2>
 
-          <label>Medicine *</label>
+        <div className="space-y-4">
+          <div className="relative">
+            <label className="block text-sm font-medium mb-2">
+              Medicine *
+            </label>
 
-          <div className="searchable-dropdown">
             <input
               type="text"
               placeholder="Search medicine..."
@@ -101,130 +104,192 @@ export default function Medicines({ role = "doctor" }) {
                 setShowDropdown(true);
               }}
               onFocus={() => setShowDropdown(true)}
+              className="w-full border rounded-xl p-3"
             />
 
             {showDropdown && (
-              <div className="dropdown-menu">
+              <div className="absolute z-20 w-full mt-1 bg-white border rounded-xl shadow-lg max-h-60 overflow-y-auto">
                 {filteredMedicines.length > 0 ? (
                   filteredMedicines.map((med) => (
                     <div
                       key={med.name}
-                      className="dropdown-item"
                       onClick={() => {
                         setSelectedMedicine(med.name);
                         setSearch(med.name);
                         setShowDropdown(false);
                       }}
+                      className="p-3 cursor-pointer hover:bg-gray-100"
                     >
-                      <strong>{med.name}</strong>
-                      <p>{med.scientificName}</p>
+                      <p className="font-medium">
+                        {med.name}
+                      </p>
+
+                      <p className="text-sm text-gray-500">
+                        {med.scientificName}
+                      </p>
                     </div>
                   ))
                 ) : (
-                  <div className="dropdown-item">No medicine found</div>
+                  <div className="p-3 text-gray-500">
+                    No medicine found
+                  </div>
                 )}
               </div>
             )}
           </div>
 
-          <div className="row">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label>Number of Days</label>
+              <label className="block text-sm font-medium mb-2">
+                Quantity
+              </label>
+
+              <input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) =>
+                  setQuantity(e.target.value)
+                }
+                className="w-full border rounded-xl p-3"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Days
+              </label>
+
               <input
                 type="number"
                 value={days}
-                onChange={(e) => setDays(e.target.value)}
+                onChange={(e) =>
+                  setDays(e.target.value)
+                }
+                className="w-full border rounded-xl p-3"
               />
             </div>
           </div>
 
-          <label>Frequency / Instructions</label>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Frequency / Instructions
+            </label>
 
-          <input
-            type="text"
-            placeholder="e.g. 1-0-1 after food"
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
-          />
-
-          <div className="button-group">
-            <button className="add-btn" onClick={handleAddMedicine}>
-              Add to Prescription
-            </button>
+            <input
+              type="text"
+              placeholder="1-0-1 after food"
+              value={frequency}
+              onChange={(e) =>
+                setFrequency(e.target.value)
+              }
+              className="w-full border rounded-xl p-3"
+            />
           </div>
-        </div>
-      )}
 
-      {/* Common Prescription Table */}
-      <div className="prescription-card">
-        <h3>Current Prescriptions</h3>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Additional Notes
+            </label>
+
+            <textarea
+              rows={3}
+              value={notes}
+              onChange={(e) =>
+                setNotes(e.target.value)
+              }
+              className="w-full border rounded-xl p-3"
+            />
+          </div>
+
+          <button
+            onClick={handleAddMedicine}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium"
+          >
+            Add To Prescription
+          </button>
+        </div>
+      </div>
+
+      {/* Prescription Table */}
+      <div className="bg-white rounded-2xl shadow-sm p-6">
+        <h2 className="text-xl font-semibold mb-6">
+          Current Prescriptions
+        </h2>
 
         {prescriptions.length === 0 ? (
-          <p className="empty-text">No prescriptions added yet</p>
+          <div className="text-center py-10 text-gray-500">
+            No prescriptions added yet
+          </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Medicine</th>
-                <th>Days</th>
-                <th>Frequency</th>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b text-left">
+                  <th className="py-3">Medicine</th>
+                  <th className="py-3">Qty</th>
+                  <th className="py-3">Days</th>
+                  <th className="py-3">Status</th>
+                  <th className="py-3">Action</th>
+                </tr>
+              </thead>
 
-                {role === "doctor" && <th>Action</th>}
+              <tbody>
+                {prescriptions.map((item, index) => (
+                  <tr
+                    key={index}
+                    className="border-b"
+                  >
+                    <td className="py-4">
+                      <div>
+                        <p className="font-medium">
+                          {item.medicine}
+                        </p>
 
-                {role === "nurse" && (
-                  <>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </>
-                )}
-              </tr>
-            </thead>
+                        <p className="text-sm text-gray-500">
+                          {item.scientificName}
+                        </p>
+                      </div>
+                    </td>
 
-            <tbody>
-              {prescriptions.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.medicine}</td>
-                  <td>{item.days}</td>
-                  <td>{item.frequency}</td>
+                    <td>{item.quantity}</td>
 
-                  {role === "doctor" && (
+                    <td>{item.days}</td>
+
+                    <td>
+                      {item.given ? (
+                        <span className="px-3 py-1 rounded-full bg-green-100 text-green-600 text-sm">
+                          Given
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-sm">
+                          Pending
+                        </span>
+                      )}
+                    </td>
+
                     <td>
                       <button
-                        className="delete-btn"
-                        onClick={() => handleDelete(index)}
+                        onClick={() =>
+                          handleGiven(index)
+                        }
+                        disabled={item.given}
+                        className={`px-4 py-2 rounded-lg text-white ${
+                          item.given
+                            ? "bg-green-600 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700"
+                        }`}
                       >
-                        Delete
+                        {item.given
+                          ? "Given ✓"
+                          : "Mark Given"}
                       </button>
                     </td>
-                  )}
-
-                  {role === "nurse" && (
-                    <>
-                      <td>
-                        {item.given ? (
-                          <span className="status-given">Given</span>
-                        ) : (
-                          <span className="status-pending">Pending</span>
-                        )}
-                      </td>
-
-                      <td>
-                        <button
-                          className={
-                            item.given ? "given-btn done" : "given-btn"
-                          }
-                          onClick={() => handleGiven(index)}
-                          disabled={item.given}
-                        >
-                          {item.given ? "Given ✓" : "Mark Given"}
-                        </button>
-                      </td>
-                    </>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
