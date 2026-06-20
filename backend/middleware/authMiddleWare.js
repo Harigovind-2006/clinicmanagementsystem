@@ -17,8 +17,14 @@ const authMiddleWare= (req,res,next)=>{
       process.env.JWT_SECRET
     );
 
+req.user = decoded;
+next();
+
 }
-catch{
+catch(error){
+    console.error("Authentication error:", error);
+  res.status(403).json({ message: "Authentication failed" });
     
 }
 }
+module.exports = authMiddleWare;
