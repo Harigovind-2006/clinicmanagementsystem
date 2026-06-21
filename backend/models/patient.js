@@ -1,4 +1,28 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+
+
+
+const BillDetailsSchema = new mongoose.Schema({
+  billName: {
+    type: String,
+    required: [true, 'Bill item name is required'],
+    trim: true,
+  },
+  amount: {
+    type: Number,
+    required: [true, 'Bill item amount is required'],
+    default: 0,
+  },
+  status: {
+    type: String,
+    enum: ['paid', 'unpaid'],
+    required: [true, 'Bill item status is required'],
+    default: 'unpaid',
+  },
+},{ _id: false });
+
+
+
 
 const patientSchema = new mongoose.Schema({
   pid: {
@@ -47,15 +71,24 @@ const patientSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Address is required'],
     trim: true
+  },
+  pendingAmount:{
+    type: Number,
+    default: 0,
+    
+  },
+  billItems: {
+    type: Map,
+    of: BillDetailsSchema,
+    default: {}
   }
-
 }, 
 {
     timestamps: true
 });
 
 // Pre-save middleware to handle atomic auto-incrementing
-PatientSchema.pre('save', async function (next) {
+patientSchema.pre('save', async function (next) {
   const patient = this;
 
   // Only run this logic if it's a completely new patient entry
@@ -84,4 +117,8 @@ PatientSchema.pre('save', async function (next) {
 });
 
 
-module.exports = mongoose.model("Patient", patientSchema);
+
+
+
+
+export default mongoose.model("Patient", patientSchema);
