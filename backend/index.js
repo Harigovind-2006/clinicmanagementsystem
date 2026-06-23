@@ -4,6 +4,7 @@ import cors from "cors";
 import userRoute from "./routes/userRoute.js";
 import patientRoute from "./routes/patientRoute.js";
 import medicineRoute from "./routes/medicineRoute.js";
+import authRoute from "./routes/authRoutes.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -32,3 +33,4 @@ mongoose
 app.use("/userapi", userRoute);
 app.use("/patientapi", patientRoute);
 app.use("/medicineapi", medicineRoute);
+app.use("/auth", authRoute);
