@@ -1,4 +1,5 @@
 import user from "../models/user.js";
+import bcrypt from "bcryptjs"; // Make sure to run: npm install bcryptjs
 
 const DUPLICATE_FIELDS = ["username", "email", "pan", "adhaar"];
 
@@ -22,8 +23,14 @@ async function findDuplicateUser(data, excludeId = null) {
 
 export const createUser = async (req, res) => {
     try {
-        const { username, email, pan, adhaar } = req.body;
-        const duplicateUser = await findDuplicateUser({ username, email, pan, adhaar });
+        const { username, email, pan, adhaar, password } = req.body;
+        
+        const duplicateUser = await findDuplicateUser({ 
+            username, 
+            email, 
+            pan, 
+            adhaar 
+        });
 
         if (duplicateUser) {
             return res.status(400).json({
@@ -31,8 +38,19 @@ export const createUser = async (req, res) => {
             });
         }
 
-        const newUser = new user(req.body);
+        // Hash the incoming plain text password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Clone the request payload and overwrite the password field with the hash
+        const userData = {
+            ...req.body,
+            password: hashedPassword
+        };
+
+        // Save the record to MongoDB
+        const newUser = new user(userData);
         const savedUser = await newUser.save();
+        
         return res.status(201).json(savedUser);
     } catch (error) {
         return res.status(500).json({ message: error.message });
@@ -93,22 +111,20 @@ export const updateUser = async (req, res) => {
     }
 };
 
-
 export const updateDocAttendece = async (req, res) => {
     try {
         const userId = req.params.id;
         const { attendance } = req.body;
-        if (attendance=='active'){
-            var newAttendance = 'inactive';
-        }
-        else{
-            var newAttendance = 'active';
-        }
+        
+        // Slightly cleaned up logic for setting attendance
+        const newAttendance = attendance === 'active' ? 'inactive' : 'active';
+        
         const updatedAttendance = await user.findByIdAndUpdate(
             userId,
             { attendance: newAttendance },
             { new: true }
         );
+        
         if (!updatedAttendance){
             return res.status(404).json({ message: "User not found" });
         }
@@ -117,7 +133,6 @@ export const updateDocAttendece = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 };
-
 
 export const deleteUser = async (req, res) => {
     try {
@@ -132,5 +147,3 @@ export const deleteUser = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 };
-
-
