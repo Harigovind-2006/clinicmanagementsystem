@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "./Layout";
 
 export default function MedicineInventory() {
@@ -8,35 +8,13 @@ export default function MedicineInventory() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(""); // Added error state for validation
-
-  // Directly pulling active role matching your layout check
-  const role = localStorage.getItem("role") || "";
-  const isManager = role === "manager";
-
-  const [medicines, setMedicines] = useState([
-    {
-      id: "M001",
-      name: "Paracetamol",
-      scientificName: "Acetaminophen",
-      unitCost: 10,
-      quantity: 250,
-    },
-    {
-      id: "M002",
-      name: "Augmentin",
-      scientificName: "Amoxicillin + Clavulanic Acid",
-      unitCost: 35,
-      quantity: 40, // Low stock example
-    },
-    {
-      id: "M003",
-      name: "Metformin",
-      scientificName: "Metformin Hydrochloride",
-      unitCost: 15,
-      quantity: 20, // Low stock example
-    },
-  ]);
+  const [errorMsg, setErrorMsg] = useState(""); 
+  
+  const [medicines, setMedicines] = useState([]);
+  
+  // --- Database Role State ---
+  const [userRole, setUserRole] = useState("");
+  const isManager = userRole === "manager" || userRole === "pharmacist";
 
   const [form, setForm] = useState({
     name: "",
@@ -45,39 +23,78 @@ export default function MedicineInventory() {
     quantity: "",
   });
 
-  const lowStock = medicines.filter((m) => m.quantity < 50);
-  const displayedMedicines = activeTab === "all" ? medicines : lowStock;
+  // --- API Integrations ---
 
-  const filteredMedicines = displayedMedicines.filter(
-    (medicine) =>
-      medicine.name.toLowerCase().includes(search.toLowerCase()) ||
-      medicine.scientificName.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    // 1. Fetch User Role from DB
+    const fetchUserRole = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
 
-  const handleAddMedicine = () => {
+        const response = await fetch(`http://localhost:5000/userapi/userget/${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserRole(data.role);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user role:", err);
+      }
+    };
+
+    // 2. Fetch Medicines from DB
+    const fetchMedicines = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/medicineapi/medicineget");
+        if (!response.ok) throw new Error("Failed to fetch medicines");
+        const data = await response.json();
+        setMedicines(data);
+      } catch (error) {
+        console.error("Fetch Error:", error);
+      }
+    };
+
+    fetchUserRole();
+    fetchMedicines();
+  }, []);
+
+  // --- Handlers ---
+
+  const handleAddMedicine = async () => {
     if (!isManager) {
-      alert("Access Denied: Only managers can add medicine items.");
+      alert("Access Denied: You do not have permission to add medicine items.");
       return;
     }
 
-    // Validation Check
     if (!form.name || !form.scientificName || !form.unitCost || !form.quantity) {
       setErrorMsg("All fields are required. Please fill out every field.");
       return;
     }
 
-    const newMedicine = {
-      id: `M${String(medicines.length + 1).padStart(3, "0")}`,
-      name: form.name,
-      scientificName: form.scientificName,
-      unitCost: Number(form.unitCost),
-      quantity: Number(form.quantity),
-    };
+    try {
+      const response = await fetch("http://localhost:5000/medicineapi/medicinein", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          scientificName: form.scientificName,
+          unitCost: Number(form.unitCost),
+          quantity: Number(form.quantity),
+        }),
+      });
 
-    setMedicines([...medicines, newMedicine]);
-    setForm({ name: "", scientificName: "", unitCost: "", quantity: "" });
-    setShowAddModal(false);
-    setErrorMsg("");
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Failed to add medicine on the backend.");
+      
+      closeModals();
+      
+      // Re-fetch to update table with the new M00x ID
+      const refresh = await fetch("http://localhost:5000/medicineapi/medicineget");
+      setMedicines(await refresh.json());
+      
+    } catch (err) {
+      setErrorMsg(err.message);
+    }
   };
 
   const openEditModal = (medicine) => {
@@ -93,53 +110,76 @@ export default function MedicineInventory() {
     setShowEditModal(true);
   };
 
-  const handleUpdateMedicine = () => {
+  const handleUpdateMedicine = async () => {
     if (!isManager) return;
 
-    // Validation Check
     if (!form.name || !form.scientificName || !form.unitCost || !form.quantity) {
-      setErrorMsg("All fields are required. Please fill out every field.");
+      setErrorMsg("All fields are required.");
       return;
     }
 
-    setMedicines(
-      medicines.map((medicine) =>
-        medicine.id === selectedMedicine.id
-          ? {
-              ...medicine,
-              name: form.name,
-              scientificName: form.scientificName,
-              unitCost: Number(form.unitCost),
-              quantity: Number(form.quantity),
-            }
-          : medicine
-      )
-    );
-    setShowEditModal(false);
-    setErrorMsg("");
+    try {
+      const response = await fetch(`http://localhost:5000/medicineapi/update/medicine/${selectedMedicine._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          scientificName: form.scientificName,
+          unitCost: Number(form.unitCost),
+          quantity: Number(form.quantity),
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Failed to update medicine.");
+      
+      closeModals();
+      const refresh = await fetch("http://localhost:5000/medicineapi/medicineget");
+      setMedicines(await refresh.json());
+    } catch (err) {
+      setErrorMsg(err.message);
+    }
   };
 
-  const handleDeleteMedicine = (id) => {
-    if (!isManager) {
-      alert("Access Denied: Only managers can delete records.");
-      return;
-    }
+  const handleDeleteMedicine = async (id) => {
+    if (!isManager) return;
+    
     if (window.confirm("Delete this medicine?")) {
-      setMedicines(medicines.filter((medicine) => medicine.id !== id));
+      try {
+        const response = await fetch(`http://localhost:5000/medicineapi/delete/medicine/${id}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) throw new Error("Failed to delete medicine");
+        
+        const refresh = await fetch("http://localhost:5000/medicineapi/medicineget");
+        setMedicines(await refresh.json());
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
-  const handleRestock = (id) => {
-    const qty = Number(prompt("Enter quantity to add:"));
+  const handleRestock = async (medicine) => {
+    const qty = Number(prompt(`Enter quantity to add to ${medicine.name}:`));
     if (!qty || qty <= 0) return;
 
-    setMedicines(
-      medicines.map((medicine) =>
-        medicine.id === id
-          ? { ...medicine, quantity: medicine.quantity + qty }
-          : medicine
-      )
-    );
+    try {
+      const response = await fetch(`http://localhost:5000/medicineapi/update/medicine/${medicine._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quantity: medicine.quantity + qty,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to restock");
+      
+      const refresh = await fetch("http://localhost:5000/medicineapi/medicineget");
+      setMedicines(await refresh.json());
+    } catch (err) {
+      console.error(err);
+      alert("Error restocking medicine");
+    }
   };
 
   const closeModals = () => {
@@ -147,22 +187,32 @@ export default function MedicineInventory() {
     setShowEditModal(false);
     setErrorMsg("");
     setForm({ name: "", scientificName: "", unitCost: "", quantity: "" });
+    setSelectedMedicine(null);
   };
+
+  // --- Filtering ---
+  const lowStock = medicines.filter((m) => m.quantity < 50);
+  const displayedMedicines = activeTab === "all" ? medicines : lowStock;
+
+  const filteredMedicines = displayedMedicines.filter(
+    (medicine) =>
+      (medicine.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (medicine.scientificName || "").toLowerCase().includes(search.toLowerCase()) ||
+      (medicine.mid || "").toLowerCase().includes(search.toLowerCase()) // Also allows searching by ID!
+  );
 
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
       <div className="w-full max-w-full block overflow-hidden bg-gray-50 p-4 md:p-6 lg:p-8 min-h-screen">
         
-        {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 w-full">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">Medicine Inventory</h1>
             <p className="text-gray-500 text-xs sm:text-sm mt-1 break-words">
-              Role Permission Level: <span className="font-semibold text-blue-600 capitalize">{role || "Guest"}</span>
+              Role Permission Level: <span className="font-semibold text-blue-600 capitalize">{userRole || "Loading..."}</span>
             </p>
           </div>
 
-          {/* MANAGER ONLY VIEWABLE BUTTON */}
           {isManager && (
             <button
               onClick={() => {
@@ -176,7 +226,6 @@ export default function MedicineInventory() {
           )}
         </div>
 
-        {/* Filters & Tabs */}
         <div className="flex gap-3 mb-6 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
           <button
             onClick={() => setActiveTab("all")}
@@ -201,26 +250,26 @@ export default function MedicineInventory() {
           </button>
         </div>
 
-        {/* Search */}
         <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 border border-gray-200 w-full flex items-center gap-3">
           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             type="text"
-            placeholder="Search medicines by name or scientific name..."
+            placeholder="Search medicines by name, scientific name, or ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full text-sm text-gray-700 focus:outline-none"
           />
         </div>
 
-        {/* Responsive Table Data Box Wrapper */}
         <div className="w-full max-w-full block bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="w-full block overflow-x-auto">
             <table className="w-full min-w-[750px] border-collapse table-auto">
               <thead className="bg-gray-50/70 border-b border-gray-200">
                 <tr>
+                  {/* NEW ID COLUMN */}
+                  <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">ID</th>
                   <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Scientific Name</th>
                   <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Cost</th>
@@ -231,7 +280,9 @@ export default function MedicineInventory() {
 
               <tbody className="divide-y divide-gray-200 bg-white">
                 {filteredMedicines.map((medicine) => (
-                  <tr key={medicine.id} className="hover:bg-gray-50/50 transition-colors whitespace-nowrap">
+                  <tr key={medicine._id} className="hover:bg-gray-50/50 transition-colors whitespace-nowrap">
+                    {/* NEW ID DISPLAY */}
+                    <td className="p-4 text-sm font-bold text-gray-500 uppercase">{medicine.mid}</td>
                     <td className="p-4 text-sm font-medium text-gray-900">{medicine.name}</td>
                     <td className="p-4 text-sm text-gray-600 italic">{medicine.scientificName}</td>
                     <td className="p-4 text-sm text-gray-900 font-medium">₹{medicine.unitCost}</td>
@@ -248,9 +299,9 @@ export default function MedicineInventory() {
                     </td>
                     <td className="p-4 text-sm pr-6">
                       <div className="flex items-center justify-end gap-2">
-                        {/* Allowed for both Manager and Pharmacist. Highlights RED if low stock */}
+                        
                         <button
-                          onClick={() => handleRestock(medicine.id)}
+                          onClick={() => handleRestock(medicine)}
                           className={`px-3 py-1.5 border text-xs font-medium rounded-lg transition mr-2 ${
                             medicine.quantity < 50
                               ? "border-red-200 text-red-700 bg-red-50 hover:bg-red-100"
@@ -260,7 +311,6 @@ export default function MedicineInventory() {
                           Restock
                         </button>
 
-                        {/* MANAGER ONLY VIEWABLE EDIT CONTROLS */}
                         {isManager && (
                           <button
                             onClick={() => openEditModal(medicine)}
@@ -273,10 +323,9 @@ export default function MedicineInventory() {
                           </button>
                         )}
 
-                        {/* MANAGER ONLY VIEWABLE DELETE CONTROLS */}
                         {isManager && (
                           <button
-                            onClick={() => handleDeleteMedicine(medicine.id)}
+                            onClick={() => handleDeleteMedicine(medicine._id)}
                             title="Delete Medicine"
                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                           >
@@ -291,7 +340,7 @@ export default function MedicineInventory() {
                 ))}
                 {filteredMedicines.length === 0 && (
                   <tr>
-                    <td colSpan="5" className="p-8 text-center text-sm text-gray-400 italic bg-white">
+                    <td colSpan="6" className="p-8 text-center text-sm text-gray-400 italic bg-white">
                       No medicines matched your query.
                     </td>
                   </tr>
@@ -301,7 +350,6 @@ export default function MedicineInventory() {
           </div>
         </div>
 
-        {/* Modal Sheet Protection Guardrail */}
         {(showAddModal || showEditModal) && isManager && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
             <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-2xl border border-gray-100 transform transition-all">
@@ -309,7 +357,6 @@ export default function MedicineInventory() {
                 {showAddModal ? "Add New Asset Data" : "Modify Inventory Listing"}
               </h2>
 
-              {/* Error Message Display */}
               {errorMsg && (
                 <div className="mb-4 bg-red-50 text-red-700 p-3 rounded-lg text-sm font-medium border border-red-100">
                   {errorMsg}

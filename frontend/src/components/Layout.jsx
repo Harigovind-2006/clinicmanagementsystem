@@ -64,7 +64,7 @@ export default function Layout({
       ];
       break;
 
-    case "fos":
+    case "fos ":
       menuItems = [
         { name: "Dashboard", path: "/dashboard" },
         { name: "Patients", path: "/patients" },
