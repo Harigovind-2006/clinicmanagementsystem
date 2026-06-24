@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432
 const BillDetailsSchema = new mongoose.Schema({
   billName: {
     type: String,
@@ -20,9 +23,12 @@ const BillDetailsSchema = new mongoose.Schema({
     default: 'unpaid',
   },
 },{ _id: false });
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432
 
 const patientSchema = new mongoose.Schema({
   pid: {
@@ -88,37 +94,27 @@ const patientSchema = new mongoose.Schema({
 });
 
 // Pre-save middleware to handle atomic auto-incrementing
-patientSchema.pre('save', async function (next) {
+patientSchema.pre('save', async function () {
   const patient = this;
 
-  // Only run this logic if it's a completely new patient entry
   if (patient.isNew) {
-    try {
-      // Find the counter document and atomically increment the sequence by 1
-      const counter = await mongoose.model('Counter').findOneAndUpdate(
-        { id: 'patientId' },
-        { $inc: { seq: 1 } },
-        { new: true, upsert: true } // Creates the counter document if it doesn't exist yet
-      );
+    const counter = await mongoose.model('Counter').findOneAndUpdate(
+      { id: 'patientId' },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
 
-      // Pad the number with zeros to ensure a minimum width of 3 characters (e.g., 1 -> '001')
-      const paddedSequence = String(counter.seq).padStart(3, '0');
-      
-      // Assemble the final custom patient ID format
-      patient.pid = `p${paddedSequence}`;
-      
-      next();
-    } catch (error) {
-      next(error);
-    }
-  } else {
-    next();
+    const paddedSequence = String(counter.seq).padStart(3, '0');
+    patient.pid = `p${paddedSequence}`;
   }
 });
 
 
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432
 export default mongoose.model("Patient", patientSchema);
