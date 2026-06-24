@@ -30,6 +30,16 @@ const appointmentSchema = new mongoose.Schema(
       of: String,
       default: {},
     },
+    patientType:{
+      type: String,
+      enum: ["ip", "op"],
+      default:  "op",
+    },
+    JdObservations:{
+      type: String,
+      default: ""
+    },
+    
     isActive: {
       type: Boolean,
       required: true,
