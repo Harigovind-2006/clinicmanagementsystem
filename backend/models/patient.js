@@ -77,7 +77,6 @@ const patientSchema = new mongoose.Schema({
     of: BillDetailsSchema,
     default: {}
   }
-
 }, 
 {
     timestamps: true

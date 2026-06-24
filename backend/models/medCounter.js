@@ -5,4 +5,4 @@ const MedCounterSchema = new mongoose.Schema({
   seq: { type: Number, default: 0 }
 });
 
-export const MedCounter = mongoose.model('MedCounter', MedCounterSchema);
+export default mongoose.model('medCounter', MedCounterSchema);
