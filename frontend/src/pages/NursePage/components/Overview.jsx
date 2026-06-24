@@ -147,22 +147,6 @@ export default function Overview({ patient }) {
             signs remain within normal range.
           </p>
         </div>
-
-        {/* Status Card */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6">
-          <h2 className="text-lg font-semibold mb-2">
-            Current Status
-          </h2>
-
-          <p className="text-3xl font-bold">
-            Stable
-          </p>
-
-          <p className="mt-2 text-blue-100">
-            Under observation and progressing
-            normally.
-          </p>
-        </div>
       </div>
     </div>
   );
