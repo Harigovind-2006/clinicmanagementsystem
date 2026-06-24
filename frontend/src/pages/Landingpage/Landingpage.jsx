@@ -49,17 +49,27 @@ export default function Landingpage() {
         return;
       }
 
+      console.log("Login successful response data:", data);
+
+      // Save Token
       localStorage.setItem("token", data.token);
 
+      // FIX 1: Safely grab details from the nested 'user' object returned by your API
+      if (data.user) {
+        localStorage.setItem("userId", data.user._id);        // MongoDB uses _id
+        localStorage.setItem("role", data.user.role);
+        localStorage.setItem("username", data.user.username);
+      }
+
+      // Decode the JWT token payload
       const payload = JSON.parse(
         atob(data.token.split(".")[1])
       );
 
-      localStorage.setItem("role", payload.role);
-      localStorage.setItem("userId", payload.userId);
-      localStorage.setItem("username", payload.username);
+      // FIX 2: Safely read role from either payload or verified user object
+      const userRole = payload.role || data.user?.role;
 
-      switch (payload.role) {
+      switch (userRole) {
         case "manager":
           navigate("/dashboard");
           break;
@@ -207,4 +217,3 @@ export default function Landingpage() {
     </section>
   );
 }
-
