@@ -1,4 +1,23 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+
+const BillDetailsSchema = new mongoose.Schema({
+  billName: {
+    type: String,
+    required: [true, 'Bill item name is required'],
+    trim: true,
+  },
+  amount: {
+    type: Number,
+    required: [true, 'Bill item amount is required'],
+    default: 0,
+  },
+  status: {
+    type: String,
+    enum: ['paid', 'unpaid'],
+    required: [true, 'Bill item status is required'],
+    default: 'unpaid',
+  },
+},{ _id: false });
 
 const patientSchema = new mongoose.Schema({
   pid: {
@@ -47,41 +66,39 @@ const patientSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Address is required'],
     trim: true
+  },
+  pendingAmount:{
+    type: Number,
+    default: 0,
+    
+  },
+  billItems: {
+    type: Map,
+    of: BillDetailsSchema,
+    default: {}
   }
-
 }, 
 {
     timestamps: true
 });
 
 // Pre-save middleware to handle atomic auto-incrementing
-PatientSchema.pre('save', async function (next) {
+patientSchema.pre('save', async function () {
   const patient = this;
 
-  // Only run this logic if it's a completely new patient entry
   if (patient.isNew) {
-    try {
-      // Find the counter document and atomically increment the sequence by 1
-      const counter = await mongoose.model('Counter').findOneAndUpdate(
-        { id: 'patientId' },
-        { $inc: { seq: 1 } },
-        { new: true, upsert: true } // Creates the counter document if it doesn't exist yet
-      );
+    const counter = await mongoose.model('Counter').findOneAndUpdate(
+      { id: 'patientId' },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
 
-      // Pad the number with zeros to ensure a minimum width of 3 characters (e.g., 1 -> '001')
-      const paddedSequence = String(counter.seq).padStart(3, '0');
-      
-      // Assemble the final custom patient ID format
-      patient.pid = `p${paddedSequence}`;
-      
-      next();
-    } catch (error) {
-      next(error);
-    }
-  } else {
-    next();
+    const paddedSequence = String(counter.seq).padStart(3, '0');
+    patient.pid = `p${paddedSequence}`;
   }
 });
 
 
-module.exports = mongoose.model("Patient", patientSchema);
+
+
+export default mongoose.model("Patient", patientSchema);

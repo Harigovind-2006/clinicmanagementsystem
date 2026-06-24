@@ -1,79 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Plus, Pencil, Trash2, Eye, EyeOff, X, Check } from "lucide-react";
 import Layout from "./Layout";
 
-const usersData = [
-  {
-    id: 1,
-    name: "Dr. Amit Sharma",
-    designation: "Senior Doctor",
-    mobile: "9811234567",
-    email: "amit@clinic.com",
-    specialization: "Cardiology",
-    dob: "1980-05-12",
-    aadhaar: "123456789012",
-    pan: "AMITS1234K",
-    gender: "Male",
-    address: "MG Road, Kochi, Kerala",
-    status: "Active"
-  },
-  {
-    id: 2,
-    name: "Dr. Priya Verma",
-    designation: "Senior Doctor",
-    mobile: "9822345678",
-    email: "priya@clinic.com",
-    specialization: "General Medicine",
-    dob: "1984-09-21",
-    aadhaar: "234567890123",
-    pan: "PRIYA5678L",
-    gender: "Female",
-    address: "Civil Lines, Delhi",
-    status: "Active"
-  },
-  {
-    id: 3,
-    name: "Dr. Rahul Kumar",
-    designation: "Junior Doctor",
-    mobile: "9833456789",
-    email: "rahul@clinic.com",
-    specialization: "Orthopedics",
-    dob: "1992-03-15",
-    aadhaar: "345678901234",
-    pan: "RAHUL3456M",
-    gender: "Male",
-    address: "Banjara Hills, Hyderabad",
-    status: "Active"
-  },
-  {
-    id: 4,
-    name: "Dr. Neha Singh",
-    designation: "Junior Doctor",
-    mobile: "9844567890",
-    email: "neha@clinic.com",
-    specialization: "Dermatology",
-    dob: "1993-07-08",
-    aadhaar: "456789012345",
-    pan: "NEHAS7890N",
-    gender: "Female",
-    address: "Indiranagar, Bengaluru",
-    status: "Inactive"
-  },
-  {
-    id: 5,
-    name: "Sunita Devi",
-    designation: "Nurse",
-    mobile: "9855678901",
-    email: "sunita@clinic.com",
-    specialization: "-",
-    dob: "1990-11-25",
-    aadhaar: "567890123456",
-    pan: "SUNIT1234P",
-    gender: "Female",
-    address: "Salt Lake, Kolkata",
-    status: "Active"
-  },
-];
+// Role mapping to align UI display with backend database schema strings
+const roleMap = {
+  "Manager": "manager",
+  "Front Office Staff": "fos",
+  "Senior Doctor": "seniordoctor",
+  "Junior Doctor": "juniordoctor",
+  "Nurse": "nurse",
+  "Pharmacist": "pharmacist",
+};
+
+// Reverse mapping for display layout when pulling records out of the database
+const reverseRoleMap = {
+  manager: "Manager",
+  fos: "Front Office Staff",
+  seniordoctor: "Senior Doctor",
+  juniordoctor: "Junior Doctor",
+  nurse: "Nurse",
+  pharmacist: "Pharmacist",
+};
 
 const specializationsList = [
   "General Medicine",
@@ -92,10 +39,10 @@ export default function Users() {
   const [search, setSearch] = useState("");
   const [designation, setDesignation] = useState("All Designations");
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [step, setStep] = useState(1); // Added Step state for Wizard
+  const [step, setStep] = useState(1);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState(null);
-  const [users, setUsers] = useState(usersData);
+  const [users, setUsers] = useState([]);
   const [errorMsg, setErrorMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -119,16 +66,23 @@ export default function Users() {
 
   const [userData, setUserData] = useState(initialUserState);
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      (user.name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (user.email || "").toLowerCase().includes(search.toLowerCase());
+  // --- API Integrations ---
 
-    const matchesDesignation =
-      designation === "All Designations" || user.designation === designation;
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/userapi/userget");
+      if (!response.ok) throw new Error("Failed to fetch users");
+      const data = await response.json();
+      setUsers(data);
+    } catch (err) {
+      console.error("Fetch Error:", err);
+      setErrorMsg("Could not sync data with backend server.");
+    }
+  };
 
-    return matchesSearch && matchesDesignation;
-  });
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleNextStep = () => {
     if (
@@ -155,33 +109,56 @@ export default function Users() {
     setStep(2);
   };
 
-  const handleSaveUser = () => {
+  const handleSaveUser = async () => {
     if (!userData.username.trim() || !userData.password.trim()) {
       setErrorMsg("Username and Password are required to create an account.");
       return;
     }
 
-    const newUser = {
-      id: Date.now(),
-      name: userData.fullName,
-      designation: userData.designation,
-      mobile: userData.mobile,
-      email: userData.email,
-      specialization: userData.designation === "Senior Doctor" ? userData.specialization : "-",
-      dob: userData.dob,
-      aadhaar: userData.aadhaar,
-      pan: userData.pan,
-      gender: userData.gender,
-      address: userData.address,
-      status: "Active",
-    };
+    try {
+      // Build dynamic payload to avoid enum validation errors
+      const payload = {
+        fullname: userData.fullName,
+        username: userData.username,
+        password: userData.password,
+        email: userData.email,
+        pan: userData.pan,
+        dob: userData.dob,
+        mobile: userData.mobile,
+        adhaar: userData.aadhaar,
+        role: roleMap[userData.designation],
+        address: userData.address,
+        gender: userData.gender.toLowerCase(),
+      };
 
-    setUsers([...users, newUser]);
-    setUserData(initialUserState);
-    setShowAddUserModal(false);
-    setStep(1);
-    setErrorMsg("");
-    setShowPassword(false);
+      // Only attach specialisation if the role requires it
+      if (payload.role === "seniordoctor") {
+        payload.specialisation = userData.specialization;
+      }
+
+      const response = await fetch("http://localhost:5000/userapi/userin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Something went wrong while inserting the user.");
+      }
+
+      setUserData(initialUserState);
+      setShowAddUserModal(false);
+      setStep(1);
+      setErrorMsg("");
+      setShowPassword(false);
+      fetchUsers(); 
+    } catch (err) {
+      setErrorMsg(err.message);
+    }
   };
 
   const handleEdit = (user) => {
@@ -190,38 +167,94 @@ export default function Users() {
     setShowEditModal(true);
   };
 
-  const toggleStatus = (id) => {
-    setUsers(
-      users.map((user) =>
-        user.id === id
-          ? { ...user, status: user.status === "Active" ? "Inactive" : "Active" }
-          : user
-      )
-    );
-  };
+  const toggleStatus = async (user) => {
+    try {
+      const updatedStatus = user.status === "Active" ? "Inactive" : "Active";
+      const response = await fetch(`http://localhost:5000/userapi/update/user/${user._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: updatedStatus }),
+      });
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      setUsers(users.filter((user) => user.id !== id));
+      if (!response.ok) throw new Error("Failed to change user status.");
+      fetchUsers();
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const handleUpdateUser = () => {
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      try {
+        const response = await fetch(`http://localhost:5000/userapi/delete/user/${id}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) throw new Error("Failed to remove user account.");
+        fetchUsers();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleUpdateUser = async () => {
     if (!editData) return;
 
-    if (!editData.name || !editData.mobile || !editData.email) {
+    if (!editData.fullname || !editData.mobile || !editData.email) {
       setErrorMsg("Name, Mobile, and Email are mandatory.");
       return;
     }
 
-    const updatedUsers = users.map((user) =>
-      user.id === editData.id ? editData : user
-    );
+    try {
+      // Build dynamic payload for updates
+      const updatePayload = {
+        fullname: editData.fullname,
+        mobile: editData.mobile,
+        email: editData.email,
+        dob: editData.dob,
+        gender: editData.gender ? editData.gender.toLowerCase() : "",
+        role: editData.role,
+        address: editData.address,
+      };
 
-    setUsers(updatedUsers);
-    setShowEditModal(false);
-    setErrorMsg("");
+      // Only attach specialisation if the role is Senior Doctor
+      if (updatePayload.role === "seniordoctor") {
+        updatePayload.specialisation = editData.specialisation;
+      }
+
+      const response = await fetch(`http://localhost:5000/userapi/update/user/${editData._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatePayload),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Failed to submit updates.");
+
+      setShowEditModal(false);
+      setErrorMsg("");
+      fetchUsers();
+    } catch (err) {
+      setErrorMsg(err.message);
+    }
   };
+
+  // --- Search Filtering Processing ---
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      (user.fullname || "").toLowerCase().includes(search.toLowerCase()) ||
+      (user.email || "").toLowerCase().includes(search.toLowerCase());
+
+    const mappedFilterDesignation = roleMap[designation];
+    const matchesDesignation =
+      designation === "All Designations" || user.role === mappedFilterDesignation;
+
+    return matchesSearch && matchesDesignation;
+  });
 
   return (
     <Layout>
@@ -278,7 +311,7 @@ export default function Users() {
             </select>
           </div>
 
-          {/* Table */}
+          {/* Data Table */}
           <div className="overflow-x-auto">
             <table className="min-w-[900px] w-full text-sm text-left">
               <thead className="bg-white border-b border-gray-200">
@@ -294,14 +327,16 @@ export default function Users() {
 
               <tbody className="divide-y divide-gray-100">
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={user._id || user.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-5 py-4 font-medium text-gray-900">
-                      <div>{user.name}</div>
-                      {user.specialization !== "-" && (
-                        <div className="text-xs text-gray-500 italic mt-0.5">{user.specialization}</div>
+                      <div>{user.fullname}</div>
+                      {user.specialisation && user.specialisation !== "-" && (
+                        <div className="text-xs text-gray-500 italic mt-0.5">{user.specialisation}</div>
                       )}
                     </td>
-                    <td className="px-5 py-4 text-gray-700">{user.designation}</td>
+                    <td className="px-5 py-4 text-gray-700">
+                      {reverseRoleMap[user.role] || user.role}
+                    </td>
                     <td className="px-5 py-4 text-gray-600">{user.mobile}</td>
                     <td className="px-5 py-4 text-gray-600">{user.email}</td>
                     <td className="px-5 py-4">
@@ -312,13 +347,13 @@ export default function Users() {
                             : "bg-red-50 text-red-700 border-red-200"
                         }`}
                       >
-                        {user.status}
+                        {user.status || "Active"}
                       </span>
                     </td>
                     <td className="px-5 py-4 pr-6 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => toggleStatus(user.id)}
+                          onClick={() => toggleStatus(user)}
                           className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
                             user.status === "Active"
                               ? "border-red-200 text-red-600 hover:bg-red-50"
@@ -336,7 +371,7 @@ export default function Users() {
 
                         <button
                           className="text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors"
-                          onClick={() => handleDelete(user.id)}
+                          onClick={() => handleDelete(user._id)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -362,7 +397,6 @@ export default function Users() {
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[95vh] lg:max-h-[85vh]">
               
-              {/* Header */}
               <div className="border-b border-gray-100 px-6 py-4 flex justify-between items-center shrink-0">
                 <h2 className="text-lg font-bold text-gray-900">Add New User</h2>
                 <button
@@ -373,10 +407,9 @@ export default function Users() {
                 </button>
               </div>
 
-              {/* Body */}
               <div className="p-6 overflow-y-auto">
                 
-                {/* Stepper Indicator */}
+                {/* Stepper */}
                 <div className="flex items-center justify-center mb-8 max-w-md mx-auto">
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm ${step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
@@ -399,7 +432,7 @@ export default function Users() {
                   </div>
                 )}
 
-                {/* STEP 1: PERSONAL & ROLE DETAILS */}
+                {/* STEP 1: DETAILS */}
                 {step === 1 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
                     <div className="sm:col-span-2">
@@ -516,7 +549,7 @@ export default function Users() {
                         rows={2}
                         value={userData.address}
                         onChange={(e) => { setUserData({ ...userData, address: e.target.value }); setErrorMsg(""); }}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none overflow-y-auto"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
                       />
                     </div>
                   </div>
@@ -543,7 +576,7 @@ export default function Users() {
                           type="text"
                           value={userData.username}
                           onChange={(e) => { setUserData({ ...userData, username: e.target.value }); setErrorMsg(""); }}
-                          className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+                          className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                           placeholder="Create a unique username"
                         />
                       </div>
@@ -554,7 +587,7 @@ export default function Users() {
                             type={showPassword ? "text" : "password"}
                             value={userData.password}
                             onChange={(e) => { setUserData({ ...userData, password: e.target.value }); setErrorMsg(""); }}
-                            className="w-full border border-gray-300 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white"
+                            className="w-full border border-gray-300 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                             placeholder="Create a secure password"
                           />
                           <button
@@ -637,8 +670,8 @@ export default function Users() {
                     <label className="block text-xs font-bold text-gray-600 mb-1">Full Name <span className="text-red-500">*</span></label>
                     <input
                       type="text"
-                      value={editData.name}
-                      onChange={(e) => { setEditData({ ...editData, name: e.target.value }); setErrorMsg(""); }}
+                      value={editData.fullname || ""}
+                      onChange={(e) => { setEditData({ ...editData, fullname: e.target.value }); setErrorMsg(""); }}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
@@ -648,7 +681,7 @@ export default function Users() {
                     <input
                       type="tel"
                       maxLength={10}
-                      value={editData.mobile}
+                      value={editData.mobile || ""}
                       onChange={(e) => { setEditData({ ...editData, mobile: e.target.value.replace(/\D/g, '') }); setErrorMsg(""); }}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
@@ -657,7 +690,7 @@ export default function Users() {
                     <label className="block text-xs font-bold text-gray-600 mb-1">Email <span className="text-red-500">*</span></label>
                     <input
                       type="email"
-                      value={editData.email}
+                      value={editData.email || ""}
                       onChange={(e) => { setEditData({ ...editData, email: e.target.value }); setErrorMsg(""); }}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
@@ -668,7 +701,7 @@ export default function Users() {
                     <input
                       type="date"
                       max={yesterday.toISOString().split("T")[0]}
-                      value={editData.dob || ""}
+                      value={editData.dob ? editData.dob.split("T")[0] : ""}
                       onChange={(e) => setEditData({ ...editData, dob: e.target.value })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
@@ -676,7 +709,7 @@ export default function Users() {
                   <div>
                     <label className="block text-xs font-bold text-gray-600 mb-1">Gender</label>
                     <select
-                      value={editData.gender || ""}
+                      value={editData.gender ? editData.gender.charAt(0).toUpperCase() + editData.gender.slice(1) : ""}
                       onChange={(e) => setEditData({ ...editData, gender: e.target.value })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     >
@@ -689,25 +722,25 @@ export default function Users() {
                   <div>
                     <label className="block text-xs font-bold text-gray-600 mb-1">Designation</label>
                     <select
-                      value={editData.designation}
-                      onChange={(e) => setEditData({ ...editData, designation: e.target.value, specialization: "-" })}
+                      value={editData.role || ""}
+                      onChange={(e) => setEditData({ ...editData, role: e.target.value, specialisation: "-" })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     >
-                      <option>Manager</option>
-                      <option>Front Office Staff</option>
-                      <option>Pharmacist</option>
-                      <option>Nurse</option>
-                      <option>Junior Doctor</option>
-                      <option>Senior Doctor</option>
+                      <option value="manager">Manager</option>
+                      <option value="fos">Front Office Staff</option>
+                      <option value="pharmacist">Pharmacist</option>
+                      <option value="nurse">Nurse</option>
+                      <option value="juniordoctor">Junior Doctor</option>
+                      <option value="seniordoctor">Senior Doctor</option>
                     </select>
                   </div>
 
-                  {editData.designation === "Senior Doctor" ? (
+                  {editData.role === "seniordoctor" ? (
                     <div className="animate-in fade-in">
                       <label className="block text-xs font-bold text-gray-600 mb-1">Specialization <span className="text-red-500">*</span></label>
                       <select
-                        value={editData.specialization || ""}
-                        onChange={(e) => setEditData({ ...editData, specialization: e.target.value })}
+                        value={editData.specialisation || ""}
+                        onChange={(e) => setEditData({ ...editData, specialisation: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       >
                         <option value="">Select Specialization</option>
@@ -726,7 +759,7 @@ export default function Users() {
                       rows={2}
                       value={editData.address || ""}
                       onChange={(e) => setEditData({ ...editData, address: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none overflow-y-auto"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
                     />
                   </div>
                 </div>
