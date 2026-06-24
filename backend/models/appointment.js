@@ -103,45 +103,7 @@ appointmentSchema.index(
 
 
 
-// 7. NEW WORKFLOW: GET PATIENT APPOINTMENT HISTORY (No new table needed!)
-// =========================================================================
-// @route   GET /api/appointments/history/:patientId
-export const getPatientHistory = async (req, res) => {
-    try {
-        const { patientId } = req.params; // Expects the MongoDB _id of the patient
 
-        // Search the appointment table for this specific patient where status is completed
-        const history = await Appointment.find({ 
-            patient: patientId, 
-            status: "completed" 
-        })
-        .sort({ appointmentDate: -1, appointmentTime: -1 }) // Newest history first
-        .populate("doctor", "fullname specialisation")     // Fetches doctor name and specialisation
-        .populate("medicine.medicine", "medName medScientificName") // Fetches medicine inventory details
-        .populate("procedure", "procedureName amount");     // Fetches procedure names and costs
-
-        if (!history || history.length === 0) {
-            return res.status(200).json({ 
-                success: true, 
-                message: "No past medical history found for this patient.", 
-                count: 0,
-                data: [] 
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            count: history.length,
-            data: history
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch patient history logs",
-            error: error.message
-        });
-    }
-};
 
 
 
