@@ -98,7 +98,10 @@ patientSchema.pre('save', async function () {
   }
 });
 
-
+patientSchema.index(
+  { name: 1, mobilePhone: 1 },
+  { unique: true }
+);
 
 
 export default mongoose.model("Patient", patientSchema);
