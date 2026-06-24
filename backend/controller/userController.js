@@ -1,5 +1,4 @@
 import user from "../models/user.js";
-import bcrypt from "bcryptjs"; // Make sure to run: npm install bcryptjs
 
 const DUPLICATE_FIELDS = ["username", "email", "pan", "adhaar"];
 
@@ -23,14 +22,8 @@ async function findDuplicateUser(data, excludeId = null) {
 
 export const createUser = async (req, res) => {
     try {
-        const { username, email, pan, adhaar, password } = req.body;
-        
-        const duplicateUser = await findDuplicateUser({ 
-            username, 
-            email, 
-            pan, 
-            adhaar 
-        });
+        const { username, email, pan, adhaar } = req.body;
+        const duplicateUser = await findDuplicateUser({ username, email, pan, adhaar });
 
         if (duplicateUser) {
             return res.status(400).json({
@@ -38,17 +31,7 @@ export const createUser = async (req, res) => {
             });
         }
 
-        // Hash the incoming plain text password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Clone the request payload and overwrite the password field with the hash
-        const userData = {
-            ...req.body,
-            password: hashedPassword
-        };
-
-        // Save the record to MongoDB
-        const newUser = new user(userData);
+        const newUser = new user(req.body);
         const savedUser = await newUser.save();
 
         const userResponse = savedUser.toObject();
