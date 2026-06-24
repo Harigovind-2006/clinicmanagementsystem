@@ -32,7 +32,7 @@ export default function Landingpage() {
       setError("");
 
       const response = await fetch(
-        "http://localhost:5000/auth/login",
+        "http://localhost:5000/authapi/login",
         {
           method: "POST",
           headers: {

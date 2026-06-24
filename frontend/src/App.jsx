@@ -27,7 +27,7 @@ import Users from "./components/Users";
 import PharmacyBill from "./pages/Pharmacist/PharmacyBill";
 
 import PatientsList from "./components/PatientComponent/PatientsList";
-import PatientProfile from "./components/PatientComponent/PatientsProfile";
+import PatientsProfile from "./components/PatientComponent/PatientsProfile";
 import PatientHistory from "./components/PatientComponent/PatientHistory";
 
 function App() {
@@ -77,7 +77,7 @@ function App() {
       <Route path="/users" element={<Users />} />
 
       <Route path="/patients" element={<PatientsList />} />
-      <Route path="/patients/:pid" element={<PatientProfile />} />
+      
 
       <Route path="/patient-history/:pid" element={<PatientHistory />} />
 
