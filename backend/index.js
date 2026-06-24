@@ -6,7 +6,10 @@ import dotenv from "dotenv";
 import userRoute from "./routes/userRoute.js";
 import patientRoute from "./routes/patientRoute.js";
 import medicineRoute from "./routes/medicineRoute.js";
-import authRoute from "./routes/authRoutes.js";
+import appoinmentRoute from "./routes/appoinmentRoute.js";
+import authRoute from "./routes/authRoute.js";
+import procedureRoute from "./routes/procedureRoute.js"
+
 
 dotenv.config();
 
@@ -17,45 +20,30 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-// Test Route
-app.get("/", (req, res) => {
-    res.json({
-        success: true,
-        message: "Clinic Management System API Running"
-    });
-});
+const PORT = process.env.PORT || 5000;
+const URL = process.env.MONGODB_URL;
 
-// Routes
+if (!URL) {
+  console.error("MONGODB_URL is not defined in the environment variables.");
+  process.exit(1);
+}
+
+mongoose
+  .connect(URL)
+  .then(() => {
+    console.log("Database connected successfully");
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Error while connecting with the database", error);
+    process.exit(1);
+  });
+
+app.use("/authapi", authRoute);
 app.use("/userapi", userRoute);
 app.use("/patientapi", patientRoute);
 app.use("/medicineapi", medicineRoute);
-app.use("/auth", authRoute);
-
-// Environment Variables
-const PORT = process.env.PORT || 5000;
-const MONGODB_URL = process.env.MONGODB_URL;
-
-// Database Connection
-mongoose
-    .connect(MONGODB_URL)
-    .then(() => {
-        console.log("✅ Database connected successfully");
-
-        app.listen(PORT, () => {
-            console.log(`✅ Server running on port ${PORT}`);
-        });
-    })
-    .catch((error) => {
-        console.error("❌ Database connection failed");
-        console.error(error);
-    });
-
-// Handle Unhandled Promise Rejections
-process.on("unhandledRejection", (err) => {
-    console.error("Unhandled Rejection:", err);
-});
-
-// Handle Uncaught Exceptions
-process.on("uncaughtException", (err) => {
-    console.error("Uncaught Exception:", err);
-});
+app.use("/appoinmentapi", appoinmentRoute);
+app.use("/procedureapi", procedureRoute);

@@ -50,8 +50,12 @@ export const createUser = async (req, res) => {
         // Save the record to MongoDB
         const newUser = new user(userData);
         const savedUser = await newUser.save();
-        
-        return res.status(201).json(savedUser);
+
+        const userResponse = savedUser.toObject();
+        delete userResponse.password;
+
+        return res.status(201).json(userResponse);
+
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -100,39 +104,28 @@ export const updateUser = async (req, res) => {
             });
         }
 
-        const updatedUser = await user.findByIdAndUpdate(userId, req.body, { new: true });
-        if (!updatedUser) {
+        // Find the user document first
+        const foundUser = await user.findById(userId);
+        if (!foundUser) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        return res.status(200).json(updatedUser);
+        // Dynamically apply ONLY the fields provided in req.body
+        Object.assign(foundUser, req.body);
+
+        const updatedUser = await foundUser.save();
+
+        const userResponse = updatedUser.toObject();
+        delete userResponse.password;
+
+        return res.status(200).json(userResponse);
+
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
 };
 
-export const updateDocAttendece = async (req, res) => {
-    try {
-        const userId = req.params.id;
-        const { attendance } = req.body;
-        
-        // Slightly cleaned up logic for setting attendance
-        const newAttendance = attendance === 'active' ? 'inactive' : 'active';
-        
-        const updatedAttendance = await user.findByIdAndUpdate(
-            userId,
-            { attendance: newAttendance },
-            { new: true }
-        );
-        
-        if (!updatedAttendance){
-            return res.status(404).json({ message: "User not found" });
-        }
-        return res.status(200).json(updatedAttendance);
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
+
 
 export const deleteUser = async (req, res) => {
     try {
@@ -147,3 +140,27 @@ export const deleteUser = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 };
+
+
+
+
+
+// export const updateDocAttendece = async (req, res) => {
+//     try {
+//         const userId = req.params.id;
+//         const { attendance } = req.body;
+//         if (attendance=='active'){
+//             const newAttendence='inactive'
+//         }
+//         else{
+//             const newAttendence='active'
+//         }
+//         const updatedAttendence= await user.findByIdAndUpdate(userId, newAttendence, {new: true});
+//         if (!updatedAttendence){
+//             return res.status(404).json({ message: "User not found" });
+//         }
+//         return res.status(200).json(updatedUser);
+//     } catch (error) {
+//         return res.status(500).json({ message: error.message });
+//     }
+// };
