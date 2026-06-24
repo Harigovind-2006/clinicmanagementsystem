@@ -1,8 +1,5 @@
 import mongoose from "mongoose";
-<<<<<<< HEAD
-=======
 import bcrypt from "bcrypt";
->>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432
 
 const userSchema = new mongoose.Schema(
   {
@@ -30,19 +27,11 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     pan: {
-<<<<<<< HEAD
-        type: String, 
-        required: true, 
-        unique: true, 
-        uppercase: true,
-        trim: true
-=======
       type: String,
       required: true,
       unique: true,
       uppercase: true,
       trim: true,
->>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432
     },
     dob: {
       type: Date,

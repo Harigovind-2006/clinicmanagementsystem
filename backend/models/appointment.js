@@ -26,15 +26,6 @@ const appointmentSchema = new mongoose.Schema(
       required: [true, "Appointment time is required"],
     },
     vitals: {
-<<<<<<< HEAD
-        type: Map,
-        of: String, 
-        default: {} 
-    }
-});
-
-export default mongoose.model('Appointment', appointmentSchema);
-=======
       type: Map,
       of: String,
       default: {},
@@ -56,4 +47,3 @@ appointmentSchema.index(
 );
 
 export default mongoose.model("Appointment", appointmentSchema);
->>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432

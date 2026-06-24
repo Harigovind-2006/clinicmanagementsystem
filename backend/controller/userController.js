@@ -50,17 +50,12 @@ export const createUser = async (req, res) => {
         // Save the record to MongoDB
         const newUser = new user(userData);
         const savedUser = await newUser.save();
-<<<<<<< HEAD
-        
-        return res.status(201).json(savedUser);
-=======
 
         const userResponse = savedUser.toObject();
         delete userResponse.password;
 
         return res.status(201).json(userResponse);
 
->>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -130,32 +125,6 @@ export const updateUser = async (req, res) => {
     }
 };
 
-<<<<<<< HEAD
-export const updateDocAttendece = async (req, res) => {
-    try {
-        const userId = req.params.id;
-        const { attendance } = req.body;
-        
-        // Slightly cleaned up logic for setting attendance
-        const newAttendance = attendance === 'active' ? 'inactive' : 'active';
-        
-        const updatedAttendance = await user.findByIdAndUpdate(
-            userId,
-            { attendance: newAttendance },
-            { new: true }
-        );
-        
-        if (!updatedAttendance){
-            return res.status(404).json({ message: "User not found" });
-        }
-        return res.status(200).json(updatedAttendance);
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
-=======
-
->>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432
 
 export const deleteUser = async (req, res) => {
     try {
@@ -169,9 +138,6 @@ export const deleteUser = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
-<<<<<<< HEAD
-};
-=======
 };
 
 
@@ -197,4 +163,3 @@ export const deleteUser = async (req, res) => {
 //         return res.status(500).json({ message: error.message });
 //     }
 // };
->>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432

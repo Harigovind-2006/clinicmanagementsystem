@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432
 const BillDetailsSchema = new mongoose.Schema({
   billName: {
     type: String,
@@ -23,12 +18,6 @@ const BillDetailsSchema = new mongoose.Schema({
     default: 'unpaid',
   },
 },{ _id: false });
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432
 
 const patientSchema = new mongoose.Schema({
   pid: {
@@ -112,9 +101,4 @@ patientSchema.pre('save', async function () {
 
 
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 8277d545c26343484f66ca2e01fa8e7567621432
 export default mongoose.model("Patient", patientSchema);

@@ -1,3 +1,4 @@
+
 import Appointment from "../models/appointment.js";
 
 export const createAppoinment = async (req, res) => {
