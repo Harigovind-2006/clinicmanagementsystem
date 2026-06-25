@@ -108,3 +108,94 @@ export const updatePatientBills = async (req, res) => {
     res.status(400).json({ success: false, error: error.message });
   }
 };
+
+
+
+// @desc    Generate a comprehensive invoice/bill statement for a single patient
+// @route   GET /api/patients/:id/invoice
+export const getPatientInvoice = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Verify if the passed ID is a valid MongoDB hexadecimal object ID
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid Patient ID format" });
+        }
+
+        // Run the high-performance Aggregation Pipeline
+        const invoiceData = await mongoose.model("Patient").aggregate([
+            // Step 1: Match the specific patient by their ID
+            { $match: { _id: new mongoose.Types.ObjectId(id) } },
+
+            // Step 2: Extract map keys and do mathematical transformations
+            {
+                $project: {
+                    pid: 1,
+                    name: 1,
+                    mobilePhone: 1,
+                    // Transform the billItems map into an array of objects: [{ k: "X-Ray", v: { amount: 1500, status: "unpaid" } }]
+                    billingTable: { $objectToArray: "$billItems" }
+                }
+            },
+
+            // Step 3: Format the billing data and compute the balances
+            {
+                $project: {
+                    pid: 1,
+                    name: 1,
+                    mobilePhone: 1,
+                    
+                    // Clean up the table structure for the frontend UI layout
+                    invoiceItems: {
+                        $map: {
+                            input: "$billingTable",
+                            as: "item",
+                            in: {
+                                itemName: "$$item.k",
+                                amount: "$$item.v.amount",
+                                status: "$$item.v.status"
+                            }
+                        }
+                    },
+
+                    // Calculate Total Billing Amount
+                    totalBillAmount: { $sum: "$billingTable.v.amount" },
+
+                    // Calculate Total Amount Paid Already
+                    totalAmountPaid: {
+                        $sum: {
+                            $map: {
+                                input: "$billingTable",
+                                as: "item",
+                                in: {
+                                    $cond: [ { $eq: ["$$item.v.status", "paid"] }, "$$item.v.amount", 0 ]
+                                }
+                            }
+                        }
+                    },
+
+                    totalAmountDue: {
+                        $sum: {
+                            $map: {
+                                input: "$billingTable",
+                                as: "item",
+                                in: {
+                                    $cond: [ { $eq: ["$$item.v.status", "unpaid"] }, "$$item.v.amount", 0 ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]);
+
+        if (!invoiceData || invoiceData.length === 0) {
+            return res.status(404).json({ success: false, message: "Patient invoice records not found" });
+        }
+
+        return res.status(200).json({ success: true, invoice: invoiceData[0] });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
