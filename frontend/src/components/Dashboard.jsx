@@ -1,62 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Check, Printer, Edit2, X, Clock } from 'lucide-react';
 import Layout from './Layout';
+import api from "../api/axios";
 
 const todayDate = new Date().toISOString().split('T')[0];
 
-const active = [
-  { id: 1, pid: 'P001', patientName: 'John Doe', tokenNumber: 1, assignedDoctorName: 'Dr. Amit Sharma', specialization: 'Cardiology', appointmentDate: todayDate, appointmentTime: '09:00 AM', status: 'Waiting', createdAt: `${todayDate} 09:00`, isFollowUp: false },
-  { id: 2, pid: 'P002', patientName: 'Jane Smith', tokenNumber: 2, assignedDoctorName: 'Dr. Priya Verma', specialization: 'General Medicine', appointmentDate: todayDate, appointmentTime: '09:30 AM', status: 'Scheduled', createdAt: `${todayDate} 09:30`, isFollowUp: false },
-  { id: 3, pid: 'P004', patientName: 'Priya Nair', tokenNumber: 3, assignedDoctorName: 'Dr. Amit Sharma', specialization: 'Cardiology', appointmentDate: todayDate, appointmentTime: '10:00 AM', status: 'Scheduled', createdAt: `${todayDate} 10:00`, isFollowUp: false },
-];
-
-const initialDischargeRequests = [
-  { id: 1, patientPid: 'P001', roomId: 101, fromDate: '2024-05-25', toDate: todayDate, status: 'Pending' },
-  { id: 2, patientPid: 'P002', roomId: 102, fromDate: '2024-05-28', toDate: todayDate, status: 'Pending' },
-];
+const specializationsList = ['Cardiology', 'Neurology', 'Orthopedics', 'Dermatology', 'Pediatrics', 'General Medicine'];
+const bloodGroupsList = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 const statusColors = {
   Scheduled: 'bg-blue-100 text-blue-600 border-blue-200 px-2',
-  Waiting: 'bg-amber-100 t  ext-amber-600 border-amber-300 px-5',
+  Waiting: 'bg-amber-100 text-amber-600 border-amber-300 px-5',
   'In Progress': 'bg-green-100 text-green-700 border-green-200',
   Completed: 'bg-gray-100 text-gray-600 border-gray-200',
-  'Follow-up': 'bg-purple-100 text-purple-700 border-purple-200 ',
+  'Follow-up': 'bg-purple-100 text-purple-700 border-purple-200',
 };
-
-const roomMap = { 101: { name: 'Room 101' }, 102: { name: 'Room 102' } };
-const patientNames = { P001: 'John Doe', P002: 'Jane Smith', P003: 'Alice Johnson', P004: 'Bob Williams', P005: 'Charlie Brown' };
-
-const dischargePatientBills = {
-  P001: { total: 7200, paid: 5200 },
-  P002: { total: 6400, paid: 5700 },
-};
-
-const existingPatients = [
-  { pid: 'P001', name: 'John Doe', phone: '9001234567', lastVisit: todayDate },
-  { pid: 'P002', name: 'Jane Smith', phone: '9002345678', lastVisit: todayDate },
-  { pid: 'P003', name: 'Ravi Kumar', phone: '9003456789', lastVisit: '2026-06-01' },
-];
-
-const specializationsList = ['Cardiology', 'Neurology', 'Orthopedics', 'Dermatology', 'Pediatrics', 'General Medicine'];
-
-// Added Working Hours
-const doctors = [
-  { name: 'Dr. Amit Sharma', specialization: 'Cardiology', start: '09:00', end: '13:00' },
-  { name: 'Dr. Smith', specialization: 'Cardiology', start: '14:00', end: '18:00' },
-  { name: 'Dr. Priya Verma', specialization: 'General Medicine', start: '09:00', end: '17:00' },
-  { name: 'Dr. Adams', specialization: 'Neurology', start: '10:00', end: '16:00' },
-  { name: 'Dr. Miller', specialization: 'Pediatrics', start: '08:00', end: '12:00' },
-];
-
-const bloodGroupsList = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export default function ManagerDashboard({ role }) {
   const [search, setSearch] = useState('');
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState("");
   const [tab, setTab] = useState('appointments');
-  const [appointments, setAppointments] = useState(active);
-  const [ipDischarges, setIpDischarges] = useState(initialDischargeRequests);
+  const [appointments, setAppointments] = useState([]);
+  const [ipDischarges, setIpDischarges] = useState([]);
+  const [existingPatients, setExistingPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
   
   const [showModal, setShowModal] = useState(false);
   const [isNewAppointmentWizard, setIsNewAppointmentWizard] = useState(false);
@@ -65,7 +33,6 @@ export default function ManagerDashboard({ role }) {
   const [existingPatientSearch, setExistingPatientSearch] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   
-  // Custom Time Dropdown States
   const [timeQuery, setTimeQuery] = useState('');
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   const [dischargeModal, setDischargeModal] = useState(null);
@@ -73,39 +40,117 @@ export default function ManagerDashboard({ role }) {
   const [newAppointmentData, setNewAppointmentData] = useState({
     id: null, pid: '', patientName: '', dob: '', phone: '', email: '', gender: 'Male',
     bloodGroup: 'O+', address: '', specialization: specializationsList[0],
-    assignedDoctorName: doctors.filter(d => d.specialization === specializationsList[0])[0]?.name || '',
-    appointmentDate: todayDate, appointmentTime: '', paymentMethod: 'Cash', upiId: '', tokenNumber: null,
-    paymentTimestamp: null
+    assignedDoctorName: '', appointmentDate: todayDate, appointmentTime: '', 
+    paymentMethod: 'Cash', upiId: '', tokenNumber: null, paymentTimestamp: null,
+    consultationFee: 500, from: 'OPD'
   });
+
+  useEffect(() => {
+    fetchAppointments();
+    fetchPatients();
+    fetchDoctors();
+    fetchDischarges();
+  }, []);
+
+  const fetchAppointments = async () => {
+    try {
+      const res = await api.get("/appoinmentapi");
+      setAppointments(res.data.data || res.data);
+    } catch (err) {
+      console.log("Error fetching appointments:", err);
+    }
+  };
+
+  const fetchPatients = async () => {
+    try {
+      const res = await api.get("/patientapi");
+      setExistingPatients(res.data.data || res.data);
+    } catch (err) {
+      console.log("Error fetching patients:", err);
+    }
+  };
+
+  const fetchDoctors = async () => {
+    try {
+      const res = await api.get("/userapi");
+      const docs = (res.data.data || res.data).filter(
+        u => u.role === "seniordoctor" || u.role === "juniordoctor" || u.role === "doctor"
+      );
+      setDoctors(docs);
+    } catch (err) {
+      console.log("Error fetching doctors:", err);
+    }
+  };
+
+  const fetchDischarges = async () => {
+    try {
+      const res = await api.get("/roomsapi/discharge");
+      setIpDischarges(res.data.data || res.data);
+    } catch (err) {
+      console.log("Error fetching discharges:", err);
+    }
+  };
 
   const filtered = appointments.filter((a) => {
     const query = search.toLowerCase();
-    return (
-      a.pid.toLowerCase().includes(query) ||
-      a.patientName.toLowerCase().includes(query) ||
-      a.assignedDoctorName.toLowerCase().includes(query) ||
-      a.tokenNumber.toString().includes(query)
-    );
+    const matchesSearch = 
+      (a.pid || '').toLowerCase().includes(query) ||
+      (a.patientName || a.patient?.name || '').toLowerCase().includes(query) ||
+      (a.assignedDoctorName || a.doctor?.name || '').toLowerCase().includes(query) ||
+      (a.tokenNumber?.toString() || '').includes(query);
+    
+    const matchesDate = !selectedDate || a.appointmentDate?.split('T')[0] === selectedDate;
+    const matchesDoctor = !selectedDoctor || 
+      (a.assignedDoctorName === selectedDoctor) || 
+      (a.doctor?.name === selectedDoctor);
+    
+    return matchesSearch && matchesDate && matchesDoctor;
   });
 
-  const getDischargePatientBills = (patientPid) => {
-    const bill = dischargePatientBills[patientPid] || { total: 0, paid: 0 };
-    const pending = Math.max(0, bill.total - bill.paid);
-    return { total: bill.total, paid: bill.paid, pending };
+  const getPatientName = (appointment) => {
+    if (appointment.patientName) return appointment.patientName;
+    if (appointment.patient?.name) return appointment.patient.name;
+    if (appointment.patientId?.name) return appointment.patientId.name;
+    return 'Unknown';
   };
 
-  const getPatientName = (patientPid) => patientNames[patientPid] || patientPid;
-  const getRoom = (roomId) => roomMap[roomId] || null;
+  const getPatientPid = (appointment) => {
+    if (appointment.pid) return appointment.pid;
+    if (appointment.patient?.pid) return appointment.patient.pid;
+    if (appointment.patientId?.pid) return appointment.patientId.pid;
+    return 'N/A';
+  };
 
-  // --- DYNAMIC TIME SLOT LOGIC ---
-  const selectedDoctorInfo = doctors.find(d => d.name === newAppointmentData.assignedDoctorName);
-  const availableDoctors = doctors.filter(d => d.specialization === newAppointmentData.specialization);
+  const getDoctorName = (appointment) => {
+    if (appointment.assignedDoctorName) return appointment.assignedDoctorName;
+    if (appointment.doctor?.name) return appointment.doctor.name;
+    return 'N/A';
+  };
+
+  const getSpecialization = (appointment) => {
+    if (appointment.specialization) return appointment.specialization;
+    if (appointment.doctor?.specialization) return appointment.doctor.specialization;
+    return 'N/A';
+  };
+
+  const selectedDoctorInfo = doctors.find(d => 
+    d.name === newAppointmentData.assignedDoctorName || 
+    d._id === newAppointmentData.assignedDoctorName
+  );
+  
+  const availableDoctors = doctors.filter(d => 
+    d.specialization === newAppointmentData.specialization
+  );
 
   const getAvailableTimeSlots = () => {
     if (!selectedDoctorInfo) return [];
+    
+    const start = selectedDoctorInfo.workingHours?.start || selectedDoctorInfo.start || '09:00';
+    const end = selectedDoctorInfo.workingHours?.end || selectedDoctorInfo.end || '17:00';
+    
     let slots = [];
-    let [h, m] = selectedDoctorInfo.start.split(':').map(Number);
-    let [endH, endM] = selectedDoctorInfo.end.split(':').map(Number);
+    let [h, m] = start.split(':').map(Number);
+    let [endH, endM] = end.split(':').map(Number);
 
     while (h < endH || (h === endH && m <= endM)) {
       let hh = h.toString().padStart(2, '0');
@@ -122,7 +167,11 @@ export default function ManagerDashboard({ role }) {
     }
 
     const bookedSlots = appointments
-      .filter(a => a.appointmentDate === newAppointmentData.appointmentDate && a.assignedDoctorName === newAppointmentData.assignedDoctorName)
+      .filter(a => 
+        a.appointmentDate?.split('T')[0] === newAppointmentData.appointmentDate && 
+        (a.assignedDoctorName === newAppointmentData.assignedDoctorName || 
+         a.doctor?.name === newAppointmentData.assignedDoctorName)
+      )
       .map(a => a.appointmentTime);
 
     return slots.filter(s => !bookedSlots.includes(s.val12));
@@ -144,13 +193,18 @@ export default function ManagerDashboard({ role }) {
   const openNewAppointmentModal = () => {
     const initialDocs = doctors.filter(d => d.specialization === specializationsList[0]);
     setNewAppointmentData({
-      id: Date.now(), pid: `P00${appointments.length + 1}`, patientName: '', dob: '', phone: '',
+      id: Date.now(), pid: '', patientName: '', dob: '', phone: '',
       email: '', gender: 'Male', bloodGroup: 'O+', address: '', specialization: specializationsList[0],
-      assignedDoctorName: initialDocs.length > 0 ? initialDocs[0].name : '',
-      appointmentDate: todayDate, appointmentTime: '', paymentMethod: 'Cash', upiId: '', tokenNumber: null, paymentTimestamp: null
+      assignedDoctorName: initialDocs.length > 0 ? initialDocs[0].name || initialDocs[0]._id : '',
+      appointmentDate: todayDate, appointmentTime: '', paymentMethod: 'Cash', upiId: '', 
+      tokenNumber: null, paymentTimestamp: null, consultationFee: 500, from: 'OPD'
     });
     setTimeQuery('');
-    setPatientMode('new'); setWizardStep(1); setIsNewAppointmentWizard(true); setShowModal(true); setErrorMsg('');
+    setPatientMode('new'); 
+    setWizardStep(1); 
+    setIsNewAppointmentWizard(true); 
+    setShowModal(true); 
+    setErrorMsg('');
   };
 
   const handleNext = () => {
@@ -159,65 +213,146 @@ export default function ManagerDashboard({ role }) {
       if (patientMode === 'new') {
         const { patientName, phone, dob, email, address, bloodGroup, gender } = newAppointmentData;
         const today = new Date().toISOString().split("T")[0];
-          if (newAppointmentData.dob > today) 
-         {
+        if (newAppointmentData.dob > today) {
           setErrorMsg("Date of Birth cannot be in the future.");
           return;
-         }
+        }
         if (!patientName || !phone || !dob || !email || !address || !bloodGroup || !gender) {
-          setErrorMsg('All fields are required for new registration.'); return;
+          setErrorMsg('All fields are required for new registration.'); 
+          return;
         }
         if (!/^[6-9]\d{9}$/.test(phone)) {
-          setErrorMsg('Enter a valid 10-digit mobile number.'); return;
+          setErrorMsg('Enter a valid 10-digit mobile number.'); 
+          return;
         }
       } else {
-        if (!newAppointmentData.pid) { setErrorMsg('Please select an existing patient.'); return; }
+        if (!newAppointmentData.pid) { 
+          setErrorMsg('Please select an existing patient.'); 
+          return; 
+        }
       }
       setWizardStep(2);
     } else if (wizardStep === 2) {
       if (!newAppointmentData.specialization || !newAppointmentData.appointmentDate || !newAppointmentData.appointmentTime) {
-        setErrorMsg('Please fill all scheduling details and select a valid time slot.'); return;
+        setErrorMsg('Please fill all scheduling details and select a valid time slot.'); 
+        return;
       }
       setWizardStep(3);
     } else if (wizardStep === 3) {
       if (newAppointmentData.paymentMethod === 'UPI' && !newAppointmentData.upiId) {
-        setErrorMsg('UPI Transaction ID is required.'); return;
+        setErrorMsg('UPI Transaction ID is required.'); 
+        return;
       }
       saveNewAppointment();
     }
   };
 
-  const saveNewAppointment = () => {
-    const newToken = appointments.length + 1;
-    const paymentTimestamp = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
-    setNewAppointmentData(prev => ({ ...prev, tokenNumber: newToken, paymentTimestamp }));
-    
-    setAppointments(prev => [
-      ...prev,
-      {
-        id: newAppointmentData.id, pid: newAppointmentData.pid, patientName: newAppointmentData.patientName,
-        tokenNumber: newToken, assignedDoctorName: newAppointmentData.assignedDoctorName,
-        specialization: newAppointmentData.specialization, appointmentDate: newAppointmentData.appointmentDate,
-        appointmentTime: newAppointmentData.appointmentTime, status: 'Scheduled',
-        createdAt: `${newAppointmentData.appointmentDate} ${newAppointmentData.appointmentTime}`, isFollowUp: false,
-      },
-    ]);
-    setWizardStep(4);
+  const saveNewAppointment = async () => {
+    try {
+      const paymentTimestamp = new Date().toLocaleString('en-IN', { 
+        dateStyle: 'medium', 
+        timeStyle: 'short' 
+      });
+      
+      let patientId = newAppointmentData.pid;
+      
+      if (patientMode === 'new') {
+        const patientData = {
+          patientName: newAppointmentData.patientName,
+          phone: newAppointmentData.phone,
+          email: newAppointmentData.email,
+          dob: newAppointmentData.dob,
+          gender: newAppointmentData.gender,
+          bloodGroup: newAppointmentData.bloodGroup,
+          address: newAppointmentData.address
+        };
+        
+        const patientRes = await api.post("/patientapi", patientData);
+        patientId = patientRes.data.data?._id || patientRes.data._id;
+        
+        setNewAppointmentData(prev => ({ 
+          ...prev, 
+          pid: patientId,
+          paymentTimestamp 
+        }));
+      }
+
+      const appointmentData = {
+        patientId: patientId,
+        doctorId: newAppointmentData.assignedDoctorName,
+        specialization: newAppointmentData.specialization,
+        appointmentDate: newAppointmentData.appointmentDate,
+        appointmentTime: newAppointmentData.appointmentTime,
+        paymentMethod: newAppointmentData.paymentMethod,
+        upiId: newAppointmentData.upiId || undefined,
+        consultationFee: newAppointmentData.consultationFee,
+        from: newAppointmentData.from || 'OPD'
+      };
+
+      const appointmentRes = await api.post("/appoinmentapi", appointmentData);
+      const newAppointment = appointmentRes.data.data || appointmentRes.data;
+      
+      setNewAppointmentData(prev => ({ 
+        ...prev, 
+        tokenNumber: newAppointment.tokenNumber,
+        pid: newAppointment.patientId?.pid || patientId
+      }));
+      
+      setWizardStep(4);
+      fetchAppointments();
+    } catch (err) {
+      console.error("Error saving appointment:", err);
+      setErrorMsg(err.response?.data?.message || "Failed to save appointment");
+    }
   };
 
-  const handleDischargeConfirm = () => {
-    if (dischargeModal.method === 'UPI' && !dischargeModal.upiId) {
-      setErrorMsg('UPI Transaction ID is required.'); return;
+  const handleDischargeConfirm = async () => {
+    try {
+      if (dischargeModal.method === 'UPI' && !dischargeModal.upiId) {
+        setErrorMsg('UPI Transaction ID is required.'); 
+        return;
+      }
+      
+      const userId = localStorage.getItem("userId");
+      
+      await api.put(`/patientapi/discharge/${userId}`, {
+        patientId: dischargeModal.req.patientId?._id || dischargeModal.req.patientId,
+        paymentMethod: dischargeModal.method,
+        upiId: dischargeModal.upiId || undefined
+      });
+      
+      fetchDischarges();
+      setDischargeModal({ ...dischargeModal, step: 'success' });
+      setErrorMsg('');
+    } catch (err) {
+      console.error("Error processing discharge:", err);
+      setErrorMsg(err.response?.data?.message || "Failed to process discharge");
     }
-    
-    setIpDischarges(prev => {
-      const updated = prev.map(d => d.id === dischargeModal.req.id ? { ...d, status: 'Cleared' } : d);
-      return updated.sort((a, b) => a.status === 'Cleared' ? -1 : 1);
-    });
-    
-    dischargePatientBills[dischargeModal.req.patientPid].paid = dischargePatientBills[dischargeModal.req.patientPid].total;
-    setDischargeModal({ ...dischargeModal, step: 'success' });
-    setErrorMsg('');
+  };
+
+  const getDischargePatientName = (discharge) => {
+    if (discharge.patient?.name) return discharge.patient.name;
+    if (discharge.patientName) return discharge.patientName;
+    return 'Unknown';
+  };
+
+  const getDischargePatientPid = (discharge) => {
+    if (discharge.patient?.pid) return discharge.patient.pid;
+    if (discharge.patientPid) return discharge.patientPid;
+    return 'N/A';
+  };
+
+  const getDischargeRoom = (discharge) => {
+    if (discharge.room?.roomNumber) return `Room ${discharge.room.roomNumber}`;
+    if (discharge.roomNumber) return `Room ${discharge.roomNumber}`;
+    return '—';
+  };
+
+  const getDischargePending = (discharge) => {
+    if (discharge.pendingAmount !== undefined) return discharge.pendingAmount;
+    const total = discharge.totalBill || 0;
+    const paid = discharge.paidAmount || 0;
+    return Math.max(0, total - paid);
   };
 
   return (
@@ -231,7 +366,6 @@ export default function ManagerDashboard({ role }) {
         }
       `}</style>
 
-      {/* --- DASHBOARD UI --- */}
       <div className="print:hidden">
         <Layout>
           <div className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">
@@ -262,66 +396,67 @@ export default function ManagerDashboard({ role }) {
               </button>
             </div>
 
-            {/* APPOINTMENTS TAB */}
             {tab === 'appointments' && (
               <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                  <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-4 ">
-
-                    {/* Search */}
-                    <div className="flex items-center gap-3 flex-1 min-w-[350px] bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                      <Search className="w-6 h-4" />
-                      <input
-                        placeholder="Search..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-transparent outline-none text-sm text-gray-700"
-                      />
-                    </div>
-
-                    {/* Date */}
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-4">
+                  <div className="flex items-center gap-3 flex-1 min-w-[350px] bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                    <Search className="w-6 h-4" />
                     <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                      placeholder="Search..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full bg-transparent outline-none text-sm text-gray-700"
                     />
-
-                    {/* Doctor */}
-                    <select
-                      value={selectedDoctor}
-                      onChange={(e) => setSelectedDoctor(e.target.value)}
-                      className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
-                    >
-                      <option value="">All Doctors</option>
-
-                      {doctors.map((doctor) => (
-                        <option key={doctor.name} value={doctor.name}>
-                          {doctor.name}
-                        </option>
-                      ))}
-                    </select>
-
                   </div>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                  />
+                  <select
+                    value={selectedDoctor}
+                    onChange={(e) => setSelectedDoctor(e.target.value)}
+                    className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                  >
+                    <option value="">All Doctors</option>
+                    {doctors.map((doctor) => (
+                      <option key={doctor._id || doctor.name} value={doctor.name}>
+                        {doctor.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50/50 border-b border-gray-100">
                       <tr>
-                        {['Token', 'PID', 'Patient Name', 'Doctor', 'Specialization',  'Status'].map((h) => (
+                        {['Token', 'PID', 'Patient Name', 'Doctor', 'Specialization', 'From', 'Status'].map((h) => (
                           <th key={h} className="px-5 py-4 text-left font-semibold text-gray-500 text-xs uppercase tracking-wider">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {filtered.map((a) => (
-                        <tr key={a.id} className="border-b border-gray-50 hover:bg-blue-50/50 transition-colors">
+                        <tr key={a._id || a.id} className="border-b border-gray-50 hover:bg-blue-50/50 transition-colors">
                           <td className="px-5 py-4"><div className="text-gray-900 font-medium">#{a.tokenNumber}</div></td>
-                          <td className="px-5 py-4 text-gray-500 font-medium">{a.pid}</td>
-                          <td className="px-5 py-4 text-gray-900 font-medium">{a.patientName}</td>
-                          <td className="px-5 py-4 text-gray-600">{a.assignedDoctorName}</td>
-                          <td className="px-5 py-4 text-gray-500">{a.specialization}</td>
-                          
+                          <td className="px-5 py-4 text-gray-500 font-medium">{getPatientPid(a)}</td>
+                          <td className="px-5 py-4 text-gray-900 font-medium">{getPatientName(a)}</td>
+                          <td className="px-5 py-4 text-gray-600">{getDoctorName(a)}</td>
+                          <td className="px-5 py-4 text-gray-500">{getSpecialization(a)}</td>
                           <td className="px-5 py-4">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusColors[a.status]}`}>{a.status}</span>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
+                              (a.from === 'IP' || a.from === 'ip') 
+                                ? 'bg-purple-100 text-purple-700 border-purple-200' 
+                                : 'bg-blue-100 text-blue-700 border-blue-200'
+                            }`}>
+                              {a.from || 'OPD'}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusColors[a.status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                              {a.status}
+                            </span>
                           </td>
                         </tr>
                       ))}
@@ -331,7 +466,6 @@ export default function ManagerDashboard({ role }) {
               </div>
             )}
 
-            {/* IP DISCHARGE TAB */}
             {tab === 'ip-discharge' && (
               <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                 <div className="px-5 py-4 border-b border-gray-100">
@@ -348,13 +482,14 @@ export default function ManagerDashboard({ role }) {
                     </thead>
                     <tbody>
                       {ipDischarges.map((adm) => {
-                        const { total, paid, pending } = getDischargePatientBills(adm.patientPid);
-                        const room = getRoom(adm.roomId);
+                        const pending = getDischargePending(adm);
+                        const total = adm.totalBill || 0;
+                        const paid = adm.paidAmount || 0;
                         return (
-                          <tr key={adm.id} className={`border-b border-gray-50 transition-colors ${adm.status === 'Cleared' ? 'bg-green-50/30' : 'hover:bg-blue-50/50'}`}>
-                            <td className="px-5 py-4 text-gray-900 font-medium">{getPatientName(adm.patientPid)}</td>
-                            <td className="px-5 py-4 text-gray-500 font-medium">{adm.patientPid}</td>
-                            <td className="px-5 py-4 text-gray-500">{room?.name || '—'}</td>
+                          <tr key={adm._id || adm.id} className={`border-b border-gray-50 transition-colors ${adm.status === 'Cleared' ? 'bg-green-50/30' : 'hover:bg-blue-50/50'}`}>
+                            <td className="px-5 py-4 text-gray-900 font-medium">{getDischargePatientName(adm)}</td>
+                            <td className="px-5 py-4 text-gray-500 font-medium">{getDischargePatientPid(adm)}</td>
+                            <td className="px-5 py-4 text-gray-500">{getDischargeRoom(adm)}</td>
                             <td className="px-5 py-4 text-gray-900">Rs. {total}</td>
                             <td className="px-5 py-4 text-green-600">Rs. {paid}</td>
                             <td className="px-5 py-4 text-red-600 font-medium">Rs. {pending}</td>
@@ -464,10 +599,21 @@ export default function ManagerDashboard({ role }) {
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                  {existingPatients.filter(p => p.pid.toLowerCase().includes(existingPatientSearch.toLowerCase()) || p.name.toLowerCase().includes(existingPatientSearch.toLowerCase())).map((patient) => (
-                                    <tr key={patient.pid} onClick={() => { setNewAppointmentData({ ...newAppointmentData, pid: patient.pid, patientName: patient.name, phone: patient.phone }); setErrorMsg(''); }} className={`cursor-pointer ${newAppointmentData.pid === patient.pid ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
+                                  {existingPatients.filter(p => 
+                                    (p.pid || '').toLowerCase().includes(existingPatientSearch.toLowerCase()) || 
+                                    (p.name || p.patientName || '').toLowerCase().includes(existingPatientSearch.toLowerCase())
+                                  ).map((patient) => (
+                                    <tr key={patient._id || patient.pid} onClick={() => { 
+                                      setNewAppointmentData({ 
+                                        ...newAppointmentData, 
+                                        pid: patient._id || patient.pid, 
+                                        patientName: patient.name || patient.patientName, 
+                                        phone: patient.phone 
+                                      }); 
+                                      setErrorMsg(''); 
+                                    }} className={`cursor-pointer ${newAppointmentData.pid === (patient._id || patient.pid) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                                       <td className="px-4 py-3 font-medium text-gray-600">{patient.pid}</td>
-                                      <td className="px-4 py-3 text-gray-900">{patient.name}</td>
+                                      <td className="px-4 py-3 text-gray-900">{patient.name || patient.patientName}</td>
                                       <td className="px-4 py-3 text-gray-500">{patient.phone}</td>
                                     </tr>
                                   ))}
@@ -489,15 +635,15 @@ export default function ManagerDashboard({ role }) {
 
                         <div className="grid gap-4 sm:grid-cols-2">
                           <label className="space-y-1"><span className="text-sm font-medium text-gray-700">Specialization</span>
-                            <select value={newAppointmentData.specialization} onChange={(e) => { const newSpec = e.target.value; const docs = doctors.filter(d => d.specialization === newSpec); setNewAppointmentData({ ...newAppointmentData, specialization: newSpec, assignedDoctorName: docs[0]?.name || '', appointmentTime: '' }); setTimeQuery(''); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <select value={newAppointmentData.specialization} onChange={(e) => { const newSpec = e.target.value; const docs = doctors.filter(d => d.specialization === newSpec); setNewAppointmentData({ ...newAppointmentData, specialization: newSpec, assignedDoctorName: docs[0]?.name || docs[0]?._id || '', appointmentTime: '' }); setTimeQuery(''); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                               {specializationsList.map(spec => <option key={spec} value={spec}>{spec}</option>)}
                             </select>
                           </label>
                           <label className="space-y-1"><span className="text-sm font-medium text-gray-700">Doctor</span>
                             <select value={newAppointmentData.assignedDoctorName} onChange={(e) => { setNewAppointmentData({ ...newAppointmentData, assignedDoctorName: e.target.value, appointmentTime: '' }); setTimeQuery(''); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" disabled={!newAppointmentData.specialization}>
-                              {availableDoctors.map(doc => <option key={doc.name} value={doc.name}>{doc.name}</option>)}
+                              {availableDoctors.map(doc => <option key={doc._id || doc.name} value={doc.name || doc._id}>{doc.name}</option>)}
                             </select>
-                            {selectedDoctorInfo && <p className="text-xs text-blue-600 font-medium flex items-center gap-1 mt-1.5"><Clock className="w-3 h-3" /> Working Hours: {selectedDoctorInfo.start} - {selectedDoctorInfo.end}</p>}
+                            {selectedDoctorInfo && <p className="text-xs text-blue-600 font-medium flex items-center gap-1 mt-1.5"><Clock className="w-3 h-3" /> Working Hours: {selectedDoctorInfo.workingHours?.start || selectedDoctorInfo.start || '09:00'} - {selectedDoctorInfo.workingHours?.end || selectedDoctorInfo.end || '17:00'}</p>}
                           </label>
                           <label className="space-y-1 sm:col-span-2"><span className="text-sm font-medium text-gray-700">Appointment Date</span>
                             <input type="date" min={todayDate} value={newAppointmentData.appointmentDate} onChange={(e) => { setNewAppointmentData({ ...newAppointmentData, appointmentDate: e.target.value, appointmentTime: '' }); setTimeQuery(''); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
@@ -564,8 +710,8 @@ export default function ManagerDashboard({ role }) {
                         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
                           <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">Fee Breakdown</div>
                           <div className="p-4 space-y-3">
-                            <div className="flex justify-between text-sm text-gray-600"><span>Consultation Fee</span><span className="font-medium text-gray-900">Rs. 500</span></div>
-                            <div className="flex justify-between text-base font-semibold text-blue-700 bg-blue-50 p-3 rounded-lg -mx-2"><span>Amount to Collect</span><span>Rs. 500</span></div>
+                            <div className="flex justify-between text-sm text-gray-600"><span>Consultation Fee</span><span className="font-medium text-gray-900">Rs. {newAppointmentData.consultationFee}</span></div>
+                            <div className="flex justify-between text-base font-semibold text-blue-700 bg-blue-50 p-3 rounded-lg -mx-2"><span>Amount to Collect</span><span>Rs. {newAppointmentData.consultationFee}</span></div>
                           </div>
                         </div>
 
@@ -603,7 +749,7 @@ export default function ManagerDashboard({ role }) {
                             <div className="flex justify-between"><span className="text-gray-500">Scheduled Time</span><span className="text-gray-900 font-medium">{newAppointmentData.appointmentDate} | {newAppointmentData.appointmentTime}</span></div>
                             <div className="flex justify-between"><span className="text-gray-500">Payment Date</span><span className="text-gray-900 font-medium">{newAppointmentData.paymentTimestamp}</span></div>
                             
-                            <div className="border-t border-gray-100 pt-3 mt-2 flex justify-between text-base font-bold text-green-700 bg-green-50 p-2 rounded-lg -mx-2"><span>Paid via {newAppointmentData.paymentMethod}</span><span>₹500</span></div>
+                            <div className="border-t border-gray-100 pt-3 mt-2 flex justify-between text-base font-bold text-green-700 bg-green-50 p-2 rounded-lg -mx-2"><span>Paid via {newAppointmentData.paymentMethod}</span><span>₹{newAppointmentData.consultationFee}</span></div>
                           </div>
                         </div>
                         <div className="flex gap-3 justify-center max-w-md mx-auto">
@@ -613,7 +759,6 @@ export default function ManagerDashboard({ role }) {
                       </div>
                     )}
 
-                    {/* Footer & Errors */}
                     {wizardStep < 4 && (
                       <div className="mt-6 pt-4 border-t border-gray-100">
                         {errorMsg && (
@@ -651,13 +796,24 @@ export default function ManagerDashboard({ role }) {
                       <div className="space-y-4">
                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Patient Name</p>
-                          <p className="font-semibold text-gray-900 mb-3">{getPatientName(dischargeModal.req.patientPid)} ({dischargeModal.req.patientPid})</p>
-                          <div className="flex justify-between text-sm text-gray-600 mb-2"><span>Total Bill</span><span>Rs. {getDischargePatientBills(dischargeModal.req.patientPid).total}</span></div>
-                          <div className="flex justify-between text-sm text-green-600 mb-2"><span>Amount Paid</span><span>- Rs. {getDischargePatientBills(dischargeModal.req.patientPid).paid}</span></div>
-                          <div className="flex justify-between text-lg font-bold text-red-600 pt-2 border-t border-gray-200 mt-2"><span>Pending Dues</span><span>Rs. {getDischargePatientBills(dischargeModal.req.patientPid).pending}</span></div>
+                          <p className="font-semibold text-gray-900 mb-3">
+                            {getDischargePatientName(dischargeModal.req)} ({getDischargePatientPid(dischargeModal.req)})
+                          </p>
+                          <div className="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Total Bill</span>
+                            <span>Rs. {dischargeModal.req.totalBill || 0}</span>
+                          </div>
+                          <div className="flex justify-between text-sm text-green-600 mb-2">
+                            <span>Amount Paid</span>
+                            <span>- Rs. {dischargeModal.req.paidAmount || 0}</span>
+                          </div>
+                          <div className="flex justify-between text-lg font-bold text-red-600 pt-2 border-t border-gray-200 mt-2">
+                            <span>Pending Dues</span>
+                            <span>Rs. {getDischargePending(dischargeModal.req)}</span>
+                          </div>
                         </div>
 
-                        {getDischargePatientBills(dischargeModal.req.patientPid).pending > 0 ? (
+                        {getDischargePending(dischargeModal.req) > 0 ? (
                           <>
                             <div>
                               <p className="text-sm font-medium text-gray-700 mb-2">Payment Method</p>
@@ -677,7 +833,7 @@ export default function ManagerDashboard({ role }) {
                             {errorMsg && <p className="text-sm text-red-600 mt-2 font-medium bg-red-50 p-2 rounded border border-red-100">{errorMsg}</p>}
 
                             <button onClick={handleDischargeConfirm} className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-sm shadow">
-                              Collect Rs. {getDischargePatientBills(dischargeModal.req.patientPid).pending} & Clear
+                              Collect Rs. {getDischargePending(dischargeModal.req)} & Clear
                             </button>
                           </>
                         ) : (
@@ -703,7 +859,7 @@ export default function ManagerDashboard({ role }) {
         </Layout>
       </div>
 
-      {/* --- PRINT ONLY UI (Hidden on screen, visible when printing) --- */}
+      {/* PRINT ONLY UI */}
       <div className="hidden print:block w-full text-black font-sans">
         <div className="max-w-2xl mx-auto border border-gray-200 p-8 rounded-lg">
           <div className="text-center mb-8 border-b-2 border-gray-800 pb-6">
@@ -738,11 +894,11 @@ export default function ManagerDashboard({ role }) {
             
             <div className="flex justify-between pt-6 mt-4">
               <span className="font-semibold text-gray-500 uppercase tracking-wide text-sm">Consultation Fee</span>
-              <span className="font-medium text-gray-900">Rs. 500</span>
+              <span className="font-medium text-gray-900">Rs. {newAppointmentData.consultationFee}</span>
             </div>
             <div className="flex justify-between font-bold text-xl pt-4 border-t-2 border-gray-800 mt-2">
               <span>Total Paid ({newAppointmentData.paymentMethod})</span>
-              <span>Rs. 500</span>
+              <span>Rs. {newAppointmentData.consultationFee}</span>
             </div>
           </div>
 
