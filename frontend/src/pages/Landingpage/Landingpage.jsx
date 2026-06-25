@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SplitText from "./SplitText";
+import api from "../../api/axios";
 
 const handleAnimationComplete = () => {
   console.log("Animation Complete");
@@ -31,42 +32,19 @@ export default function Landingpage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        "http://localhost:5000/authapi/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || "Login Failed");
-        return;
-      }
+      const { data } = await api.post("/authapi/login", formData);
 
       console.log("Login successful response data:", data);
 
-      // Save Token
       localStorage.setItem("token", data.token);
 
-      // FIX 1: Safely grab details from the nested 'user' object returned by your API
       if (data.user) {
-        localStorage.setItem("userId", data.user._id);        // MongoDB uses _id
+        localStorage.setItem("userId", data.user._id);
         localStorage.setItem("role", data.user.role);
         localStorage.setItem("username", data.user.username);
       }
 
-      // Decode the JWT token payload
-      const payload = JSON.parse(
-        atob(data.token.split(".")[1])
-      );
-
-      // FIX 2: Safely read role from either payload or verified user object
+      const payload = JSON.parse(atob(data.token.split(".")[1]));
       const userRole = payload.role || data.user?.role;
 
       switch (userRole) {
@@ -75,8 +53,7 @@ export default function Landingpage() {
           break;
 
         case "fos":
-        case "receptionist":
-          navigate("/admission");
+          navigate("/dashboard");
           break;
 
         case "seniordoctor":
@@ -95,16 +72,13 @@ export default function Landingpage() {
           navigate("/pharmacist");
           break;
 
-        case "labtechnician":
-          navigate("/lab-technician");
-          break;
-
         default:
           navigate("/");
       }
     } catch (err) {
       console.error(err);
-      setError("Unable to connect to server");
+
+      setError(err.response?.data?.message || "Unable to connect to server");
     } finally {
       setLoading(false);
     }
@@ -113,7 +87,6 @@ export default function Landingpage() {
   return (
     <section className="h-screen w-full flex items-center justify-end pr-8 lg:pr-24 bg-[url('/loginbg.png')] bg-cover bg-center bg-no-repeat">
       <div className="w-full max-w-[500px] bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-10 mx-4">
-
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center shadow-md">
