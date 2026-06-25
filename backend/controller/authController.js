@@ -1,5 +1,5 @@
 import User from "../models/user.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 
@@ -15,8 +15,11 @@ export const loginUser = async (req, res) => {
         if (!user) {
             return res.status(401).json({ success: false, message: "Invalid username or password" });
         }
+        
+
 
         const isMatch = await bcrypt.compare(password, user.password);
+        console.log("Password match:", isMatch); // Debugging line
         if (!isMatch) {
             return res.status(401).json({ success: false, message: "Invalid username or password" });
         }
