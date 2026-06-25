@@ -167,7 +167,7 @@ export default function ProcedureInventory() {
       (procedure.procedureName || "")
         .toLowerCase()
         .includes(search.toLowerCase()) ||
-      (procedure.prid || "").toLowerCase().includes(search.toLowerCase()),
+      (procedure._id || "").toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -197,7 +197,7 @@ export default function ProcedureInventory() {
               }}
               className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl transition font-medium text-sm shadow-sm whitespace-nowrap self-start sm:self-auto"
             >
-              + Add Procedurer
+              + Add Procedure
             </button>
           )}
         </div>
@@ -261,7 +261,7 @@ export default function ProcedureInventory() {
                     Procedure Name
                   </th>
                   <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">
-                    amount
+                    Amount
                   </th>
                   <th className="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">
                     Status
@@ -279,7 +279,7 @@ export default function ProcedureInventory() {
                     className="hover:bg-gray-50/50 transition-colors whitespace-nowrap"
                   >
                     <td className="p-4 text-sm font-bold text-gray-500 uppercase">
-                      {procedure.prid}
+                      {procedure._id.slice(-6).toUpperCase()}
                     </td>
                     <td className="p-4 text-sm font-medium text-gray-900">
                       {procedure.procedureName}
@@ -408,7 +408,7 @@ export default function ProcedureInventory() {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                    amount (₹) <span className="text-red-500">*</span>
+                    Amount (₹) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
