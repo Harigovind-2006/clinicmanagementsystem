@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Check, Printer, Edit2, X, Clock } from 'lucide-react';
 import Layout from './Layout';
-
+const today = new Date();
 const todayDate = new Date().toISOString().split('T')[0];
+const maxDate = new Date(today);
+maxDate.setDate(today.getDate() + 2);
+
+const maxAppointmentDate = maxDate.toISOString().split("T")[0];
 
 const active = [
   { id: 1, pid: 'P001', patientName: 'John Doe', tokenNumber: 1, assignedDoctorName: 'Dr. Amit Sharma', specialization: 'Cardiology', appointmentDate: todayDate, appointmentTime: '09:00 AM', status: 'Waiting', createdAt: `${todayDate} 09:00`, isFollowUp: false },
@@ -52,6 +56,8 @@ const bloodGroupsList = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export default function ManagerDashboard({ role }) {
   const [search, setSearch] = useState('');
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState("");
   const [tab, setTab] = useState('appointments');
   const [appointments, setAppointments] = useState(active);
   const [ipDischarges, setIpDischarges] = useState(initialDischargeRequests);
@@ -156,6 +162,12 @@ export default function ManagerDashboard({ role }) {
     if (wizardStep === 1) {
       if (patientMode === 'new') {
         const { patientName, phone, dob, email, address, bloodGroup, gender } = newAppointmentData;
+        const today = new Date().toISOString().split("T")[0];
+          if (newAppointmentData.dob > today) 
+         {
+          setErrorMsg("Date of Birth cannot be in the future.");
+          return;
+         }
         if (!patientName || !phone || !dob || !email || !address || !bloodGroup || !gender) {
           setErrorMsg('All fields are required for new registration.'); return;
         }
@@ -257,12 +269,43 @@ export default function ManagerDashboard({ role }) {
             {/* APPOINTMENTS TAB */}
             {tab === 'appointments' && (
               <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
-                  <div className="flex items-center gap-3 w-full max-w-md text-gray-400 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-                    <Search className="w-4 h-4" />
-                    <input placeholder="Search by token, PID, name or doctor..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full text-sm focus:outline-none text-gray-700 bg-transparent" />
+                  <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-4 ">
+
+                    {/* Search */}
+                    <div className="flex items-center gap-3 flex-1 min-w-[350px] bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                      <Search className="w-6 h-4" />
+                      <input
+                        placeholder="Search..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full bg-transparent outline-none text-sm text-gray-700"
+                      />
+                    </div>
+
+                    {/* Date */}
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                    />
+
+                    {/* Doctor */}
+                    <select
+                      value={selectedDoctor}
+                      onChange={(e) => setSelectedDoctor(e.target.value)}
+                      className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                    >
+                      <option value="">All Doctors</option>
+
+                      {doctors.map((doctor) => (
+                        <option key={doctor.name} value={doctor.name}>
+                          {doctor.name}
+                        </option>
+                      ))}
+                    </select>
+
                   </div>
-                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50/50 border-b border-gray-100">
@@ -389,7 +432,7 @@ export default function ManagerDashboard({ role }) {
                               <input value={newAppointmentData.patientName} onChange={(e) => setNewAppointmentData({ ...newAppointmentData, patientName: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                             </label>
                             <label className="space-y-1"><span className="text-sm font-medium text-gray-700">Date of Birth</span>
-                              <input type="date" max={todayDate} value={newAppointmentData.dob} onChange={(e) => setNewAppointmentData({ ...newAppointmentData, dob: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                              <input type="date" max={todayDate}  value={newAppointmentData.dob} onChange={(e) => setNewAppointmentData({ ...newAppointmentData, dob: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                             </label>
                             <label className="space-y-1"><span className="text-sm font-medium text-gray-700">Phone (10 digits)</span>
                               <input type="tel" maxLength={10} value={newAppointmentData.phone} onChange={(e) => setNewAppointmentData({ ...newAppointmentData, phone: e.target.value.replace(/\D/g, '') })} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
@@ -461,7 +504,7 @@ export default function ManagerDashboard({ role }) {
                             {selectedDoctorInfo && <p className="text-xs text-blue-600 font-medium flex items-center gap-1 mt-1.5"><Clock className="w-3 h-3" /> Working Hours: {selectedDoctorInfo.start} - {selectedDoctorInfo.end}</p>}
                           </label>
                           <label className="space-y-1 sm:col-span-2"><span className="text-sm font-medium text-gray-700">Appointment Date</span>
-                            <input type="date" min={todayDate} value={newAppointmentData.appointmentDate} onChange={(e) => { setNewAppointmentData({ ...newAppointmentData, appointmentDate: e.target.value, appointmentTime: '' }); setTimeQuery(''); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                            <input type="date" min={todayDate}  max={maxAppointmentDate}  value={newAppointmentData.appointmentDate} onChange={(e) => { setNewAppointmentData({ ...newAppointmentData, appointmentDate: e.target.value, appointmentTime: '' }); setTimeQuery(''); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                           </label>
                         </div>
 
