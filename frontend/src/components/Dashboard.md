@@ -52,8 +52,6 @@ const bloodGroupsList = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export default function ManagerDashboard({ role }) {
   const [search, setSearch] = useState('');
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedDoctor, setSelectedDoctor] = useState("");
   const [tab, setTab] = useState('appointments');
   const [appointments, setAppointments] = useState(active);
   const [ipDischarges, setIpDischarges] = useState(initialDischargeRequests);
@@ -259,43 +257,12 @@ export default function ManagerDashboard({ role }) {
             {/* APPOINTMENTS TAB */}
             {tab === 'appointments' && (
               <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                  <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-4 ">
-
-                    {/* Search */}
-                    <div className="flex items-center gap-3 flex-1 min-w-[350px] bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                      <Search className="w-6 h-4" />
-                      <input
-                        placeholder="Search..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-transparent outline-none text-sm text-gray-700"
-                      />
-                    </div>
-
-                    {/* Date */}
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
-                    />
-
-                    {/* Doctor */}
-                    <select
-                      value={selectedDoctor}
-                      onChange={(e) => setSelectedDoctor(e.target.value)}
-                      className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
-                    >
-                      <option value="">All Doctors</option>
-
-                      {doctors.map((doctor) => (
-                        <option key={doctor.name} value={doctor.name}>
-                          {doctor.name}
-                        </option>
-                      ))}
-                    </select>
-
+                <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
+                  <div className="flex items-center gap-3 w-full max-w-md text-gray-400 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+                    <Search className="w-4 h-4" />
+                    <input placeholder="Search by token, PID, name or doctor..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full text-sm focus:outline-none text-gray-700 bg-transparent" />
                   </div>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50/50 border-b border-gray-100">
