@@ -144,7 +144,7 @@ export const pharmacistDispenseAndBill = async (req, res) => {
             }
 
             if (med.quantityLeft < disp.quantity) {
-                return res.status(400).json({ success: false, message: `Insufficient inventory for ${med.medName}. Only ${med.quantityLeft} left.` });
+                return res.status(400).json({ success: false, message: `Insufficient inventory for ${med.medicinename}. Only ${med.quantityLeft} left.` });
             }
 
             med.quantityLeft -= disp.quantity;
@@ -156,7 +156,7 @@ export const pharmacistDispenseAndBill = async (req, res) => {
             );
 
             const totalCost = med.unitCost * disp.quantity;
-            dynamicBillUpdates[`billItems.${med.medName}`] = {
+            dynamicBillUpdates[`billItems.${med.medicinename}`] = {
                 amount: totalCost,
                 status: "unpaid"
             };
@@ -179,7 +179,7 @@ export const getPatientHistory = async (req, res) => {
         })
         .sort({ appointmentDate: -1, appointmentTime: -1 }) 
         .populate("doctor", "fullname specialisation")     
-        .populate("medicine.medicine", "medName medScientificName") 
+        .populate("medicine.medicine", "medicinename medScientificName") 
         .populate("procedure", "procedureName amount");     
 
         if (!history || history.length === 0) {
