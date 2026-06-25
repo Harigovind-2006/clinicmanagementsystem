@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
 export default function Layout({
   children,
@@ -17,30 +18,26 @@ export default function Layout({
         const userId = localStorage.getItem("userId");
         console.log("Stored userId:", userId);
 
-        // FIX 1: Catch both null/missing AND literal "undefined" strings
         if (!userId || userId === "undefined") {
           console.warn("Valid userId not found, redirecting to login...");
           navigate("/");
           return;
         }
 
-        const response = await fetch(
-          `http://localhost:5000/userapi/userget/${userId}`
-        );
+        const { data } = await api.get(`/userapi/userget/${userId}`);
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch user role from database");
-        }
-
-        const data = await response.json();
-
-        // Assuming your database schema stores the role as 'role'
         setRole(data.role);
         console.log("ROLE fetched from DB =", data.role);
       } catch (error) {
-        console.error(error);
-        // Optional: Force logout if the DB fetch fails (e.g., deleted user)
-        // navigate("/");
+        console.error("Failed to fetch user role:", error);
+        if (error.response?.status === 404) {
+          console.log("User not found");
+        }
+
+        if (error.response?.status === 401) {
+          localStorage.clear();
+          navigate("/");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -50,9 +47,6 @@ export default function Layout({
   }, [navigate]);
 
   let menuItems = [];
-
-  // FIX 2: Safeguard against case-sensitivity or undefined roles causing crashes
-  // Converting to lowercase and adding a fallback safely handles unexpected formats
   const normalizedRole = (role || "").toLowerCase().trim();
 
   switch (normalizedRole) {
@@ -107,7 +101,6 @@ export default function Layout({
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-40 lg:hidden"
@@ -115,7 +108,6 @@ export default function Layout({
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`
           fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-100 z-50
@@ -124,7 +116,6 @@ export default function Layout({
           lg:translate-x-0
         `}
       >
-        {/* Logo */}
         <div className="h-20 flex items-center justify-between px-6 border-b border-gray-200">
           <div>
             <h1 className="text-2xl font-bold text-blue-600">CMS</h1>
