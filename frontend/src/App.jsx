@@ -15,6 +15,7 @@ import PrescriptionDispensing from "./pages/Pharmacist/PrescriptionDispensing";
 import DispensingConfirmation from "./pages/Pharmacist/DispensingConfirmation";
 
 import MedicineInventory from "./components/MedicineInventory";
+import ProcedureInventory from "./components/ProcedureInventory";
 
 import SeniorDoctorDashboard from "./pages/SeniorDoctor/SeniorDoctorDashboard";
 import SeniorDoctorConsultation from "./pages/SeniorDoctor/SeniorDoctorConsultation";
@@ -25,6 +26,7 @@ import Admission from "./components/AdmissionComponent/Admission";
 
 import Users from "./components/Users";
 import PharmacyBill from "./pages/Pharmacist/PharmacyBill";
+
 
 import PatientsList from "./components/PatientComponent/PatientsList";
 import PatientProfile from "./components/PatientComponent/PatientsProfile";
@@ -79,11 +81,14 @@ function App() {
 
       <Route path="/patient-history/:pid" element={<PatientHistory />} />
 
+      <Route path="/procedure-Inventory" element={<ProcedureInventory/>} />
+
       <Route
         path="*"
         element={<div className="p-10 text-center">Page Not Found</div>}
       />
     </Routes>
+
   );
 }
 

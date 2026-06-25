@@ -1,7 +1,6 @@
 import User from "../models/user.js";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
 
 export const loginUser = async (req, res) => {
     try {
@@ -35,6 +34,7 @@ export const loginUser = async (req, res) => {
             message: "Login successful",
             token,
             user: {
+                _id: user._id,
                 fullname: user.fullname,
                 role: user.role 
             }
