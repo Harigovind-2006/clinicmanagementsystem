@@ -1,0 +1,19 @@
+import express from "express";
+import { 
+    createRoom, 
+    getAllRooms, 
+    managerAssignsRoom, 
+    managerUpdatesRoom 
+} from "../controller/roomController.js";
+
+const route = express.Router();
+
+
+route.route("/")
+    .post(createRoom)       
+    .get(getAllRooms);     
+route.put("/assign/by-manager/:id", managerAssignsRoom); 
+
+route.put("/update/by-manager/:id", managerUpdatesRoom);
+
+export default route;

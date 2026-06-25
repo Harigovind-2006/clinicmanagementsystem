@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import medCounter from "./medCounter.js";
 
 const medicineSchema = new mongoose.Schema(
   {

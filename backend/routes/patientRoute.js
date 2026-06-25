@@ -6,7 +6,8 @@ import {
   updatePatient,  
   deletePatient, 
   updatePatientBills,
-  getPatientInvoice
+  getPatientInvoice,
+  dischargePatient
 } from "../controller/patientController.js";
 
 const route = express.Router();
@@ -23,5 +24,6 @@ route.route("/:id")
 // 3. Specialized sub-route for handling billing updates
 route.put("/:id/bills", updatePatientBills); 
 route.get("/:id/invoice", getPatientInvoice);
+route.put("/discharge/:id", dischargePatient);
 
 export default route;
