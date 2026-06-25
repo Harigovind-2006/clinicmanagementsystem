@@ -2,7 +2,6 @@ import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-
 export const loginUser = async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -22,7 +21,7 @@ export const loginUser = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user._id, role: user.role },
+            { id: user._id, userId: user._id.toString(), username: user.username, role: user.role },
             process.env.JWT_SECRET || "your_hospital_secret_key",
             { expiresIn: "1d" }
         );
@@ -32,9 +31,15 @@ export const loginUser = async (req, res) => {
             message: "Login successful",
             token,
             user: {
+<<<<<<< HEAD
+                id: user._id,
+                userId: user._id.toString(),
+                username: user.username,
+=======
                 _id: user._id,
+>>>>>>> 4c2c2c80626c0007534483793be4fdc98c974377
                 fullname: user.fullname,
-                role: user.role 
+                role: user.role
             }
         });
 
