@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SplitText from "./SplitText";
 import { Eye, EyeOff } from "lucide-react";
+import api from "../../api/axios";
 
 const handleAnimationComplete = () => {
   console.log("Animation Complete");
@@ -33,42 +34,28 @@ export default function Landingpage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        "http://localhost:5000/authapi/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const { data } = await api.post("/authapi/login", formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || "Login Failed");
-        return;
-      }
+      console.log("Login successful response data:", data);
 
       localStorage.setItem("token", data.token);
 
-      const payload = JSON.parse(
-        atob(data.token.split(".")[1])
-      );
+      if (data.user) {
+        localStorage.setItem("userId", data.user._id);
+        localStorage.setItem("role", data.user.role);
+        localStorage.setItem("username", data.user.username);
+      }
 
-      localStorage.setItem("role", payload.role);
-      localStorage.setItem("userId", payload.userId);
-      localStorage.setItem("username", payload.username);
+      const payload = JSON.parse(atob(data.token.split(".")[1]));
+      const userRole = payload.role || data.user?.role;
 
-      switch (payload.role) {
+      switch (userRole) {
         case "manager":
           navigate("/dashboard");
           break;
 
         case "fos":
-        case "receptionist":
-          navigate("/admission");
+          navigate("/dashboard");
           break;
 
         case "seniordoctor":
@@ -87,16 +74,13 @@ export default function Landingpage() {
           navigate("/pharmacist");
           break;
 
-        case "labtechnician":
-          navigate("/lab-technician");
-          break;
-
         default:
           navigate("/");
       }
     } catch (err) {
       console.error(err);
-      setError("Unable to connect to server");
+
+      setError(err.response?.data?.message || "Unable to connect to server");
     } finally {
       setLoading(false);
     }
@@ -223,4 +207,3 @@ export default function Landingpage() {
     </section>
   );
 }
-

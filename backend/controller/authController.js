@@ -31,9 +31,13 @@ export const loginUser = async (req, res) => {
             message: "Login successful",
             token,
             user: {
+<<<<<<< HEAD
                 id: user._id,
                 userId: user._id.toString(),
                 username: user.username,
+=======
+                _id: user._id,
+>>>>>>> 4c2c2c80626c0007534483793be4fdc98c974377
                 fullname: user.fullname,
                 role: user.role
             }
