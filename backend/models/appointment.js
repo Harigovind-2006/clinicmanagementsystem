@@ -1,34 +1,29 @@
 import mongoose from "mongoose";
 
-const PrescribedMedicineSchema = new mongoose.Schema({
-  medicine: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Medicine", // Links to your Medicine inventory model (m001, m002)
-    required: [true, "Medicine reference is required"]
-  },
-  days: {
-    type: Number,
-    required: [true, "Number of days is required"],
-    min: [1, "Days must be at least 1"]
-  },
-  frequency: {
-    type: String,
-    required: [true, "Frequency note is required (e.g., 1-0-1)"],
-    trim: true
-  },
-  quantity: {
-    type: Number,
-    default: null // Left blank/null initially until the pharmacist fills it
-  },
-   // ⚡ UPDATE: Array of structured medicine objects
-    medicine: [PrescribedMedicineSchema],
-    
-    // ⚡ UPDATE: Procedures point directly to the Procedure collection IDs
-    procedure: [{
+const PrescribedMedicineSchema = new mongoose.Schema(
+  {
+    medicine: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Procedure"
-    }]
-}, { _id: false });
+      ref: "Medicine",
+      required: [true, "Medicine reference is required"],
+    },
+    days: {
+      type: Number,
+      required: [true, "Number of days is required"],
+      min: [1, "Days must be at least 1"],
+    },
+    frequency: {
+      type: String,
+      required: [true, "Frequency note is required (e.g., 1-0-1)"],
+      trim: true,
+    },
+    quantity: {
+      type: Number,
+      default: null,
+    },
+  },
+  { _id: false }
+);
 
 
 
@@ -85,10 +80,17 @@ const appointmentSchema = new mongoose.Schema(
       default: true,
     },
     medicine: {
-      
+      type: [PrescribedMedicineSchema],
+      default: [],
     },
     procedure: {
-
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Procedure",
+        },
+      ],
+      default: [],
     }
   },
   {
@@ -101,10 +103,6 @@ appointmentSchema.index(
   { unique: true }
 );
 
-
-
-
-
-
-
 export default mongoose.model("Appointment", appointmentSchema);
+
+
