@@ -158,6 +158,12 @@ export default function ManagerDashboard({ role }) {
     if (wizardStep === 1) {
       if (patientMode === 'new') {
         const { patientName, phone, dob, email, address, bloodGroup, gender } = newAppointmentData;
+        const today = new Date().toISOString().split("T")[0];
+          if (newAppointmentData.dob > today) 
+         {
+          setErrorMsg("Date of Birth cannot be in the future.");
+          return;
+         }
         if (!patientName || !phone || !dob || !email || !address || !bloodGroup || !gender) {
           setErrorMsg('All fields are required for new registration.'); return;
         }
