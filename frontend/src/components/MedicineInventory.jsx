@@ -14,12 +14,12 @@ export default function MedicineInventory() {
   
   // --- Database Role State ---
   const [userRole, setUserRole] = useState("");
-  const isManager = userRole === "manager" || userRole === "pharmacist";
+  const isManager = userRole === "manager" 
 
   const [form, setForm] = useState({
-    name: "",
-    scientificName: "",
-    unitCost: "",
+    medicinename: "",
+    scientificname: "",
+    unitcost: "",
     quantity: "",
   });
 
@@ -66,7 +66,7 @@ export default function MedicineInventory() {
       return;
     }
 
-    if (!form.name || !form.scientificName || !form.unitCost || !form.quantity) {
+    if (!form.medicinename || !form.scientificname || !form.unitcost || !form.quantity) {
       setErrorMsg("All fields are required. Please fill out every field.");
       return;
     }
@@ -76,9 +76,9 @@ export default function MedicineInventory() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: form.name,
-          scientificName: form.scientificName,
-          unitCost: Number(form.unitCost),
+          medicinename: form.medicinename,
+          scientificname: form.scientificname,
+          unitcost: Number(form.unitcost),
           quantity: Number(form.quantity),
         }),
       });
@@ -101,9 +101,9 @@ export default function MedicineInventory() {
     if (!isManager) return;
     setSelectedMedicine(medicine);
     setForm({
-      name: medicine.name,
-      scientificName: medicine.scientificName,
-      unitCost: medicine.unitCost,
+      medicinename: medicine.medicinename,
+      scientificname: medicine.scientificname,
+      unitcost: medicine.unitcost,
       quantity: medicine.quantity,
     });
     setErrorMsg("");
@@ -113,7 +113,7 @@ export default function MedicineInventory() {
   const handleUpdateMedicine = async () => {
     if (!isManager) return;
 
-    if (!form.name || !form.scientificName || !form.unitCost || !form.quantity) {
+    if (!form.medicinename || !form.scientificname || !form.unitcost || !form.quantity) {
       setErrorMsg("All fields are required.");
       return;
     }
@@ -123,9 +123,9 @@ export default function MedicineInventory() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: form.name,
-          scientificName: form.scientificName,
-          unitCost: Number(form.unitCost),
+          medicinename: form.medicinename,
+          scientificname: form.scientificname,
+          unitcost: Number(form.unitcost),
           quantity: Number(form.quantity),
         }),
       });
@@ -160,7 +160,7 @@ export default function MedicineInventory() {
   };
 
   const handleRestock = async (medicine) => {
-    const qty = Number(prompt(`Enter quantity to add to ${medicine.name}:`));
+    const qty = Number(prompt(`Enter quantity to add to ${medicine.medicinename}:`));
     if (!qty || qty <= 0) return;
 
     try {
@@ -186,7 +186,7 @@ export default function MedicineInventory() {
     setShowAddModal(false);
     setShowEditModal(false);
     setErrorMsg("");
-    setForm({ name: "", scientificName: "", unitCost: "", quantity: "" });
+    setForm({ medicinename: "", scientificname: "", unitcost: "", quantity: "" });
     setSelectedMedicine(null);
   };
 
@@ -196,8 +196,8 @@ export default function MedicineInventory() {
 
   const filteredMedicines = displayedMedicines.filter(
     (medicine) =>
-      (medicine.name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (medicine.scientificName || "").toLowerCase().includes(search.toLowerCase()) ||
+      (medicine.medicinename || "").toLowerCase().includes(search.toLowerCase()) ||
+      (medicine.scientificname || "").toLowerCase().includes(search.toLowerCase()) ||
       (medicine.mid || "").toLowerCase().includes(search.toLowerCase()) // Also allows searching by ID!
   );
 
@@ -216,7 +216,7 @@ export default function MedicineInventory() {
           {isManager && (
             <button
               onClick={() => {
-                setForm({ name: "", scientificName: "", unitCost: "", quantity: "" });
+                setForm({ medicinename: "", scientificname: "", unitcost: "", quantity: "" });
                 setShowAddModal(true);
               }}
               className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl transition font-medium text-sm shadow-sm whitespace-nowrap self-start sm:self-auto"
@@ -283,9 +283,9 @@ export default function MedicineInventory() {
                   <tr key={medicine._id} className="hover:bg-gray-50/50 transition-colors whitespace-nowrap">
                     {/* NEW ID DISPLAY */}
                     <td className="p-4 text-sm font-bold text-gray-500 uppercase">{medicine.mid}</td>
-                    <td className="p-4 text-sm font-medium text-gray-900">{medicine.name}</td>
-                    <td className="p-4 text-sm text-gray-600 italic">{medicine.scientificName}</td>
-                    <td className="p-4 text-sm text-gray-900 font-medium">₹{medicine.unitCost}</td>
+                    <td className="p-4 text-sm font-medium text-gray-900">{medicine.medicinename}</td>
+                    <td className="p-4 text-sm text-gray-600 italic">{medicine.scientificname}</td>
+                    <td className="p-4 text-sm text-gray-900 font-medium">₹{medicine.unitcost}</td>
                     <td className="p-4 text-sm">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
@@ -299,8 +299,7 @@ export default function MedicineInventory() {
                     </td>
                     <td className="p-4 text-sm pr-6">
                       <div className="flex items-center justify-end gap-2">
-                        
-                        <button
+                      {isManager && (<button
                           onClick={() => handleRestock(medicine)}
                           className={`px-3 py-1.5 border text-xs font-medium rounded-lg transition mr-2 ${
                             medicine.quantity < 50
@@ -309,9 +308,11 @@ export default function MedicineInventory() {
                           }`}
                         >
                           Restock
-                        </button>
+                        </button>)}
+                        
 
                         {isManager && (
+                          
                           <button
                             onClick={() => openEditModal(medicine)}
                             title="Edit Medicine"
@@ -369,9 +370,9 @@ export default function MedicineInventory() {
                   <input
                     type="text"
                     placeholder="Generic/Commercial Name"
-                    value={form.name}
+                    value={form.medicinename}
                     onChange={(e) => {
-                      setForm({ ...form, name: e.target.value });
+                      setForm({ ...form, medicinename: e.target.value });
                       setErrorMsg("");
                     }}
                     className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
@@ -382,9 +383,9 @@ export default function MedicineInventory() {
                   <input
                     type="text"
                     placeholder="Scientific Name"
-                    value={form.scientificName}
+                    value={form.scientificname}
                     onChange={(e) => {
-                      setForm({ ...form, scientificName: e.target.value });
+                      setForm({ ...form, scientificname: e.target.value });
                       setErrorMsg("");
                     }}
                     className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
@@ -397,9 +398,9 @@ export default function MedicineInventory() {
                     <input
                       type="number"
                       placeholder="₹ Base Cost"
-                      value={form.unitCost}
+                      value={form.unitcost}
                       onChange={(e) => {
-                        setForm({ ...form, unitCost: e.target.value });
+                        setForm({ ...form, unitcost: e.target.value });
                         setErrorMsg("");
                       }}
                       className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"

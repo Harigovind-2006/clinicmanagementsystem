@@ -10,7 +10,10 @@ export default function ProcedureInventory() {
   const [errorMsg, setErrorMsg] = useState("");
   const [procedures, setProcedures] = useState([]);
   const [userRole, setUserRole] = useState("");
-  const [form, setForm] = useState({ name: "", cost: "" });
+  const [form, setForm] = useState({
+  procedureName: "",
+  amount: "",
+});
 
   const isManager = userRole === "manager" || userRole === "pharmacist";
 
@@ -19,21 +22,30 @@ export default function ProcedureInventory() {
   }, []);
 
   const fetchData = async () => {
-    try {
-      const userId = localStorage.getItem("userId");
-      if (userId) {
-        const userRes = await fetch(`http://localhost:5000/userapi/userget/${userId}`);
-        if (userRes.ok) {
-          const userData = await userRes.json();
-          setUserRole(userData.role);
-        }
+  try {
+    const userId = localStorage.getItem("userId");
+
+    if (userId) {
+      const userRes = await fetch(
+        `http://localhost:5000/userapi/userget/${userId}`
+      );
+
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        setUserRole(userData.role);
       }
-      const res = await fetch("http://localhost:5000/procedureapi/get");
-      if (res.ok) setProcedures(await res.json());
-    } catch (err) {
-      console.error("Fetch Error:", err);
     }
-  };
+
+    const res = await fetch("http://localhost:5000/procedureapi");
+const data = await res.json();
+
+if (res.ok) {
+    setProcedures(data.data);
+}
+  } catch (err) {
+    console.error("Fetch Error:", err);
+  }
+};
 
   const handleToggleStatus = async (item) => {
     try {
@@ -60,7 +72,7 @@ export default function ProcedureInventory() {
 
   const handleAddOrUpdate = async () => {
     const url = showAddModal 
-      ? "http://localhost:5000/procedureapi/add" 
+      ? "http://localhost:5000/procedureapi/" 
       : `http://localhost:5000/procedureapi/update/${selectedProcedure._id}`;
     
     try {
@@ -83,16 +95,18 @@ export default function ProcedureInventory() {
   const closeModals = () => {
     setShowAddModal(false);
     setShowEditModal(false);
-    setForm({ name: "", cost: "" });
+    setForm({ procedureName: "", amount: "" });
     setErrorMsg("");
   };
 
   // Sorting Logic: Active procedures at the top
-  const sortedProcedures = [...procedures].sort((a, b) => b.isActive - a.isActive);
+  const sortedProcedures = Array.isArray(procedures)
+  ? [...procedures].sort((a, b) => Number(b.isActive) - Number(a.isActive))
+  : [];
 
   const filteredProcedures = sortedProcedures.filter(
     (p) =>
-      (p.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (p.procedureName || "").toLowerCase().includes(search.toLowerCase()) ||
       (p.prid || "").toLowerCase().includes(search.toLowerCase())
   );
 
@@ -131,8 +145,8 @@ export default function ProcedureInventory() {
               {filteredProcedures.map((item) => (
                 <tr key={item._id} className={`border-b hover:bg-gray-50 ${!item.isActive ? "bg-gray-50" : ""}`}>
                   <td className="p-4 font-bold text-gray-500">{item.prid}</td>
-                  <td className="p-4 font-medium">{item.name}</td>
-                  <td className="p-4">₹{item.cost}</td>
+                  <td className="p-4 font-medium">{item.procedureName}</td>
+                  <td className="p-4">₹{item.amount }</td>
                   <td className="p-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${item.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                       {item.isActive ? "ACTIVE" : "INACTIVE"}
@@ -143,7 +157,7 @@ export default function ProcedureInventory() {
                       <button onClick={() => handleToggleStatus(item)} className={`px-3 py-1 rounded-lg text-xs text-white ${item.isActive ? "bg-red-600" : "bg-green-600"}`}>
                         {item.isActive ? "Deactivate" : "Activate"}
                       </button>
-                      <button onClick={() => { setSelectedProcedure(item); setForm({ name: item.name, cost: item.cost }); setShowEditModal(true); }} className="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs">Edit</button>
+                      <button onClick={() => { setSelectedProcedure(item); setForm({ procedureName: item.procedureName, amount: item.amount }); setShowEditModal(true); }} className="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs">Edit</button>
                       <button onClick={() => handleDeleteProcedure(item._id)} className="px-3 py-1 rounded-lg bg-red-600 text-white text-xs">Delete</button>
                     </div>
                   </td>
@@ -158,8 +172,8 @@ export default function ProcedureInventory() {
             <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl">
               <h2 className="text-xl font-bold mb-5">{showAddModal ? "Add Procedure" : "Edit Procedure"}</h2>
               {errorMsg && <div className="mb-4 text-red-600 text-sm">{errorMsg}</div>}
-              <input type="text" placeholder="Procedure Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border rounded-xl p-3 mb-4" />
-              <input type="number" placeholder="Procedure Cost" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} className="w-full border rounded-xl p-3" />
+              <input type="text" placeholder="Procedure Name" value={form.procedureName} onChange={(e) => setForm({ ...form, procedureName: e.target.value })} className="w-full border rounded-xl p-3 mb-4" />
+              <input type="number" placeholder="Procedure Cost" value={form.amount} onChange={(e) => setForm({ ...form, amount : e.target.value })} className="w-full border rounded-xl p-3" />
               <div className="flex justify-end gap-3 mt-6">
                 <button onClick={closeModals} className="px-4 py-2 border rounded-xl">Cancel</button>
                 <button onClick={handleAddOrUpdate} className="px-4 py-2 bg-blue-600 text-white rounded-xl">{showAddModal ? "Add" : "Save Changes"}</button>

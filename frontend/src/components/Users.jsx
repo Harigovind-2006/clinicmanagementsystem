@@ -23,14 +23,14 @@ const reverseRoleMap = {
 };
 
 const specializationsList = [
-  "General Medicine",
+  "General medicine",
   "Cardiology",
   "Neurology",
   "Orthopedics",
   "Dermatology",
   "Pediatrics",
   "Gynaecology",
-  "ENT",
+  "Ent",
   "Ophthalmology",
   "General Surgery"
 ];
