@@ -1,7 +1,7 @@
 import Appointment from "../models/appointment.js";
 import Patient from "../models/patient.js";
-import { Medicine } from "../models/medicine.js";
-import { Procedure } from "../models/procedure.js";
+import  Medicine  from "../models/medicine.js";
+import Procedure  from "../models/procedure.js";
 
 export const createAppoinment = async (req, res) => {
   try {
