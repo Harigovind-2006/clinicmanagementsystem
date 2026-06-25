@@ -155,7 +155,7 @@ export const pharmacistDispenseAndBill = async (req, res) => {
                 { $set: { "medicine.$.quantity": disp.quantity } }
             );
 
-            const totalCost = med.unitCost * disp.quantity;
+            const totalCost = med.unitcost * disp.quantity;
             dynamicBillUpdates[`billItems.${med.medicinename}`] = {
                 amount: totalCost,
                 status: "unpaid"
