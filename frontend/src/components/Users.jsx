@@ -5,7 +5,7 @@ import { getAllUsers,createUser,updateUser,deleteUser,toggleStatus } from "../se
 
 export default function Users() {
   const [search, setSearch] = useState("");
-  const [designation, setDesignation] = useState("All Designations");
+  const [role, setrole] = useState("All roles");
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [step, setStep] = useState(1); // Added Step state for Wizard
   const [showEditModal, setShowEditModal] = useState(false);
@@ -16,37 +16,20 @@ export default function Users() {
 
   useEffect(() => {
     fetchUsers();
-  },[designation]);
+  },[role]);
 
   const fetchUsers = async () => {
-      let role = ""; 
+  try {
+    const selectedRole =
+      role === "All roles" ? "" : role;
 
-      switch (designation) {
-        case "Manager":
-          role = "manager";
-          break;
-        case "Front Office Staff":
-          role = "frontoffice";
-          break;
-        case "Senior Doctor":
-          role = "seniordoctor";
-          break;
-        case "Junior Doctor":
-          role = "juniordoctor";
-          break;
-        case "Nurse":
-          role = "nurse";
-          break;
-        case "Pharmacist":
-          role = "pharmacist";
-          break;
-        default:
-          role = "";
-      }
+    const data = await getAllUsers(selectedRole);
 
-      const data = await getAllUsers(role);
-      setUsers(data);
-  };
+    setUsers(data);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
@@ -59,7 +42,7 @@ export default function Users() {
     aadhaar: "",
     pan: "",
     gender: "",
-    designation: "",
+    role: "",
     specialization: "",
     address: "",
     username: "",
@@ -68,15 +51,11 @@ export default function Users() {
 
   const [userData, setUserData] = useState(initialUserState);
 
-  const filteredUsers = (Array.isArray(users) ? users : []).filter((user) => {
-    const matchesSearch =
+  const filteredUsers = users.filter((user) => {
+    return (
       (user.name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (user.email || "").toLowerCase().includes(search.toLowerCase());
-
-    const matchesDesignation =
-      designation === "All Designations" || user.designation === designation;
-
-    return matchesSearch && matchesDesignation;
+      (user.email || "").toLowerCase().includes(search.toLowerCase())
+    );
   });
 
   const handleNextStep = () => {
@@ -88,14 +67,14 @@ export default function Users() {
       !userData.aadhaar.trim() ||
       !userData.pan.trim() ||
       !userData.gender ||
-      !userData.designation ||
+      !userData.role ||
       !userData.address.trim()
     ) {
       setErrorMsg("All personal and role details are required.");
       return;
     }
 
-    if (userData.designation === "Senior Doctor" && !userData.specialization) {
+    if (userData.role === "seniordoctor" && !userData.specialization) {
       setErrorMsg("Please select a specialization for the Senior Doctor.");
       return;
     }
@@ -106,20 +85,12 @@ export default function Users() {
 
   const handleSaveUser = async () => {
     try {
-      const roleMap = {
-        "Manager": "manager",
-        "Front Office Staff" : "frontoffice",
-        "Senior Doctor" : "seniordoctor",
-        "Junior Doctor" : "juniordoctor",
-        "Nurse" : "nurse",
-        "Pharmacist" : "pharmacist",
-      };
-
+      console.log("Role:", userData.role);
       await createUser ({
         name : userData.name,
         email: userData.email,
         mobile: userData.mobile,
-        role:roleMap[userData.designation],
+        role: userData.role,
         specialization:userData.specialization,
         dob:userData.dob,
         gender:userData.gender,
@@ -222,17 +193,17 @@ export default function Users() {
             </div>
 
             <select
-              value={designation}
-              onChange={(e) => setDesignation(e.target.value)}
+              value={role}
+              onChange={(e) => setrole(e.target.value)}
               className="bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all cursor-pointer"
             >
-              <option>All Designations</option>
-              <option>Manager</option>
-              <option>Front Office Staff</option>
-              <option>Pharmacist</option>
-              <option>Nurse</option>
-              <option>Junior Doctor</option>
-              <option>Senior Doctor</option>
+              <option>All roles</option>
+              <option value = "manager">Manager</option>
+              <option value = "frontoffice">Front Office Staff</option>
+              <option value = "pharmacist">Pharmacist</option>
+              <option value = "nurse">Nurse</option>
+              <option value = "juniordoctor">Junior Doctor</option>
+              <option value = "seniordoctor">Senior Doctor</option>
             </select>
           </div>
 
@@ -242,7 +213,7 @@ export default function Users() {
               <thead className="bg-white border-b border-gray-200">
                 <tr className="text-gray-500 font-semibold uppercase tracking-wider text-xs">
                   <th className="px-5 py-4">Name</th>
-                  <th className="px-5 py-4">Designation</th>
+                  <th className="px-5 py-4">role</th>
                   <th className="px-5 py-4">Mobile</th>
                   <th className="px-5 py-4">Email</th>
                   <th className="px-5 py-4 w-28">Status</th>
@@ -434,23 +405,24 @@ export default function Users() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-1">Job Role / Designation <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-bold text-gray-600 mb-1">Job Role / role <span className="text-red-500">*</span></label>
                       <select
-                        value={userData.designation}
-                        onChange={(e) => { setUserData({ ...userData, designation: e.target.value, specialization: "" }); setErrorMsg(""); }}
+                        value={userData.role}
+                        onChange={(e) => { console.log("Selected:", e.target.value); setUserData({ ...userData, role: e.target.value, specialization: "", });
+                      }}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       >
-                        <option value="">Select Role...</option>
-                        <option>Manager</option>
-                        <option>Front Office Staff</option>
-                        <option>Pharmacist</option>
-                        <option>Nurse</option>
-                        <option>Junior Doctor</option>
-                        <option>Senior Doctor</option>
+                        <option >Select Role...</option>
+                        <option value = "manager">Manager</option>
+                        <option value = "frontoffice">Front Office Staff</option>
+                        <option value = "pharmacist">Pharmacist</option>
+                        <option value = "nurse">Nurse</option>
+                        <option value = "juniordoctor">Junior Doctor</option>
+                        <option value = "seniordoctor">Senior Doctor</option>
                       </select>
                     </div>
 
-                    {userData.designation === "Senior Doctor" ? (
+                    {userData.role === "seniordoctor" ? (
                       <div className="animate-in fade-in">
                         <label className="block text-xs font-bold text-gray-600 mb-1">Specialization <span className="text-red-500">*</span></label>
                         <select
@@ -490,7 +462,7 @@ export default function Users() {
                       </div>
                       <div className="flex-1 border-l border-blue-200 pl-4">
                         <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-0.5">Role</p>
-                        <p className="text-sm font-bold text-gray-900">{userData.designation}</p>
+                        <p className="text-sm font-bold text-gray-900">{userData.role}</p>
                       </div>
                     </div>
 
@@ -645,22 +617,22 @@ export default function Users() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">Designation</label>
+                    <label className="block text-xs font-bold text-gray-600 mb-1">role</label>
                     <select
-                      value={editData.designation}
-                      onChange={(e) => setEditData({ ...editData, designation: e.target.value, specialization: "-" })}
+                      value={editData.role}
+                      onChange={(e) => setEditData({ ...editData, role: e.target.value, specialization: "-" })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     >
-                      <option>Manager</option>
-                      <option>Front Office Staff</option>
-                      <option>Pharmacist</option>
-                      <option>Nurse</option>
-                      <option>Junior Doctor</option>
-                      <option>Senior Doctor</option>
+                      <option value= "manager">Manager</option>
+                      <option value = "frontoffice">Front Office Staff</option>
+                      <option value = "pharmacist">Pharmacist</option>
+                      <option value = "nurse">Nurse</option>
+                      <option value = "juniordoctor">Junior Doctor</option>
+                      <option value = "seniordoctor">Senior Doctor</option>
                     </select>
                   </div>
 
-                  {editData.designation === "Senior Doctor" ? (
+                  {editData.role === "Senior Doctor" ? (
                     <div className="animate-in fade-in">
                       <label className="block text-xs font-bold text-gray-600 mb-1">Specialization <span className="text-red-500">*</span></label>
                       <select

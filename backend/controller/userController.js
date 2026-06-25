@@ -18,7 +18,7 @@ const createUser = async (req, res) => {
       address,
     } = req.body;
 
-    const existingUser = await user.findOne({
+    const existingUser = await User.findOne({
       $or: [{ email }, { username }],
     });
 

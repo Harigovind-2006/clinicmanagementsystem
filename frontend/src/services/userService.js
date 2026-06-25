@@ -15,18 +15,28 @@ export const getAllUsers = async (role = "") => {
 
 export const createUser = async (userData) => {
     try {
-        console.log("Received data:",req.body);
-    } catch(error){
-        console.error("create user error: ",error);
-    }
+        console.log("Sending data:", userData);
 
-    res.status(500).json ({
-        message : error.message,
-    });
+        const response = await axios.post(API_URL, userData);
+
+        return response.data;
+    } catch (error) {
+        console.error("create user error:", error);
+
+        console.log(
+            "Backend message:",
+            error.response?.data
+        );
+
+    throw error;
+    }
 };
 
-export const updateUser = async (id,userData) => {
-    const response = await axios.put(`${API_URL}/${id}`,userData);
+export const updateUser = async (id, userData) => {
+    const response = await axios.put(
+        `${API_URL}/${id}`,
+        userData
+    );
 
     return response.data;
 };
