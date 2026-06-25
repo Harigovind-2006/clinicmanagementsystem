@@ -29,7 +29,7 @@ import PharmacyBill from "./pages/Pharmacist/PharmacyBill";
 
 
 import PatientsList from "./components/PatientComponent/PatientsList";
-import PatientProfile from "./components/PatientComponent/PatientsProfile";
+import PatientsProfile from "./components/PatientComponent/PatientsProfile";
 import PatientHistory from "./components/PatientComponent/PatientHistory";
 
 function App() {
@@ -41,6 +41,8 @@ function App() {
 
       <Route path="/nurse" element={<NursePage />} />
       <Route path="/patient/:pid" element={<PatientDashboard />} />
+      <Route path='/PatientsList' element={<PatientsList/>} />
+      <Route path='/PatientsProfile' element={<PatientsProfile/>}/>
 
       <Route path="/junior-doctor" element={<JuniorDoctor />} />
       <Route path="/assessment/:pid" element={<PatientAssessment />} />
@@ -77,7 +79,7 @@ function App() {
       <Route path="/users" element={<Users />} />
 
       <Route path="/patients" element={<PatientsList />} />
-      <Route path="/patients/:pid" element={<PatientProfile />} />
+      
 
       <Route path="/patient-history/:pid" element={<PatientHistory />} />
 
