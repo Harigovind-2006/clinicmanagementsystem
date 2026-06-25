@@ -41,7 +41,7 @@ export default function Landingpage() {
       localStorage.setItem("token", data.token);
 
       if (data.user) {
-        localStorage.setItem("userId", data.user._id);
+        localStorage.setItem("userId", data.user.id);
         localStorage.setItem("role", data.user.role);
         localStorage.setItem("username", data.user.username);
       }
