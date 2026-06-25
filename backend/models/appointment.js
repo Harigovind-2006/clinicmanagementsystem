@@ -1,5 +1,32 @@
 import mongoose from "mongoose";
 
+const PrescribedMedicineSchema = new mongoose.Schema(
+  {
+    medicine: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Medicine",
+      required: [true, "Medicine reference is required"],
+    },
+    days: {
+      type: Number,
+      required: [true, "Number of days is required"],
+      min: [1, "Days must be at least 1"],
+    },
+    frequency: {
+      type: String,
+      required: [true, "Frequency note is required (e.g., 1-0-1)"],
+      trim: true,
+    },
+    quantity: {
+      type: Number,
+      default: null,
+    },
+  },
+  { _id: false }
+);
+
+
+
 const appointmentSchema = new mongoose.Schema(
   {
     patient: {
@@ -35,16 +62,36 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["ip", "op"],
       default:  "op",
     },
-    JdObservations:{
+    jdObservations:{
       type: String,
       default: ""
     },
-    
+    sdObservations:{
+      type: String,
+      default: ""
+    },
+    nurseNote:{
+      type: String,
+      default: ""
+    },
     isActive: {
       type: Boolean,
       required: true,
       default: true,
     },
+    medicine: {
+      type: [PrescribedMedicineSchema],
+      default: [],
+    },
+    procedure: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Procedure",
+        },
+      ],
+      default: [],
+    }
   },
   {
     timestamps: true,
@@ -57,3 +104,5 @@ appointmentSchema.index(
 );
 
 export default mongoose.model("Appointment", appointmentSchema);
+
+

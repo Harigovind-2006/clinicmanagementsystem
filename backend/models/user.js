@@ -58,8 +58,6 @@ const userSchema = new mongoose.Schema(
         "juniordoctor",
         "nurse",
         "pharmacist",
-        "labtechnician",
-        "receptionist",
       ],
       required: true,
     },
