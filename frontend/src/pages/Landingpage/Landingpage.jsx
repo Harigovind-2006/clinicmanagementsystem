@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SplitText from "./SplitText";
+import api from "../../api/axios";
 
 const handleAnimationComplete = () => {
   console.log("Animation Complete");
@@ -9,70 +10,13 @@ const handleAnimationComplete = () => {
 export default function Landingpage() {
   const navigate = useNavigate();
 
-  const [selectedRole, setSelectedRole] = useState("");
-
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
 
   const [error, setError] = useState("");
-
-  const roleCredentials = {
-    manager: {
-      username: "manager",
-      password: "manager123",
-      route: "/dashboard",
-    },
-
-    frontoffice: {
-      username: "frontoffice",
-      password: "fo123",
-      route: "/admission",
-    },
-
-    seniordoctor: {
-      username: "seniordoctor",
-      password: "sd123",
-      route: "/senior-doctor",
-    },
-
-    juniordoctor: {
-      username: "juniordoctor",
-      password: "jd123",
-      route: "/junior-doctor",
-    },
-
-    nurse: {
-      username: "nurse",
-      password: "nurse123",
-      route: "/nurse",
-    },
-
-    pharmacist: {
-      username: "pharmacist",
-      password: "pharma123",
-      route: "/pharmacist",
-    },
-  };
-
-  const handleRoleChange = (e) => {
-    const role = e.target.value;
-
-    setSelectedRole(role);
-
-    if (roleCredentials[role]) {
-      setFormData({
-        username: roleCredentials[role].username,
-        password: roleCredentials[role].password,
-      });
-    } else {
-      setFormData({
-        username: "",
-        password: "",
-      });
-    }
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -81,28 +25,62 @@ export default function Landingpage() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedRole) {
-      setError("Please select a role");
-      return;
-    }
-
-    const role = roleCredentials[selectedRole];
-
-    if (
-      formData.username === role.username &&
-      formData.password === role.password
-    ) {
+    try {
+      setLoading(true);
       setError("");
 
-      // SAVE ROLE FOR LAYOUT
-      localStorage.setItem("role", selectedRole);
+      const { data } = await api.post("/authapi/login", formData);
 
-      navigate(role.route);
-    } else {
-      setError("Invalid username or password");
+      console.log("Login successful response data:", data);
+
+      localStorage.setItem("token", data.token);
+
+      if (data.user) {
+        localStorage.setItem("userId", data.user._id);
+        localStorage.setItem("role", data.user.role);
+        localStorage.setItem("username", data.user.username);
+      }
+
+      const payload = JSON.parse(atob(data.token.split(".")[1]));
+      const userRole = payload.role || data.user?.role;
+
+      switch (userRole) {
+        case "manager":
+          navigate("/dashboard");
+          break;
+
+        case "fos":
+          navigate("/dashboard");
+          break;
+
+        case "seniordoctor":
+          navigate("/senior-doctor");
+          break;
+
+        case "juniordoctor":
+          navigate("/junior-doctor");
+          break;
+
+        case "nurse":
+          navigate("/nurse");
+          break;
+
+        case "pharmacist":
+          navigate("/pharmacist");
+          break;
+
+        default:
+          navigate("/");
+      }
+    } catch (err) {
+      console.error(err);
+
+      setError(err.response?.data?.message || "Unable to connect to server");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -165,33 +143,6 @@ export default function Landingpage() {
             </div>
           )}
 
-          {/* Role */}
-          <div>
-            <label className="block mb-2 font-semibold text-slate-700">
-              Role
-            </label>
-
-            <select
-              value={selectedRole}
-              onChange={handleRoleChange}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
-            >
-              <option value="">Select Role</option>
-
-              <option value="manager">Manager</option>
-
-              <option value="frontoffice">Front Office</option>
-
-              <option value="seniordoctor">Senior Doctor</option>
-
-              <option value="juniordoctor">Junior Doctor</option>
-
-              <option value="nurse">Nurse</option>
-
-              <option value="pharmacist">Pharmacist</option>
-            </select>
-          </div>
-
           {/* Username */}
           <div>
             <label className="block mb-2 font-semibold text-slate-700">
@@ -205,6 +156,7 @@ export default function Landingpage() {
               onChange={handleChange}
               placeholder="Enter username"
               className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
+              required
             />
           </div>
 
@@ -221,19 +173,19 @@ export default function Landingpage() {
               onChange={handleChange}
               placeholder="Enter password"
               className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
+              required
             />
           </div>
 
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:scale-105 transition-all duration-200"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:scale-105 transition-all duration-200 disabled:opacity-60"
           >
-            Sign In
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
-
-        {/* Demo Credentials */}
       </div>
     </section>
   );
