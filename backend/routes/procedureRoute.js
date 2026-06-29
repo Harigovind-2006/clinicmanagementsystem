@@ -1,7 +1,7 @@
 import express from "express"
 import {
     createProcedure,
-    getActiveProcedures,
+    getProcedures,
     updateProcedure,
     deleteProcedure
 } from "../controller/procedureController.js"
@@ -10,7 +10,7 @@ const route = express.Router();
 
 route.route("/")
     .post(createProcedure)       
-    .get(getActiveProcedures);
+    .get(getProcedures);
 
 route.route("/:id")
     .put(updateProcedure)        

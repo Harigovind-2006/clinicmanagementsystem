@@ -1,56 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../Layout";
-
-const patients = [
-  {
-    pid: "P001",
-    name: "John Doe",
-    phone: "7356164455",
-    gender: "Male",
-    type: "OP",
-  },
-  {
-    pid: "P002",
-    name: "Mathew Joseph",
-    phone: "7356163399",
-    gender: "Male",
-    type: "OP",
-  },
-  {
-    pid: "P003",
-    name: "Daniel Joshy",
-    phone: "7356164488",
-    gender: "Male",
-    type: "IP",
-  },
-  {
-    pid: "P004",
-    name: "Afiya Fathima",
-    phone: "9061078888",
-    gender: "Female",
-    type: "IP",
-  },
-];
-
+import api from "../../api/axios";
 export default function PatientsList() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [patients, setPatients] = useState([]);
+  useEffect(() => {
+    // Fetch patients data from the API
+    const fetchPatients = async () => {
+      try {
+      const response = await api.get(`/patientapi/`);
+        const data = response.data;
+        setPatients(data);
+      } catch (error) {
+        console.error("Error fetching patients:", error);
+      }
+    };
+
+    fetchPatients();
+  }, []);
 
   // Filter logic for PID, Name, or Phone
   const filteredPatients = patients.filter((patient) => {
     const query = searchQuery.toLowerCase();
+
     return (
-      patient.name.toLowerCase().includes(query) ||
-      patient.pid.toLowerCase().includes(query) ||
-      patient.phone.includes(query)
+      patient.name?.toLowerCase().includes(query) ||
+      patient.pid?.toLowerCase().includes(query) ||
+      patient.mobilePhone?.includes(query)
     );
   });
 
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
       <div className="w-full max-w-full block overflow-hidden bg-gray-50 p-4 sm:p-6 lg:p-8 min-h-screen">
-        
         {/* Header Section */}
         <div className="mb-6 w-full">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">
@@ -113,7 +97,7 @@ export default function PatientsList() {
                         {patient.name}
                       </td>
                       <td className="p-4 text-sm text-gray-600">
-                        {patient.phone}
+                        {patient.mobilePhone}
                       </td>
                       <td className="p-4 text-sm text-gray-600">
                         {patient.gender}
@@ -121,12 +105,12 @@ export default function PatientsList() {
                       <td className="p-4 text-sm">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                            patient.type === "OP"
+                            patient.patientType === "op"
                               ? "bg-blue-50 text-blue-700 border-blue-100"
                               : "bg-green-50 text-green-700 border-green-100"
                           }`}
                         >
-                          {patient.type}
+                          {patient.patientType?.toUpperCase()}
                         </span>
                       </td>
                       <td className="p-4 text-sm pr-6 text-right">

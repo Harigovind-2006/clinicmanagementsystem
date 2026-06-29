@@ -77,6 +77,11 @@ const patientSchema = new mongoose.Schema({
     type: Map,
     of: BillDetailsSchema,
     default: {}
+  },
+  patientType:{
+    type:String,
+    enum:["op","ip"],
+    default:"op"
   }
 }, 
 {

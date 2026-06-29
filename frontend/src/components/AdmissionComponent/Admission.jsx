@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "../../components/Layout";
+import api from "../../api/axios";
 
 export default function Admission() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,94 +21,62 @@ export default function Admission() {
   const [fromDate, setFromDate] = useState(today);
   const [paymentUpto, setPaymentUpto] = useState("");
 
-  const rooms = [
-    {
-      roomNo: 101,
-      facilities: "AC, TV, Attached Bathroom, Bystander Cot",
-      charge: 2000,
-      status: "Occupied",
-      patient: "Ravi Kumar",
-      admitted: "2026-06-01",
-      advance: 5000,
-    },
-    {
-      roomNo: 102,
-      facilities: "AC, TV, Attached Bathroom",
-      charge: 1500,
-      status: "Occupied",
-      patient: "Suresh Rao",
-      admitted: "2026-06-05",
-      advance: 3000,
-    },
-    {
-      roomNo: 103,
-      facilities: "Fan, Shared Bathroom",
-      charge: 800,
-      status: "Available",
-      patient: null,
-      admitted: null,
-      advance: null,
-    },
-    {
-      roomNo: 201,
-      facilities: "AC, TV, Attached Bathroom",
-      charge: 3000,
-      status: "Closed",
-      patient: null,
-      admitted: null,
-      advance: null,
-    },
-    {
-      roomNo: 202,
-      facilities: "AC, TV, Attached Bathroom",
-      charge: 2500,
-      status: "Available",
-      patient: null,
-      admitted: null,
-      advance: null,
-    },
-  ];
+  // State for API data
+  const [roomData, setRoomData] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock Patient Data Dictionary
-  const patients = {
-    "Ravi Kumar": {
-      pid: "P003",
-      name: "Ravi Kumar",
-      dob: "1972-01-15",
-      gender: "Male",
-      bloodGroup: "B+",
-      phone: "9003456789",
-      paymentUpto: "2026-06-10",
-    },
-    "Suresh Rao": {
-      pid: "P004",
-      name: "Suresh Rao",
-      dob: "1980-03-12",
-      gender: "Male",
-      bloodGroup: "O+",
-      phone: "9876543210",
-      paymentUpto: "2026-06-15",
-    },
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchRooms();
+    fetchPatients();
+  }, []);
+
+  const fetchRooms = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/roomsapi");
+      setRoomData(res.data.data || res.data);
+    } catch (err) {
+      console.error("Error fetching rooms:", err);
+      setErrorMsg("Failed to load room data.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const [roomData, setRoomData] = useState(rooms);
+  const fetchPatients = async () => {
+    try {
+      const res = await api.get("/patientapi");
+      setPatients(res.data.data || res.data);
+    } catch (err) {
+      console.error("Error fetching patients:", err);
+      setErrorMsg("Failed to load patient data.");
+    }
+  };
 
+  // Filter rooms based on search
   const filteredRooms = roomData.filter(
     (room) =>
-      room.roomNo.toString().includes(search) ||
-      room.patient?.toLowerCase().includes(search.toLowerCase())
+      room.roomId?.toString().includes(search) ||
+      room.currentPatient?.name?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handlePatientClick = (room) => {
-    const patientInfo = patients[room.patient] || {
-      pid: "N/A",
-      name: room.patient,
-      dob: "—",
-      gender: "—",
-      bloodGroup: "—",
-      phone: "—",
-      paymentUpto: "—",
-    };
+    const patientInfo =
+      patients.find(
+        (p) =>
+          p._id === room.currentPatient?._id ||
+          p._id === room.currentPatient
+      ) || {
+        pid: "N/A",
+        name: room.currentPatient?.name || "Unknown",
+        dob: "—",
+        gender: "—",
+        bloodGroup: "—",
+        mobilePhone: "—",
+        paymentUpto: "—",
+      };
 
     setSelectedPatientData({
       room,
@@ -116,51 +85,76 @@ export default function Admission() {
     setShowPatientModal(true);
   };
 
-  const handleAssignRoom = () => {
-    // Advance payment is now mandatory along with patient and room selection
+  const handleAssignRoom = async () => {
+    // Advance payment is mandatory along with patient and room selection
     if (!selectedPatient || !selectedRoom || !advance) {
       setErrorMsg("Please fill all required fields, including Advance Payment.");
       return;
     }
 
-    setRoomData((prev) =>
-      prev.map((room) =>
-        room.roomNo === Number(selectedRoom)
-          ? {
-              ...room,
-              status: "Occupied",
-              patient: selectedPatient,
-              admitted: fromDate,
-              advance: advance ? Number(advance) : null,
-            }
-          : room
-      )
-    );
+    try {
+      const managerId = localStorage.getItem("userId");
 
-    // Reset fields & close modal
-    setShowAssignModal(false);
-    setSelectedPatient("");
-    setSelectedRoom("");
-    setAdvance("");
-    setFromDate(today);
-    setPaymentUpto("");
-    setErrorMsg("");
+      await api.put(`/roomsapi/assign/${managerId}`, {
+        roomId: selectedRoom,
+        patientId: selectedPatient,
+        advancePaid: Number(advance),
+        fromDate: fromDate,
+        paymentUpto: paymentUpto || undefined,
+      });
+
+      // Reset fields & close modal
+      setShowAssignModal(false);
+      setSelectedPatient("");
+      setSelectedRoom("");
+      setAdvance("");
+      setFromDate(today);
+      setPaymentUpto("");
+      setErrorMsg("");
+      
+      // Refresh room data
+      fetchRooms();
+    } catch (err) {
+      console.error("Error assigning room:", err);
+      setErrorMsg(err.response?.data?.message || "Failed to assign room. Please try again.");
+    }
   };
 
   // Toggle Room between Available and Closed
-  const toggleRoomStatus = (roomNo, currentStatus) => {
+  const toggleRoomStatus = async (roomId, currentStatus) => {
     const newStatus = currentStatus === "Available" ? "Closed" : "Available";
-    setRoomData((prev) =>
-      prev.map((room) =>
-        room.roomNo === roomNo
-          ? {
-              ...room,
-              status: newStatus,
-            }
-          : room
-      )
-    );
+    
+    try {
+      const managerId = localStorage.getItem("userId");
+      
+      await api.put(`/roomsapi/update/${managerId}`, {
+        roomId: roomId,
+        updateData: {
+          status: newStatus.toLowerCase()
+        }
+      });
+
+      // Refresh room data
+      fetchRooms();
+    } catch (err) {
+      console.error("Error updating room status:", err);
+      setErrorMsg(err.response?.data?.message || "Failed to update room status.");
+    }
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500">Loading rooms...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -180,6 +174,19 @@ export default function Admission() {
             + Assign Room
           </button>
         </div>
+
+        {/* Error Message */}
+        {errorMsg && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center justify-between">
+            <span>{errorMsg}</span>
+            <button
+              onClick={() => setErrorMsg("")}
+              className="text-red-500 hover:text-red-700"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Search */}
         <div className="bg-white border border-gray-200 rounded-2xl mb-6 overflow-hidden shadow-sm">
@@ -211,57 +218,59 @@ export default function Admission() {
 
               <tbody className="divide-y divide-gray-200">
                 {filteredRooms.map((room) => (
-                  <tr key={room.roomNo} className="hover:bg-gray-50/70 transition-colors">
-                    <td className="p-4 text-sm font-bold text-gray-900">Room {room.roomNo}</td>
-                    <td className="p-4 text-sm text-gray-600">{room.facilities}</td>
-                    <td className="p-4 text-sm text-gray-900 font-medium">₹{room.charge}</td>
+                  <tr key={room._id} className="hover:bg-gray-50/70 transition-colors">
+                    <td className="p-4 text-sm font-bold text-gray-900">Room {room.roomId}</td>
+                    <td className="p-4 text-sm text-gray-600">{room.facilities || room.roomCategory || "—"}</td>
+                    <td className="p-4 text-sm text-gray-900 font-medium">₹{room.charge || room.price || 0}</td>
                     <td className="p-4">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                          room.status === "Occupied"
+                          room.status === "Occupied" || room.status === "occupied"
                             ? "bg-blue-50 text-blue-700 border-blue-200"
-                            : room.status === "Available"
+                            : room.status === "Available" || room.status === "available"
                             ? "bg-green-50 text-green-700 border-green-200"
                             : "bg-gray-100 text-gray-600 border-gray-300"
                         }`}
                       >
-                        {room.status}
+                        {room.status || "Available"}
                       </span>
                     </td>
                     <td className="p-4 text-sm">
-                      {room.patient ? (
+                      {room.currentPatient ? (
                         <button
                           onClick={() => handlePatientClick(room)}
                           className="text-blue-600 hover:text-blue-800 font-medium hover:underline text-left"
                         >
-                          {room.patient}
+                          {room.currentPatient.name}
                         </button>
                       ) : (
                         <span className="text-gray-400">—</span>
                       )}
                     </td>
-                    <td className="p-4 text-sm text-gray-600">{room.admitted || <span className="text-gray-400">—</span>}</td>
+                    <td className="p-4 text-sm text-gray-600">
+                      {room.admittedAt ? new Date(room.admittedAt).toLocaleDateString() : <span className="text-gray-400">—</span>}
+                    </td>
                     <td className="p-4 text-sm text-gray-900 font-medium">
-                      {room.advance ? `₹${room.advance}` : <span className="text-gray-400">—</span>}
+                      {room.advancePaid ? `₹${room.advancePaid}` : <span className="text-gray-400">—</span>}
                     </td>
                     <td className="p-4 text-right">
-                      {room.status === "Available" && (
+                      {(room.status === "Available" || room.status === "available") && (
                         <button
-                          onClick={() => toggleRoomStatus(room.roomNo, room.status)}
+                          onClick={() => toggleRoomStatus(room._id, room.status)}
                           className="text-xs font-medium border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                         >
                           Mark Closed
                         </button>
                       )}
-                      {room.status === "Closed" && (
+                      {(room.status === "Closed" || room.status === "closed") && (
                         <button
-                          onClick={() => toggleRoomStatus(room.roomNo, room.status)}
+                          onClick={() => toggleRoomStatus(room._id, room.status)}
                           className="text-xs font-medium border border-green-300 text-green-700 px-3 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"
                         >
                           Mark Available
                         </button>
                       )}
-                      {room.status === "Occupied" && (
+                      {(room.status === "Occupied" || room.status === "occupied") && (
                         <span className="text-gray-400 text-xs italic">In Use</span>
                       )}
                     </td>
@@ -275,35 +284,35 @@ export default function Admission() {
         {/* Mobile Cards */}
         <div className="lg:hidden space-y-4">
           {filteredRooms.map((room) => (
-            <div key={room.roomNo} className="bg-white rounded-2xl shadow-sm p-5 border border-gray-200">
+            <div key={room._id} className="bg-white rounded-2xl shadow-sm p-5 border border-gray-200">
               <div className="flex justify-between items-start mb-3">
-                <h3 className="font-bold text-lg text-gray-900">Room {room.roomNo}</h3>
+                <h3 className="font-bold text-lg text-gray-900">Room {room.roomId}</h3>
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                    room.status === "Occupied"
+                    room.status === "Occupied" || room.status === "occupied"
                       ? "bg-blue-50 text-blue-700 border-blue-200"
-                      : room.status === "Available"
+                      : room.status === "Available" || room.status === "available"
                       ? "bg-green-50 text-green-700 border-green-200"
                       : "bg-gray-100 text-gray-600 border-gray-300"
                   }`}
                 >
-                  {room.status}
+                  {room.status || "Available"}
                 </span>
               </div>
 
-              <p className="text-gray-600 text-sm mb-2">{room.facilities}</p>
+              <p className="text-gray-600 text-sm mb-2">{room.facilities || room.roomCategory || "—"}</p>
               <div className="grid grid-cols-2 gap-y-2 text-sm pt-3 border-t border-gray-100 mt-3">
                 <span className="text-gray-500">Price:</span>
-                <span className="font-medium text-gray-900">₹{room.charge}/night</span>
+                <span className="font-medium text-gray-900">₹{room.charge || room.price || 0}/night</span>
                 
                 <span className="text-gray-500">Patient:</span>
                 <span>
-                  {room.patient ? (
+                  {room.currentPatient ? (
                     <button
                       onClick={() => handlePatientClick(room)}
                       className="text-blue-600 hover:text-blue-800 font-medium hover:underline text-left"
                     >
-                      {room.patient}
+                      {room.currentPatient.name}
                     </button>
                   ) : (
                     " —"
@@ -311,27 +320,27 @@ export default function Admission() {
                 </span>
 
                 <span className="text-gray-500">Advance:</span>
-                <span className="font-medium text-gray-900">{room.advance ? `₹${room.advance}` : "—"}</span>
+                <span className="font-medium text-gray-900">{room.advancePaid ? `₹${room.advancePaid}` : "—"}</span>
               </div>
 
               <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
-                {room.status === "Available" && (
+                {(room.status === "Available" || room.status === "available") && (
                   <button
-                    onClick={() => toggleRoomStatus(room.roomNo, room.status)}
+                    onClick={() => toggleRoomStatus(room._id, room.status)}
                     className="w-full text-sm font-medium border border-gray-300 text-gray-600 py-2 rounded-xl hover:bg-gray-100 transition-colors"
                   >
                     Mark Closed for Cleaning
                   </button>
                 )}
-                {room.status === "Closed" && (
+                {(room.status === "Closed" || room.status === "closed") && (
                   <button
-                    onClick={() => toggleRoomStatus(room.roomNo, room.status)}
+                    onClick={() => toggleRoomStatus(room._id, room.status)}
                     className="w-full text-sm font-medium border border-green-300 text-green-700 py-2 rounded-xl bg-green-50 hover:bg-green-100 transition-colors"
                   >
                     Mark as Available
                   </button>
                 )}
-                {room.status === "Occupied" && (
+                {(room.status === "Occupied" || room.status === "occupied") && (
                   <p className="w-full text-center text-gray-400 text-sm italic">Room is currently in use</p>
                 )}
               </div>
@@ -345,7 +354,7 @@ export default function Admission() {
             <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Room {selectedPatientData.room.roomNo} — Patient Details
+                  Room {selectedPatientData.room.roomId} — Patient Details
                 </h2>
                 <button
                   onClick={() => setShowPatientModal(false)}
@@ -359,10 +368,10 @@ export default function Admission() {
                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                   <h3 className="font-semibold text-lg mb-3 text-gray-800">Room Information</h3>
                   <div className="space-y-2 text-sm">
-                    <p><strong className="text-gray-600">Room:</strong> Room {selectedPatientData.room.roomNo}</p>
+                    <p><strong className="text-gray-600">Room:</strong> Room {selectedPatientData.room.roomId}</p>
                     <p><strong className="text-gray-600">Status:</strong> {selectedPatientData.room.status}</p>
-                    <p><strong className="text-gray-600">Facilities:</strong> {selectedPatientData.room.facilities}</p>
-                    <p><strong className="text-gray-600">Per Night:</strong> Rs. {selectedPatientData.room.charge}</p>
+                    <p><strong className="text-gray-600">Facilities:</strong> {selectedPatientData.room.facilities || selectedPatientData.room.roomCategory || "—"}</p>
+                    <p><strong className="text-gray-600">Per Night:</strong> Rs. {selectedPatientData.room.charge || selectedPatientData.room.price || 0}</p>
                   </div>
                 </div>
 
@@ -374,9 +383,9 @@ export default function Admission() {
                     <p><strong className="text-gray-600">DOB:</strong> {selectedPatientData.patient.dob}</p>
                     <p><strong className="text-gray-600">Gender:</strong> {selectedPatientData.patient.gender}</p>
                     <p><strong className="text-gray-600">Blood Group:</strong> {selectedPatientData.patient.bloodGroup}</p>
-                    <p><strong className="text-gray-600">Phone:</strong> {selectedPatientData.patient.phone}</p>
-                    <p><strong className="text-gray-600">Admitted:</strong> {selectedPatientData.room.admitted}</p>
-                    <p><strong className="text-gray-600">Payment Upto:</strong> {selectedPatientData.patient.paymentUpto}</p>
+                    <p><strong className="text-gray-600">Mobile:</strong> {selectedPatientData.patient.mobilePhone}</p>
+                    <p><strong className="text-gray-600">Admitted:</strong> {selectedPatientData.room.admittedAt ? new Date(selectedPatientData.room.admittedAt).toLocaleDateString() : "—"}</p>
+                    <p><strong className="text-gray-600">Payment Upto:</strong> {selectedPatientData.patient.paymentUpto || "—"}</p>
                   </div>
                 </div>
               </div>
@@ -386,7 +395,7 @@ export default function Admission() {
                 <div className="grid grid-cols-3 gap-4 bg-blue-50/50 p-4 rounded-xl border border-blue-100/50">
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Advance Paid</p>
-                    <p className="font-bold text-gray-900">Rs. {selectedPatientData.room.advance || 0}</p>
+                    <p className="font-bold text-gray-900">Rs. {selectedPatientData.room.advancePaid || 0}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Total Bill</p>
@@ -395,7 +404,7 @@ export default function Admission() {
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Balance Due</p>
                     <p className="font-bold text-red-600">
-                      Rs. {9000 - (selectedPatientData.room.advance || 0)}
+                      Rs. {9000 - (selectedPatientData.room.advancePaid || 0)}
                     </p>
                   </div>
                 </div>
@@ -434,9 +443,13 @@ export default function Admission() {
                     className="w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
                     <option value="">Select patient...</option>
-                    <option value="John Doe">John Doe</option>
-                    <option value="Jane Smith">Jane Smith</option>
-                    <option value="Anjali Gupta">Anjali Gupta</option>
+                    {patients
+                      .filter((p) => p.patientType === "ip" || p.patientType === "IP")
+                      .map((patient) => (
+                        <option key={patient._id} value={patient._id}>
+                          {patient.pid} - {patient.name}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -449,10 +462,10 @@ export default function Admission() {
                   >
                     <option value="">Select available room...</option>
                     {roomData
-                      .filter((room) => room.status === "Available")
+                      .filter((room) => room.status === "Available" || room.status === "available")
                       .map((room) => (
-                        <option key={room.roomNo} value={room.roomNo}>
-                          Room {room.roomNo} (₹{room.charge}/night)
+                        <option key={room._id} value={room._id}>
+                          Room {room.roomId} (₹{room.charge || room.price || 0}/night)
                         </option>
                       ))}
                   </select>

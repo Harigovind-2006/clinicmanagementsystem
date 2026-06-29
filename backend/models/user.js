@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema(
   {
-    fullname: {
+    name: {
       type: String,
       required: true,
       trim: true,
@@ -32,6 +32,9 @@ const userSchema = new mongoose.Schema(
       unique: true,
       uppercase: true,
       trim: true,
+      minlength: 10,
+      maxlength: 10,
+      match: [/^[A-Z]{5}[0-9]{4}[A-Z]$/, "Invalid PAN number"],
     },
     dob: {
       type: Date,
@@ -61,7 +64,7 @@ const userSchema = new mongoose.Schema(
       ],
       required: true,
     },
-    specialisation: {
+    specialization: {
       type: String,
       enum: [
         "Neurology",
@@ -80,7 +83,7 @@ const userSchema = new mongoose.Schema(
         function () {
           return this.role === "seniordoctor";
         },
-        "Specialisation is required for senior doctors",
+        "Specialization is required for senior doctors",
       ],
     },
     address: {

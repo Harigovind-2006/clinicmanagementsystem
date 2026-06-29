@@ -16,6 +16,8 @@ async function findDuplicateMedicine(data, excludeId = null) {
 }
 
 export const createMedicine = async (req, res) => {
+    console.log("createMedicine called");
+    console.log("Request body:", req.body);
     try {
         const { scientificName } = req.body;
         const duplicateMedicine = await findDuplicateMedicine({ scientificName });

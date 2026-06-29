@@ -1,56 +1,61 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
-
+import api from "../../api/axios";
 export default function JuniorDoctor() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("assessment");
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const assessmentPatients = [
-    {
-      token: "#2",
-      pid: "P002",
-      name: "Jane Smith",
-      doctor: "Dr. Priya Verma",
-      specialization: "General Medicine",
-      time: "09:30 AM",
-      status: "Scheduled",
-    },
-    {
-      token: "#3",
-      pid: "P004",
-      name: "Priya Nair",
-      doctor: "Dr. Amit Sharma",
-      specialization: "Cardiology",
-      time: "10:00 AM",
-      status: "Scheduled",
-    },
-    {
-      token: "#4",
-      pid: "P005",
-      name: "Suresh Rao",
-      doctor: "Dr. Amit Sharma",
-      specialization: "Cardiology",
-      time: "11:00 AM",
-      status: "Scheduled",
-    },
-  ];
+  // Fetch appointments on component mount
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
 
-  const submittedPatients = [
-    {
-      token: "#5",
-      pid: "P008",
-      name: "Rahul Das",
-      doctor: "Dr. Priya Verma",
-      specialization: "Neurology",
-      time: "12:30 PM",
-      status: "Submitted",
-    },
-  ];
+  const fetchAppointments = async () => {
+    try {
+      const res = await api.get("/appoinmentapi");
+      const data = res.data.data || res.data;
+      setAppointments(data);
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      setAppointments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter appointments based on status
+  // For Assessment: Show appointments with status "scheduled" (new appointments)
+  const assessmentPatients = appointments.filter(
+    (a) => a.status === "scheduled"
+  );
+
+  // Waiting/Submitted: Show appointments with status "waiting" (awaiting Senior Doctor)
+  const submittedPatients = appointments.filter(
+    (a) => a.status === "waiting"
+  );
 
   const displayedPatients =
-    activeTab === "assessment" ? assessmentPatients : submittedPatients;
+    activeTab === "assessment"
+      ? assessmentPatients
+      : submittedPatients;
+
+  // Loading state
+  if (loading) {
+    return (
+      <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500">Loading appointments...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -58,7 +63,7 @@ export default function JuniorDoctor() {
         {/* Title Block */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-[#0F172A] tracking-tight">
-            Dashboard
+            Junior Doctor Dashboard
           </h1>
           <p className="mt-1 text-[#64748B] text-[15px]">
             Click a patient to open their assessment page
@@ -107,48 +112,79 @@ export default function JuniorDoctor() {
                 </tr>
               </thead>
               <tbody className="text-[#334155] text-[14px] divide-y divide-[#F1F5F9]">
-                {displayedPatients.map((patient) => (
-                  <tr
-                    key={patient.pid}
-                    className="hover:bg-[#F8FAFC] transition-colors"
-                  >
-                    <td className="px-6 py-4.5 text-[#0F172A] font-medium">{patient.token}</td>
-                    <td className="px-6 py-4.5 text-[#64748B]">{patient.pid}</td>
-                    <td className="px-6 py-4.5 font-semibold text-[#0F172A]">{patient.name}</td>
-                    <td className="px-6 py-4.5 text-[#64748B]">{patient.doctor}</td>
-                    <td className="px-6 py-4.5 text-[#64748B]">{patient.specialization}</td>
-                    <td className="px-6 py-4.5 text-[#64748B]">{patient.time}</td>
-                    <td className="px-6 py-4.5">
-                      <span
-                        className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
-                          patient.status === "Submitted"
-                            ? "bg-green-50 text-green-600 border border-green-100"
-                            : "bg-[#DBEAFE] text-[#2563EB]"
-                        }`}
-                      >
-                        {patient.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4.5 text-right pr-10">
-                      {activeTab === "assessment" ? (
-                        <button
-                          onClick={() =>
-                            navigate(`/assessment/${patient.pid}`, {
-                              state: patient,
-                            })
-                          }
-                          className="text-[#2563EB] hover:text-[#1d4ed8] font-semibold text-sm transition-colors"
+                {displayedPatients.length > 0 ? (
+                  displayedPatients.map((patient) => (
+                    <tr
+                      key={patient._id}
+                      className="hover:bg-[#F8FAFC] transition-colors"
+                    >
+                      <td className="px-6 py-4.5 text-[#0F172A] font-medium">
+                        #{patient.tokenNumber || "-"}
+                      </td>
+                      <td className="px-6 py-4.5 text-[#64748B]">
+                        {patient.patient?.pid || "N/A"}
+                      </td>
+                      <td className="px-6 py-4.5 font-semibold text-[#0F172A]">
+                        {patient.patient?.name || "Unknown"}
+                      </td>
+                      <td className="px-6 py-4.5 text-[#64748B]">
+                        {patient.doctor?.fullname || "N/A"}
+                      </td>
+                      <td className="px-6 py-4.5 text-[#64748B]">
+                        {patient.doctor?.specialisation || "N/A"}
+                      </td>
+                      <td className="px-6 py-4.5 text-[#64748B]">
+                        {patient.appointmentTime || "N/A"}
+                      </td>
+                      <td className="px-6 py-4.5">
+                        <span
+                          className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
+                            patient.status === "waiting"
+                              ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                              : patient.status === "scheduled"
+                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              : "bg-green-50 text-green-600 border border-green-100"
+                          }`}
                         >
-                          Assess
-                        </button>
-                      ) : (
-                        <button className="text-[#64748B] hover:text-[#475569] font-semibold text-sm transition-colors">
-                          View
-                        </button>
-                      )}
+                          {patient.status 
+                            ? patient.status.charAt(0).toUpperCase() + patient.status.slice(1)
+                            : "Unknown"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4.5 text-right pr-10">
+                        {activeTab === "assessment" ? (
+                          <button
+                            onClick={() =>
+                              navigate(`/assessment/${patient._id}`, {
+                                state: patient,
+                              })
+                            }
+                            className="text-[#2563EB] hover:text-[#1d4ed8] font-semibold text-sm transition-colors"
+                          >
+                            Assess
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              navigate(`/assessment/${patient._id}`, {
+                                state: patient,
+                              })
+                            }
+                            className="text-[#64748B] hover:text-[#475569] font-semibold text-sm transition-colors"
+                          >
+                            View
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="8" className="px-6 py-12 text-center text-[#64748B]">
+                      No {activeTab === "assessment" ? "patients waiting for assessment" : "submitted patients"} found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

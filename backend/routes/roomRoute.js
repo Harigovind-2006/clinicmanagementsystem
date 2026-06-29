@@ -3,7 +3,8 @@ import {
     createRoom, 
     getAllRooms, 
     managerAssignsRoom, 
-    managerUpdatesRoom 
+    managerUpdatesRoom ,
+    getDischargePatients
 } from "../controller/roomController.js";
 
 const route = express.Router();
@@ -15,5 +16,7 @@ route.route("/")
 route.put("/assign/by-manager/:id", managerAssignsRoom); 
 
 route.put("/update/by-manager/:id", managerUpdatesRoom);
+
+route.get("/discharge", getDischargePatients);
 
 export default route;

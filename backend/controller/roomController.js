@@ -136,3 +136,34 @@ export const processRoomReleaseAndRent = async (patientId) => {
         netAmountPosted: netRoomCharge
     };
 };
+
+export const getDischargePatients = async (req, res) => {
+  try {
+    const rooms = await Room.find({
+      status: "occupied",
+      currentPatient: { $ne: null }
+    }).populate("currentPatient");
+
+    const dischargeList = rooms.map(room => ({
+      _id: room._id,
+      room: {
+        roomNumber: room.roomId
+      },
+      patient: room.currentPatient,
+      status: "Pending",
+      totalBill: 0,
+      paidAmount: room.advancePaid || 0,
+      pendingAmount: 0
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: dischargeList
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

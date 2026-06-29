@@ -11,12 +11,12 @@ export default function DispensingConfirmation() {
 
   const {
     prescriptionId = "N/A",
-    patientName = "Unknown Patient",
+    name = "Unknown Patient",
     medicines = [],
   } = location.state || {};
 
   const patient = {
-    name: patientName,
+    name: name,
     pid: prescriptionId,
   };
 
@@ -123,7 +123,7 @@ export default function DispensingConfirmation() {
             <span className="font-semibold">
               Patient:
             </span>{" "}
-            {patientName}
+            {name}
           </p>
 
           {/* Desktop */}
