@@ -84,7 +84,7 @@ export default function ManagerDashboard({ role }) {
 
   const fetchDischarges = async () => {
     try {
-      const res = await api.get("/roomsapi/discharge");
+      const res = await api.get("/discharge", getDischargePatients);
       setIpDischarges(res.data.data || res.data);
     } catch (err) {
       console.log("Error fetching discharges:", err);
