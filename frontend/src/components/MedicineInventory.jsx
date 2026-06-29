@@ -31,7 +31,7 @@ export default function MedicineInventory() {
       try {
         const userId = localStorage.getItem("userId");
         if (!userId) return;
-        const { data } = await api.get(`/userapi/userget/${userId}`);
+        const { data } = await api.get(`/userapi/${userId}`);
         setUserRole(data.role);
       } catch (err) {
         console.error("Failed to fetch user role:", err);

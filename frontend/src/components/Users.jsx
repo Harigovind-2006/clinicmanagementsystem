@@ -70,7 +70,7 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("http://localhost:5000/userapi/userget");
+      const response = await fetch("http://localhost:5000/userapi");
       if (!response.ok) throw new Error("Failed to fetch users");
       const data = await response.json();
       setUsers(data);
@@ -136,7 +136,7 @@ export default function Users() {
         payload.specialisation = userData.specialization;
       }
 
-      const response = await fetch("http://localhost:5000/userapi/userin", {
+      const response = await fetch("http://localhost:5000/userapi", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
