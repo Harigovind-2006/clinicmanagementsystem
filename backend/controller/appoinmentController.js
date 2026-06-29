@@ -18,7 +18,7 @@ export const getAllActiveAppoinments = async (req, res) => {
   try {
     const activeAppoinments = await Appointment.find({ isActive: true })
       .populate("patient", "pid name")
-      .populate("doctor", "fullname specialisation");
+      .populate("doctor", "fullname specialization");
 
     if (!activeAppoinments || activeAppoinments.length === 0) {
       return res.status(404).json({ message: "No Appoinments found" });
@@ -144,7 +144,7 @@ export const pharmacistDispenseAndBill = async (req, res) => {
             }
 
             if (med.quantityLeft < disp.quantity) {
-                return res.status(400).json({ success: false, message: `Insufficient inventory for ${med.medName}. Only ${med.quantityLeft} left.` });
+                return res.status(400).json({ success: false, message: `Insufficient inventory for ${med.medicinename}. Only ${med.quantityLeft} left.` });
             }
 
             med.quantityLeft -= disp.quantity;
@@ -155,8 +155,8 @@ export const pharmacistDispenseAndBill = async (req, res) => {
                 { $set: { "medicine.$.quantity": disp.quantity } }
             );
 
-            const totalCost = med.unitCost * disp.quantity;
-            dynamicBillUpdates[`billItems.${med.medName}`] = {
+            const totalCost = med.unitcost * disp.quantity;
+            dynamicBillUpdates[`billItems.${med.medicinename}`] = {
                 amount: totalCost,
                 status: "unpaid"
             };
@@ -178,8 +178,8 @@ export const getPatientHistory = async (req, res) => {
             status: "completed" 
         })
         .sort({ appointmentDate: -1, appointmentTime: -1 }) 
-        .populate("doctor", "fullname specialisation")     
-        .populate("medicine.medicine", "medName medScientificName") 
+        .populate("doctor", "fullname specialization")     
+        .populate("medicine.medicine", "medicinename medScientificName") 
         .populate("procedure", "procedureName amount");     
 
         if (!history || history.length === 0) {

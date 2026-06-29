@@ -70,7 +70,7 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("http://localhost:5000/userapi/userget");
+      const response = await fetch("http://localhost:5000/userapi/");
       if (!response.ok) throw new Error("Failed to fetch users");
       const data = await response.json();
       setUsers(data);
@@ -131,12 +131,12 @@ export default function Users() {
         gender: userData.gender.toLowerCase(),
       };
 
-      // Only attach specialisation if the role requires it
+      // Only attach specialization if the role requires it
       if (payload.role === "seniordoctor") {
-        payload.specialisation = userData.specialization;
+        payload.specialization = userData.specialization;
       }
 
-      const response = await fetch("http://localhost:5000/userapi/userin", {
+      const response = await fetch("http://localhost:5000/userapi/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -170,7 +170,7 @@ export default function Users() {
   const toggleStatus = async (user) => {
     try {
       const updatedStatus = user.status === "Active" ? "Inactive" : "Active";
-      const response = await fetch(`http://localhost:5000/userapi/update/user/${user._id}`, {
+      const response = await fetch(`http://localhost:5000/userapi${user._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -188,7 +188,7 @@ export default function Users() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        const response = await fetch(`http://localhost:5000/userapi/delete/user/${id}`, {
+        const response = await fetch(`http://localhost:5000/userapi/${user._id}`, {
           method: "DELETE",
         });
         if (!response.ok) throw new Error("Failed to remove user account.");
@@ -219,12 +219,12 @@ export default function Users() {
         address: editData.address,
       };
 
-      // Only attach specialisation if the role is Senior Doctor
+      // Only attach specialization if the role is Senior Doctor
       if (updatePayload.role === "seniordoctor") {
-        updatePayload.specialisation = editData.specialisation;
+        updatePayload.specialization = editData.specialization;
       }
 
-      const response = await fetch(`http://localhost:5000/userapi/update/user/${editData._id}`, {
+      const response = await fetch(`http://localhost:5000/userapi/${editData._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

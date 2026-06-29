@@ -24,9 +24,10 @@ export default function Layout({
           return;
         }
 
-        const { data } = await api.get(`/userapi/userget/${userId}`);
+        const { data } = await api.get(`/userapi/${userId}`);
         setRole(data.role);
         console.log("ROLE fetched from DB =", data.role);
+        
 
       } catch (error) {
         console.error("Failed to fetch user role:", error);
@@ -49,6 +50,8 @@ export default function Layout({
 
   let menuItems = [];
   const normalizedRole = (role || "").toLowerCase().trim();
+  
+  
 
   switch (normalizedRole) {
     case "manager":
@@ -77,7 +80,7 @@ export default function Layout({
       break;
 
     case "juniordoctor":
-      menuItems = [{ name: "Dashboard", path: "/junior-doctor" }];
+      menuItems = [{ name: "Dashboard", path: "/juniordoctor" }];
       break;
 
     case "nurse":

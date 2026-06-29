@@ -21,9 +21,9 @@ export const createProcedure = async (req, res) => {
     }
 };
 
-export const getActiveProcedures = async (req, res) => {
+export const getProcedures = async (req, res) => {
     try {
-        const procedures = await Procedure.find({ isActive: true }).sort({ procedureName: 1 });
+        const procedures = await Procedure.find().sort({ procedureName: 1 });
         return res.status(200).json({ success: true, count: procedures.length, data: procedures });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
@@ -36,7 +36,7 @@ export const updateProcedure = async (req, res) => {
 
         const updatedProcedure = await Procedure.findByIdAndUpdate(
             id,
-            { $set: req.body }, // ⚡ Handles partial edits, price changes, or status toggles dynamically!
+            { $set: req.body }, 
             { new: true, runValidators: true }
         );
 
