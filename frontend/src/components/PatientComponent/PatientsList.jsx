@@ -6,28 +6,28 @@ const patients = [
   {
     pid: "P001",
     name: "John Doe",
-    phone: "7356164455",
+    mobilePhone: "7356164455",
     gender: "Male",
     type: "OP",
   },
   {
     pid: "P002",
     name: "Mathew Joseph",
-    phone: "7356163399",
+    mobilePhone: "7356163399",
     gender: "Male",
     type: "OP",
   },
   {
     pid: "P003",
     name: "Daniel Joshy",
-    phone: "7356164488",
+    mobilePhone: "7356164488",
     gender: "Male",
     type: "IP",
   },
   {
     pid: "P004",
     name: "Afiya Fathima",
-    phone: "9061078888",
+    mobilePhone: "9061078888",
     gender: "Female",
     type: "IP",
   },
@@ -43,7 +43,7 @@ export default function PatientsList() {
     return (
       patient.name.toLowerCase().includes(query) ||
       patient.pid.toLowerCase().includes(query) ||
-      patient.phone.includes(query)
+      patient.mobilePhone.includes(query)
     );
   });
 
@@ -113,7 +113,7 @@ export default function PatientsList() {
                         {patient.name}
                       </td>
                       <td className="p-4 text-sm text-gray-600">
-                        {patient.phone}
+                        {patient.mobilePhone}
                       </td>
                       <td className="p-4 text-sm text-gray-600">
                         {patient.gender}

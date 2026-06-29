@@ -38,7 +38,7 @@ export default function ManagerDashboard({ role }) {
   const [dischargeModal, setDischargeModal] = useState(null);
 
   const [newAppointmentData, setNewAppointmentData] = useState({
-    id: null, pid: '', patientName: '', dob: '', phone: '', email: '', gender: 'Male',
+    id: null, pid: '', name: '', dob: '', mobilePhone: '', email: '', gender: 'Male',
     bloodGroup: 'O+', address: '', specialization: specializationsList[0],
     assignedDoctorName: '', appointmentDate: todayDate, appointmentTime: '', 
     paymentMethod: 'Cash', upiId: '', tokenNumber: null, paymentTimestamp: null,
@@ -95,7 +95,7 @@ export default function ManagerDashboard({ role }) {
     const query = search.toLowerCase();
     const matchesSearch = 
       (a.pid || '').toLowerCase().includes(query) ||
-      (a.patientName || a.patient?.name || '').toLowerCase().includes(query) ||
+      (a.name || a.patient?.name || '').toLowerCase().includes(query) ||
       (a.assignedDoctorName || a.doctor?.name || '').toLowerCase().includes(query) ||
       (a.tokenNumber?.toString() || '').includes(query);
     
@@ -108,7 +108,7 @@ export default function ManagerDashboard({ role }) {
   });
 
   const getPatientName = (appointment) => {
-    if (appointment.patientName) return appointment.patientName;
+    if (appointment.name) return appointment.name;
     if (appointment.patient?.name) return appointment.patient.name;
     if (appointment.patientId?.name) return appointment.patientId.name;
     return 'Unknown';
@@ -193,7 +193,7 @@ export default function ManagerDashboard({ role }) {
   const openNewAppointmentModal = () => {
     const initialDocs = doctors.filter(d => d.specialization === specializationsList[0]);
     setNewAppointmentData({
-      id: Date.now(), pid: '', patientName: '', dob: '', phone: '',
+      id: Date.now(), pid: '', name: '', dob: '', mobilePhone: '',
       email: '', gender: 'Male', bloodGroup: 'O+', address: '', specialization: specializationsList[0],
       assignedDoctorName: initialDocs.length > 0 ? initialDocs[0].name || initialDocs[0]._id : '',
       appointmentDate: todayDate, appointmentTime: '', paymentMethod: 'Cash', upiId: '', 
@@ -211,17 +211,17 @@ export default function ManagerDashboard({ role }) {
     setErrorMsg('');
     if (wizardStep === 1) {
       if (patientMode === 'new') {
-        const { patientName, phone, dob, email, address, bloodGroup, gender } = newAppointmentData;
+        const { name, mobilePhone, dob, email, address, bloodGroup, gender } = newAppointmentData;
         const today = new Date().toISOString().split("T")[0];
         if (newAppointmentData.dob > today) {
           setErrorMsg("Date of Birth cannot be in the future.");
           return;
         }
-        if (!patientName || !phone || !dob || !email || !address || !bloodGroup || !gender) {
+        if (!name || !mobilePhone || !dob || !email || !address || !bloodGroup || !gender) {
           setErrorMsg('All fields are required for new registration.'); 
           return;
         }
-        if (!/^[6-9]\d{9}$/.test(phone)) {
+        if (!/^[6-9]\d{9}$/.test(mobilePhone)) {
           setErrorMsg('Enter a valid 10-digit mobile number.'); 
           return;
         }
@@ -258,7 +258,7 @@ export default function ManagerDashboard({ role }) {
       
       if (patientMode === 'new') {
         const patientData = {
-          name: newAppointmentData.patientName,
+          name: newAppointmentData.name,
           mobilePhone: newAppointmentData.phone,
           email: newAppointmentData.email,
           dob: newAppointmentData.dob,
@@ -332,7 +332,7 @@ export default function ManagerDashboard({ role }) {
 
   const getDischargePatientName = (discharge) => {
     if (discharge.patient?.name) return discharge.patient.name;
-    if (discharge.patientName) return discharge.patientName;
+    if (discharge.name) return discharge.name;
     return 'Unknown';
   };
 
@@ -560,13 +560,13 @@ export default function ManagerDashboard({ role }) {
                         {patientMode === 'new' ? (
                           <div className="grid gap-4 md:grid-cols-2">
                             <label className="space-y-1 md:col-span-2"><span className="text-sm font-medium text-gray-700">Full Name</span>
-                              <input value={newAppointmentData.patientName} onChange={(e) => setNewAppointmentData({ ...newAppointmentData, patientName: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                              <input value={newAppointmentData.name} onChange={(e) => setNewAppointmentData({ ...newAppointmentData, name: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                             </label>
                             <label className="space-y-1"><span className="text-sm font-medium text-gray-700">Date of Birth</span>
                               <input type="date" max={todayDate} value={newAppointmentData.dob} onChange={(e) => setNewAppointmentData({ ...newAppointmentData, dob: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                             </label>
-                            <label className="space-y-1"><span className="text-sm font-medium text-gray-700">Phone (10 digits)</span>
-                              <input type="tel" maxLength={10} value={newAppointmentData.phone} onChange={(e) => setNewAppointmentData({ ...newAppointmentData, phone: e.target.value.replace(/\D/g, '') })} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                            <label className="space-y-1"><span className="text-sm font-medium text-gray-700">mobilePhone (10 digits)</span>
+                              <input type="tel" maxLength={10} value={newAppointmentData.mobilePhone} onChange={(e) => setNewAppointmentData({ ...newAppointmentData, mobilePhone: e.target.value.replace(/\D/g, '') })} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                             </label>
                             <label className="space-y-1"><span className="text-sm font-medium text-gray-700">Email</span>
                               <input type="email" value={newAppointmentData.email} onChange={(e) => setNewAppointmentData({ ...newAppointmentData, email: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
@@ -601,20 +601,20 @@ export default function ManagerDashboard({ role }) {
                                 <tbody className="divide-y divide-gray-100">
                                   {existingPatients.filter(p => 
                                     (p.pid || '').toLowerCase().includes(existingPatientSearch.toLowerCase()) || 
-                                    (p.name || p.patientName || '').toLowerCase().includes(existingPatientSearch.toLowerCase())
+                                    (p.name || p.name || '').toLowerCase().includes(existingPatientSearch.toLowerCase())
                                   ).map((patient) => (
                                     <tr key={patient._id || patient.pid} onClick={() => { 
                                       setNewAppointmentData({ 
                                         ...newAppointmentData, 
                                         pid: patient._id || patient.pid, 
-                                        patientName: patient.name || patient.patientName, 
-                                        phone: patient.phone 
+                                        name: patient.name || patient.name, 
+                                        mobilePhone: patient.mobilePhone 
                                       }); 
                                       setErrorMsg(''); 
                                     }} className={`cursor-pointer ${newAppointmentData.pid === (patient._id || patient.pid) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                                       <td className="px-4 py-3 font-medium text-gray-600">{patient.pid}</td>
-                                      <td className="px-4 py-3 text-gray-900">{patient.name || patient.patientName}</td>
-                                      <td className="px-4 py-3 text-gray-500">{patient.phone}</td>
+                                      <td className="px-4 py-3 text-gray-900">{patient.name || patient.name}</td>
+                                      <td className="px-4 py-3 text-gray-500">{patient.mobilePhone}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -628,7 +628,7 @@ export default function ManagerDashboard({ role }) {
                     {wizardStep === 2 && (
                       <div className="space-y-5">
                         <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm flex gap-4 shadow-sm">
-                          <div><span className="text-gray-500 text-xs block">Patient</span><span className="font-semibold text-gray-900">{newAppointmentData.patientName || 'Unknown'}</span></div>
+                          <div><span className="text-gray-500 text-xs block">Patient</span><span className="font-semibold text-gray-900">{newAppointmentData.name || 'Unknown'}</span></div>
                           <div className="w-px h-8 bg-blue-200"></div>
                           <div><span className="text-gray-500 text-xs block">PID</span><span className="font-semibold text-gray-900">{newAppointmentData.pid}</span></div>
                         </div>
@@ -700,7 +700,7 @@ export default function ManagerDashboard({ role }) {
                     {wizardStep === 3 && (
                       <div className="space-y-5">
                         <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm flex flex-wrap gap-4 shadow-sm">
-                          <div><span className="text-gray-500 text-xs block">Patient</span><span className="font-semibold text-gray-900">{newAppointmentData.patientName}</span></div>
+                          <div><span className="text-gray-500 text-xs block">Patient</span><span className="font-semibold text-gray-900">{newAppointmentData.name}</span></div>
                           <div className="w-px h-8 bg-blue-200"></div>
                           <div><span className="text-gray-500 text-xs block">Doctor</span><span className="font-semibold text-gray-900">{newAppointmentData.assignedDoctorName}</span></div>
                           <div className="w-px h-8 bg-blue-200"></div>
@@ -743,7 +743,7 @@ export default function ManagerDashboard({ role }) {
                           </div>
                           <div className="p-5 space-y-2.5 text-sm">
                             <div className="flex justify-between pb-2 border-b border-gray-100"><span className="text-gray-500">Token No</span><span className="font-bold text-gray-900 text-base">#{newAppointmentData.tokenNumber}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-500">Patient</span><span className="font-medium text-gray-900">{newAppointmentData.patientName}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-500">Patient</span><span className="font-medium text-gray-900">{newAppointmentData.name}</span></div>
                             <div className="flex justify-between"><span className="text-gray-500">Patient ID</span><span className="text-gray-900 font-medium">{newAppointmentData.pid}</span></div>
                             <div className="flex justify-between"><span className="text-gray-500">Doctor</span><span className="text-gray-900 font-medium">{newAppointmentData.assignedDoctorName}</span></div>
                             <div className="flex justify-between"><span className="text-gray-500">Scheduled Time</span><span className="text-gray-900 font-medium">{newAppointmentData.appointmentDate} | {newAppointmentData.appointmentTime}</span></div>
@@ -881,7 +881,7 @@ export default function ManagerDashboard({ role }) {
             </div>
             <div className="flex justify-between border-b border-gray-100 pb-3">
               <span className="font-semibold text-gray-500 uppercase tracking-wide text-sm">Patient Name</span>
-              <span className="font-bold text-gray-900">{newAppointmentData.patientName}</span>
+              <span className="font-bold text-gray-900">{newAppointmentData.name}</span>
             </div>
             <div className="flex justify-between border-b border-gray-100 pb-3">
               <span className="font-semibold text-gray-500 uppercase tracking-wide text-sm">Doctor</span>

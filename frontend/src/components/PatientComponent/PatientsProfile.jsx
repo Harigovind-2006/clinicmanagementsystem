@@ -23,7 +23,7 @@ export default function PatientDetails() {
     dob: "1985-04-12",
     gender: "Male",
     bloodGroup: "O+",
-    phone: "9001234567",
+    mobilePhone: "9001234567",
     email: "john@email.com",
     address: "10 Elm St, Delhi",
     registered: "2025-10-01",
@@ -182,7 +182,7 @@ export default function PatientDetails() {
                   </label>
                   <label className="space-y-1">
                     <span className="text-xs font-semibold text-gray-600 uppercase">Phone</span>
-                    <input name="phone" maxLength={10} value={editForm.phone} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                    <input name="mobilePhone" maxLength={10} value={editForm.mobilePhone} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 outline-none" />
                   </label>
                   <label className="space-y-1 sm:col-span-2 md:col-span-1">
                     <span className="text-xs font-semibold text-gray-600 uppercase">Email</span>
@@ -222,7 +222,7 @@ export default function PatientDetails() {
                   </div>
                   <div>
                     <p className="text-gray-500 text-xs sm:text-sm uppercase tracking-wider mb-1">Phone</p>
-                    <p className="font-semibold text-gray-900">{patientData.phone}</p>
+                    <p className="font-semibold text-gray-900">{patientData.mobilePhone}</p>
                   </div>
                   <div className="sm:col-span-2 md:col-span-1">
                     <p className="text-gray-500 text-xs sm:text-sm uppercase tracking-wider mb-1">Email</p>

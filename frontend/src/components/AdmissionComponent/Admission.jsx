@@ -76,7 +76,7 @@ export default function Admission() {
       dob: "1972-01-15",
       gender: "Male",
       bloodGroup: "B+",
-      phone: "9003456789",
+      mobilePhone: "9003456789",
       paymentUpto: "2026-06-10",
     },
     "Suresh Rao": {
@@ -85,7 +85,7 @@ export default function Admission() {
       dob: "1980-03-12",
       gender: "Male",
       bloodGroup: "O+",
-      phone: "9876543210",
+      mobilePhone: "9876543210",
       paymentUpto: "2026-06-15",
     },
   };
@@ -105,7 +105,7 @@ export default function Admission() {
       dob: "—",
       gender: "—",
       bloodGroup: "—",
-      phone: "—",
+      mobilePhone: "—",
       paymentUpto: "—",
     };
 
@@ -374,7 +374,7 @@ export default function Admission() {
                     <p><strong className="text-gray-600">DOB:</strong> {selectedPatientData.patient.dob}</p>
                     <p><strong className="text-gray-600">Gender:</strong> {selectedPatientData.patient.gender}</p>
                     <p><strong className="text-gray-600">Blood Group:</strong> {selectedPatientData.patient.bloodGroup}</p>
-                    <p><strong className="text-gray-600">Phone:</strong> {selectedPatientData.patient.phone}</p>
+                    <p><strong className="text-gray-600">mobilePhone:</strong> {selectedPatientData.patient.mobilePhone}</p>
                     <p><strong className="text-gray-600">Admitted:</strong> {selectedPatientData.room.admitted}</p>
                     <p><strong className="text-gray-600">Payment Upto:</strong> {selectedPatientData.patient.paymentUpto}</p>
                   </div>

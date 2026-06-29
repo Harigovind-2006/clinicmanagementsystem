@@ -12,7 +12,7 @@ export default function PharmacistPage() {
   const prescriptions = [
     {
       id: 1,
-      patientName: "John Doe",
+      name: "John Doe",
       pid: "P001",
       type: "OP",
       medicineCount: 1,
@@ -22,7 +22,7 @@ export default function PharmacistPage() {
 
   const filteredPrescriptions = prescriptions.filter(
     (item) =>
-      item.patientName
+      item.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       item.pid
@@ -124,7 +124,7 @@ export default function PharmacistPage() {
                       key={item.id}
                     >
                       <td className="px-6 py-4">
-                        {item.patientName}
+                        {item.name}
                       </td>
 
                       <td className="px-6 py-4">
@@ -195,7 +195,7 @@ export default function PharmacistPage() {
                         Patient:
                       </strong>{" "}
                       {
-                        item.patientName
+                        item.name
                       }
                     </p>
 
