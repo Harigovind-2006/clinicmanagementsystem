@@ -175,7 +175,7 @@ export default function PatientAssessment() {
         vitals: vitalsObject,
         jdObservations: observations,
         complaints: complaints,
-        status: "scheduled", // Moves to "Waiting/Submitted" tab
+        status: "waiting", // Moves to "Waiting/Submitted" tab
       });
 
       alert("Assessment saved successfully.");
