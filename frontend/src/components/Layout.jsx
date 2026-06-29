@@ -24,7 +24,7 @@ export default function Layout({
           return;
         }
 
-        const { data } = await api.get(`/userapi/userget/${userId}`);
+        const { data } = await api.get(`/userapi/${userId}`);
         setRole(data.role);
         console.log("ROLE fetched from DB =", data.role);
 

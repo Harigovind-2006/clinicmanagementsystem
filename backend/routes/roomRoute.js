@@ -3,7 +3,8 @@ import {
     createRoom, 
     getAllRooms, 
     managerAssignsRoom, 
-    managerUpdatesRoom 
+    managerUpdatesRoom ,
+    getDischargePatients
 } from "../controller/roomController.js";
 
 const route = express.Router();

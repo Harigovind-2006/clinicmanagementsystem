@@ -8,8 +8,8 @@ import patientRoute from "./routes/patientRoute.js";
 import medicineRoute from "./routes/medicineRoute.js";
 import appoinmentRoute from "./routes/appoinmentRoute.js";
 import authRoute from "./routes/authRoute.js";
-import procedureRoute from "./routes/procedureRoute.js"
-import roomRoutes from "./routes/roomRoute.js"
+import procedureRoute from "./routes/procedureRoute.js";
+import roomRoutes from "./routes/roomRoute.js";
 
 dotenv.config();
 
