@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
 export default function Layout({
   children,
@@ -17,30 +18,27 @@ export default function Layout({
         const userId = localStorage.getItem("userId");
         console.log("Stored userId:", userId);
 
-        // FIX 1: Catch both null/missing AND literal "undefined" strings
         if (!userId || userId === "undefined") {
           console.warn("Valid userId not found, redirecting to login...");
           navigate("/");
           return;
         }
 
-        const response = await fetch(
-          `http://localhost:5000/userapi/userget/${userId}`
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch user role from database");
-        }
-
-        const data = await response.json();
-
-        // Assuming your database schema stores the role as 'role'
+        const { data } = await api.get(`/userapi/userget/${userId}`);
         setRole(data.role);
         console.log("ROLE fetched from DB =", data.role);
+
       } catch (error) {
-        console.error(error);
-        // Optional: Force logout if the DB fetch fails (e.g., deleted user)
-        // navigate("/");
+        console.error("Failed to fetch user role:", error);
+        if (error.response?.status === 404) {
+          console.log("User not found");
+        }
+
+        if (error.response?.status === 401) {
+          localStorage.clear();
+          navigate("/");
+        }
+
       } finally {
         setIsLoading(false);
       }
@@ -50,9 +48,6 @@ export default function Layout({
   }, [navigate]);
 
   let menuItems = [];
-
-  // FIX 2: Safeguard against case-sensitivity or undefined roles causing crashes
-  // Converting to lowercase and adding a fallback safely handles unexpected formats
   const normalizedRole = (role || "").toLowerCase().trim();
 
   switch (normalizedRole) {
@@ -107,24 +102,11 @@ export default function Layout({
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setSidebarOpen(false)}/>
       )}
 
-      {/* Sidebar */}
-      <aside
-        className={`
-          fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-100 z-50
-          flex flex-col transition-transform duration-300
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0
-        `}
-      >
-        {/* Logo */}
+      <aside className={`fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-100 z-50 flex flex-col transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}>
         <div className="h-20 flex items-center justify-between px-6 border-b border-gray-200">
           <div>
             <h1 className="text-2xl font-bold text-blue-600">CMS</h1>
@@ -133,10 +115,7 @@ export default function Layout({
             </p>
           </div>
 
-          <button
-            className="lg:hidden text-xl"
-            onClick={() => setSidebarOpen(false)}
-          >
+          <button className="lg:hidden text-xl" onClick={() => setSidebarOpen(false)}>
             ✕
           </button>
         </div>
@@ -156,14 +135,7 @@ export default function Layout({
                   <NavLink
                     to={item.path}
                     onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      `block px-4 py-3 rounded-xl transition ${
-                        isActive
-                          ? "bg-blue-50 text-blue-600 font-semibold"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`
-                    }
-                  >
+                    className={({ isActive }) =>`block px-4 py-3 rounded-xl transition ${isActive? "bg-blue-50 text-blue-600 font-semibold": "text-gray-700 hover:bg-gray-100"}`}>
                     {item.name}
                   </NavLink>
                 </li>
@@ -174,10 +146,7 @@ export default function Layout({
 
         {/* Logout */}
         <div className="p-4 border-t border-gray-300">
-          <button
-            onClick={handleLogout}
-            className="w-full px-4 py-3 rounded-xl text-left text-red-600 hover:bg-red-50 font-medium"
-          >
+          <button onClick={handleLogout} className="w-full px-4 py-3 rounded-xl text-left text-red-600 hover:bg-red-50 font-medium">
             Logout
           </button>
         </div>

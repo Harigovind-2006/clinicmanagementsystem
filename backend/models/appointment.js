@@ -62,6 +62,16 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["ip", "op"],
       default:  "op",
     },
+    roomNumber: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Room', 
+      required: [
+        function () {
+          return this.patientType === "ip";
+        },
+        "Room number is required for In-Patients (ip)"
+      ]
+    },
     jdObservations:{
       type: String,
       default: ""
