@@ -29,6 +29,10 @@ const PrescribedMedicineSchema = new mongoose.Schema(
 
 const appointmentSchema = new mongoose.Schema(
   {
+    tokenNumber: {
+      type: Number,
+      required: true,
+    },
     patient: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Patient",
