@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
 import api from "../../api/axios";
-
 export default function JuniorDoctor() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
