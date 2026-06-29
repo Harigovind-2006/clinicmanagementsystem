@@ -171,11 +171,13 @@ export default function PatientAssessment() {
         vitalsObject[v.name] = v.value;
       });
 
+      const newStatus = patient.status === "scheduled" ? "waiting" : patient.status;
+
       await api.put(`/appoinmentapi/${patient._id}`, {
         vitals: vitalsObject,
         jdObservations: observations,
         complaints: complaints,
-        status: "waiting", // Moves to "Waiting/Submitted" tab
+        status: newStatus, // Moves to "Waiting/Submitted" tab
       });
 
       alert("Assessment saved successfully.");

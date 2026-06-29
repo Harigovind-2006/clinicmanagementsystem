@@ -29,14 +29,14 @@ export default function JuniorDoctor() {
   };
 
   // Filter appointments based on status
-  // For Assessment: Only show appointments with status "waiting"
+  // For Assessment: Show appointments with status "scheduled" (new appointments)
   const assessmentPatients = appointments.filter(
-    (a) => a.status === "waiting"
+    (a) => a.status === "scheduled"
   );
 
-  // Waiting/Submitted: Show appointments with status "scheduled"
+  // Waiting/Submitted: Show appointments with status "waiting" (awaiting Senior Doctor)
   const submittedPatients = appointments.filter(
-    (a) => a.status === "scheduled"
+    (a) => a.status === "waiting"
   );
 
   const displayedPatients =
@@ -140,9 +140,11 @@ export default function JuniorDoctor() {
                       <td className="px-6 py-4.5">
                         <span
                           className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
-                            patient.status === "scheduled"
-                              ? "bg-green-50 text-green-600 border border-green-100"
-                              : "bg-[#DBEAFE] text-[#2563EB]"
+                            patient.status === "waiting"
+                              ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                              : patient.status === "scheduled"
+                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              : "bg-green-50 text-green-600 border border-green-100"
                           }`}
                         >
                           {patient.status 
