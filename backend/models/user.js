@@ -32,6 +32,9 @@ const userSchema = new mongoose.Schema(
       unique: true,
       uppercase: true,
       trim: true,
+      minlength: 10,
+      maxlength: 10,
+      match: [/^[A-Z]{5}[0-9]{4}[A-Z]$/, "Invalid PAN number"],
     },
     dob: {
       type: Date,
