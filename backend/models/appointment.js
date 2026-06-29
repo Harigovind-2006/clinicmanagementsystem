@@ -59,6 +59,10 @@ const appointmentSchema = new mongoose.Schema(
       of: String,
       default: {},
     },
+    complaints: {
+      type: String,
+      default: "",
+    },
     patientType: {
       type: String,
       enum: ["ip", "op"],
@@ -158,7 +162,7 @@ appointmentSchema.virtual('paymentStatus').get(function() {
 });
 
 appointmentSchema.virtual('assignedDoctorName').get(function() {
-  return this.doctor;
+  return this.doctor; 
 });
 
 appointmentSchema.virtual('specialization').get(function() {
