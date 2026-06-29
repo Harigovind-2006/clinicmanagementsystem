@@ -354,7 +354,7 @@ export default function MedicineInventory() {
                           }`}
                         >
                           Restock
-                        </button>)}
+                        </button>
                         
 
                         {isManager && (
