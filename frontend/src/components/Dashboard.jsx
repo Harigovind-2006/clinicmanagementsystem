@@ -91,18 +91,60 @@ export default function ManagerDashboard({ role }) {
     }
   };
 
+  // FIXED: Get doctor name from fullname field
+  const getDoctorName = (appointment) => {
+    // Check if doctor object exists with fullname
+    if (appointment.doctor?.fullname) {
+      return appointment.doctor.fullname;
+    }
+    // Check if doctorId exists and find doctor from list
+    if (appointment.doctorId) {
+      const doc = doctors.find(d => d._id === appointment.doctorId);
+      if (doc) return doc.fullname;
+    }
+    // Fallback to assignedDoctorName if it exists
+    if (appointment.assignedDoctorName) {
+      // Check if it's an ID or a name
+      const doc = doctors.find(d => d._id === appointment.assignedDoctorName || d.fullname === appointment.assignedDoctorName);
+      return doc?.fullname || appointment.assignedDoctorName;
+    }
+    return 'N/A';
+  };
+
+  // FIXED: Get specialization from specialisation field
+  const getSpecialization = (appointment) => {
+    if (appointment.doctor?.specialisation) {
+      return appointment.doctor.specialisation;
+    }
+    if (appointment.specialization) {
+      return appointment.specialization;
+    }
+    // Check if doctorId exists
+    if (appointment.doctorId) {
+      const doc = doctors.find(d => d._id === appointment.doctorId);
+      if (doc) return doc.specialisation;
+    }
+    return 'N/A';
+  };
+
   const filtered = appointments.filter((a) => {
     const query = search.toLowerCase();
+    const doctorName = getDoctorName(a).toLowerCase();
+    const patientName = getPatientName(a).toLowerCase();
+    const pid = getPatientPid(a).toLowerCase();
+    
     const matchesSearch = 
-      (a.pid || '').toLowerCase().includes(query) ||
-      (a.name || a.patient?.name || '').toLowerCase().includes(query) ||
-      (a.assignedDoctorName || a.doctor?.name || '').toLowerCase().includes(query) ||
+      pid.includes(query) ||
+      patientName.includes(query) ||
+      doctorName.includes(query) ||
       (a.tokenNumber?.toString() || '').includes(query);
     
     const matchesDate = !selectedDate || a.appointmentDate?.split('T')[0] === selectedDate;
+    
+    // FIXED: Match doctor by fullname
     const matchesDoctor = !selectedDoctor || 
-      (a.assignedDoctorName === selectedDoctor) || 
-      (a.doctor?.name === selectedDoctor);
+      doctorName === selectedDoctor.toLowerCase() ||
+      (a.assignedDoctorName === selectedDoctor);
     
     return matchesSearch && matchesDate && matchesDoctor;
   });
@@ -121,25 +163,14 @@ export default function ManagerDashboard({ role }) {
     return 'N/A';
   };
 
-  const getDoctorName = (appointment) => {
-    if (appointment.assignedDoctorName) return appointment.assignedDoctorName;
-    if (appointment.doctor?.name) return appointment.doctor.name;
-    return 'N/A';
-  };
-
-  const getSpecialization = (appointment) => {
-    if (appointment.specialization) return appointment.specialization;
-    if (appointment.doctor?.specialization) return appointment.doctor.specialization;
-    return 'N/A';
-  };
-
+  // FIXED: Find doctor by _id, not name
   const selectedDoctorInfo = doctors.find(d => 
-    d.name === newAppointmentData.assignedDoctorName || 
     d._id === newAppointmentData.assignedDoctorName
   );
-  
+
+  // FIXED: Filter by specialisation field
   const availableDoctors = doctors.filter(d => 
-    d.specialization === newAppointmentData.specialization
+    d.specialisation === newAppointmentData.specialization
   );
 
   const getAvailableTimeSlots = () => {
@@ -166,12 +197,18 @@ export default function ManagerDashboard({ role }) {
       if (m >= 60) { m = 0; h += 1; }
     }
 
+    const doctorId = newAppointmentData.assignedDoctorName;
+    
+    // FIXED: Check booked slots by doctorId
     const bookedSlots = appointments
-      .filter(a => 
-        a.appointmentDate?.split('T')[0] === newAppointmentData.appointmentDate && 
-        (a.assignedDoctorName === newAppointmentData.assignedDoctorName || 
-         a.doctor?.name === newAppointmentData.assignedDoctorName)
-      )
+      .filter(a => {
+        const appointmentDate = a.appointmentDate?.split('T')[0];
+        const matchesDate = appointmentDate === newAppointmentData.appointmentDate;
+        const matchesDoctor = a.doctorId === doctorId || 
+                           a.assignedDoctorName === doctorId ||
+                           (a.doctor?._id === doctorId);
+        return matchesDate && matchesDoctor;
+      })
       .map(a => a.appointmentTime);
 
     return slots.filter(s => !bookedSlots.includes(s.val12));
@@ -191,11 +228,12 @@ export default function ManagerDashboard({ role }) {
   };
 
   const openNewAppointmentModal = () => {
-    const initialDocs = doctors.filter(d => d.specialization === specializationsList[0]);
+    const initialDocs = doctors.filter(d => d.specialisation === specializationsList[0]);
     setNewAppointmentData({
       id: Date.now(), pid: '', name: '', dob: '', mobilePhone: '',
       email: '', gender: 'Male', bloodGroup: 'O+', address: '', specialization: specializationsList[0],
-      assignedDoctorName: initialDocs.length > 0 ? initialDocs[0].name || initialDocs[0]._id : '',
+      // FIXED: Store doctor _id, not name
+      assignedDoctorName: initialDocs.length > 0 ? initialDocs[0]._id : '',
       appointmentDate: todayDate, appointmentTime: '', paymentMethod: 'Cash', upiId: '', 
       tokenNumber: null, paymentTimestamp: null, consultationFee: 500, from: 'OPD'
     });
@@ -259,7 +297,7 @@ export default function ManagerDashboard({ role }) {
       if (patientMode === 'new') {
         const patientData = {
           name: newAppointmentData.name,
-          mobilePhone: newAppointmentData.phone,
+          mobilePhone: newAppointmentData.mobilePhone,
           email: newAppointmentData.email,
           dob: newAppointmentData.dob,
           gender: newAppointmentData.gender,
@@ -277,9 +315,10 @@ export default function ManagerDashboard({ role }) {
         }));
       }
 
+      // FIXED: Use doctorId with _id, not name
       const appointmentData = {
         patientId: patientId,
-        doctorId: newAppointmentData.assignedDoctorName,
+        doctorId: newAppointmentData.assignedDoctorName, // This is now the _id
         specialization: newAppointmentData.specialization,
         appointmentDate: newAppointmentData.appointmentDate,
         appointmentTime: newAppointmentData.appointmentTime,
@@ -414,6 +453,7 @@ export default function ManagerDashboard({ role }) {
                     onChange={(e) => setSelectedDate(e.target.value)}
                     className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
                   />
+                  {/* FIXED: Doctor dropdown uses fullname */}
                   <select
                     value={selectedDoctor}
                     onChange={(e) => setSelectedDoctor(e.target.value)}
@@ -421,8 +461,8 @@ export default function ManagerDashboard({ role }) {
                   >
                     <option value="">All Doctors</option>
                     {doctors.map((doctor) => (
-                      <option key={doctor._id || doctor.name} value={doctor.name}>
-                        {doctor.name}
+                      <option key={doctor._id} value={doctor.fullname}>
+                        {doctor.fullname}
                       </option>
                     ))}
                   </select>
@@ -442,7 +482,9 @@ export default function ManagerDashboard({ role }) {
                           <td className="px-5 py-4"><div className="text-gray-900 font-medium">#{a.tokenNumber}</div></td>
                           <td className="px-5 py-4 text-gray-500 font-medium">{getPatientPid(a)}</td>
                           <td className="px-5 py-4 text-gray-900 font-medium">{getPatientName(a)}</td>
+                          {/* FIXED: Use getDoctorName function */}
                           <td className="px-5 py-4 text-gray-600">{getDoctorName(a)}</td>
+                          {/* FIXED: Use getSpecialization function */}
                           <td className="px-5 py-4 text-gray-500">{getSpecialization(a)}</td>
                           <td className="px-5 py-4">
                             <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
@@ -601,19 +643,19 @@ export default function ManagerDashboard({ role }) {
                                 <tbody className="divide-y divide-gray-100">
                                   {existingPatients.filter(p => 
                                     (p.pid || '').toLowerCase().includes(existingPatientSearch.toLowerCase()) || 
-                                    (p.name || p.name || '').toLowerCase().includes(existingPatientSearch.toLowerCase())
+                                    (p.name || '').toLowerCase().includes(existingPatientSearch.toLowerCase())
                                   ).map((patient) => (
                                     <tr key={patient._id || patient.pid} onClick={() => { 
                                       setNewAppointmentData({ 
                                         ...newAppointmentData, 
                                         pid: patient._id || patient.pid, 
-                                        name: patient.name || patient.name, 
+                                        name: patient.name, 
                                         mobilePhone: patient.mobilePhone 
                                       }); 
                                       setErrorMsg(''); 
                                     }} className={`cursor-pointer ${newAppointmentData.pid === (patient._id || patient.pid) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                                       <td className="px-4 py-3 font-medium text-gray-600">{patient.pid}</td>
-                                      <td className="px-4 py-3 text-gray-900">{patient.name || patient.name}</td>
+                                      <td className="px-4 py-3 text-gray-900">{patient.name}</td>
                                       <td className="px-4 py-3 text-gray-500">{patient.mobilePhone}</td>
                                     </tr>
                                   ))}
@@ -635,15 +677,44 @@ export default function ManagerDashboard({ role }) {
 
                         <div className="grid gap-4 sm:grid-cols-2">
                           <label className="space-y-1"><span className="text-sm font-medium text-gray-700">Specialization</span>
-                            <select value={newAppointmentData.specialization} onChange={(e) => { const newSpec = e.target.value; const docs = doctors.filter(d => d.specialization === newSpec); setNewAppointmentData({ ...newAppointmentData, specialization: newSpec, assignedDoctorName: docs[0]?.name || docs[0]?._id || '', appointmentTime: '' }); setTimeQuery(''); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <select value={newAppointmentData.specialization} onChange={(e) => { 
+                              const newSpec = e.target.value; 
+                              // FIXED: Filter by specialisation field
+                              const docs = doctors.filter(d => d.specialisation === newSpec); 
+                              setNewAppointmentData({ 
+                                ...newAppointmentData, 
+                                specialization: newSpec, 
+                                // FIXED: Store doctor _id
+                                assignedDoctorName: docs[0]?._id || '', 
+                                appointmentTime: '' 
+                              }); 
+                              setTimeQuery(''); 
+                            }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                               {specializationsList.map(spec => <option key={spec} value={spec}>{spec}</option>)}
                             </select>
                           </label>
                           <label className="space-y-1"><span className="text-sm font-medium text-gray-700">Doctor</span>
-                            <select value={newAppointmentData.assignedDoctorName} onChange={(e) => { setNewAppointmentData({ ...newAppointmentData, assignedDoctorName: e.target.value, appointmentTime: '' }); setTimeQuery(''); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" disabled={!newAppointmentData.specialization}>
-                              {availableDoctors.map(doc => <option key={doc._id || doc.name} value={doc.name || doc._id}>{doc.name}</option>)}
+                            {/* FIXED: Display doctor fullname, store _id */}
+                            <select value={newAppointmentData.assignedDoctorName} onChange={(e) => { 
+                              setNewAppointmentData({ 
+                                ...newAppointmentData, 
+                                assignedDoctorName: e.target.value, 
+                                appointmentTime: '' 
+                              }); 
+                              setTimeQuery(''); 
+                            }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" disabled={!newAppointmentData.specialization}>
+                              {availableDoctors.map(doc => (
+                                <option key={doc._id} value={doc._id}>
+                                  {doc.fullname}
+                                </option>
+                              ))}
                             </select>
-                            {selectedDoctorInfo && <p className="text-xs text-blue-600 font-medium flex items-center gap-1 mt-1.5"><Clock className="w-3 h-3" /> Working Hours: {selectedDoctorInfo.workingHours?.start || selectedDoctorInfo.start || '09:00'} - {selectedDoctorInfo.workingHours?.end || selectedDoctorInfo.end || '17:00'}</p>}
+                            {selectedDoctorInfo && (
+                              <p className="text-xs text-blue-600 font-medium flex items-center gap-1 mt-1.5">
+                                <Clock className="w-3 h-3" /> 
+                                Working Hours: {selectedDoctorInfo.workingHours?.start || selectedDoctorInfo.start || '09:00'} - {selectedDoctorInfo.workingHours?.end || selectedDoctorInfo.end || '17:00'}
+                              </p>
+                            )}
                           </label>
                           <label className="space-y-1 sm:col-span-2"><span className="text-sm font-medium text-gray-700">Appointment Date</span>
                             <input type="date" min={todayDate} value={newAppointmentData.appointmentDate} onChange={(e) => { setNewAppointmentData({ ...newAppointmentData, appointmentDate: e.target.value, appointmentTime: '' }); setTimeQuery(''); }} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
@@ -702,7 +773,12 @@ export default function ManagerDashboard({ role }) {
                         <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm flex flex-wrap gap-4 shadow-sm">
                           <div><span className="text-gray-500 text-xs block">Patient</span><span className="font-semibold text-gray-900">{newAppointmentData.name}</span></div>
                           <div className="w-px h-8 bg-blue-200"></div>
-                          <div><span className="text-gray-500 text-xs block">Doctor</span><span className="font-semibold text-gray-900">{newAppointmentData.assignedDoctorName}</span></div>
+                          <div><span className="text-gray-500 text-xs block">Doctor</span>
+                            {/* FIXED: Display doctor fullname */}
+                            <span className="font-semibold text-gray-900">
+                              {selectedDoctorInfo?.fullname || 'N/A'}
+                            </span>
+                          </div>
                           <div className="w-px h-8 bg-blue-200"></div>
                           <div><span className="text-gray-500 text-xs block">Time</span><span className="font-semibold text-gray-900">{newAppointmentData.appointmentDate} at {newAppointmentData.appointmentTime}</span></div>
                         </div>
@@ -745,7 +821,9 @@ export default function ManagerDashboard({ role }) {
                             <div className="flex justify-between pb-2 border-b border-gray-100"><span className="text-gray-500">Token No</span><span className="font-bold text-gray-900 text-base">#{newAppointmentData.tokenNumber}</span></div>
                             <div className="flex justify-between"><span className="text-gray-500">Patient</span><span className="font-medium text-gray-900">{newAppointmentData.name}</span></div>
                             <div className="flex justify-between"><span className="text-gray-500">Patient ID</span><span className="text-gray-900 font-medium">{newAppointmentData.pid}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-500">Doctor</span><span className="text-gray-900 font-medium">{newAppointmentData.assignedDoctorName}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-500">Doctor</span>
+                              <span className="text-gray-900 font-medium">{selectedDoctorInfo?.fullname || 'N/A'}</span>
+                            </div>
                             <div className="flex justify-between"><span className="text-gray-500">Scheduled Time</span><span className="text-gray-900 font-medium">{newAppointmentData.appointmentDate} | {newAppointmentData.appointmentTime}</span></div>
                             <div className="flex justify-between"><span className="text-gray-500">Payment Date</span><span className="text-gray-900 font-medium">{newAppointmentData.paymentTimestamp}</span></div>
                             
@@ -885,7 +963,7 @@ export default function ManagerDashboard({ role }) {
             </div>
             <div className="flex justify-between border-b border-gray-100 pb-3">
               <span className="font-semibold text-gray-500 uppercase tracking-wide text-sm">Doctor</span>
-              <span className="font-bold text-gray-900">{newAppointmentData.assignedDoctorName}</span>
+              <span className="font-bold text-gray-900">{selectedDoctorInfo?.fullname || 'N/A'}</span>
             </div>
             <div className="flex justify-between border-b border-gray-100 pb-3">
               <span className="font-semibold text-gray-500 uppercase tracking-wide text-sm">Scheduled Time</span>
