@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../Layout";
-import api from "../../api/axios"; // Adjust the import path based on your project structure
-
+import api from "../../api/axios";
 export default function PatientsList() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");

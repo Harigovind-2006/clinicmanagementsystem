@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import Layout from "../../components/Layout"; // Adjust import path as needed
+import Layout from "../../components/Layout"; 
 import PatientVisitTabs from "./PatientVisitTabs"; // Make sure to adjust this path to where you saved the component!
 import api from "../../api/axios";
 export default function PatientDetails() {

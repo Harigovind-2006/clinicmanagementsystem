@@ -1,54 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
-
+import api from "../../api/axios";
 export default function JuniorDoctor() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("assessment");
-
-  const assessmentPatients = [
-    {
-      token: "#2",
-      pid: "P002",
-      name: "Jane Smith",
-      doctor: "Dr. Priya Verma",
-      specialization: "General Medicine",
-      time: "09:30 AM",
-      status: "Scheduled",
-    },
-    {
-      token: "#3",
-      pid: "P004",
-      name: "Priya Nair",
-      doctor: "Dr. Amit Sharma",
-      specialization: "Cardiology",
-      time: "10:00 AM",
-      status: "Scheduled",
-    },
-    {
-      token: "#4",
-      pid: "P005",
-      name: "Suresh Rao",
-      doctor: "Dr. Amit Sharma",
-      specialization: "Cardiology",
-      time: "11:00 AM",
-      status: "Scheduled",
-    },
-  ];
-
-  const submittedPatients = [
-    {
-      token: "#5",
-      pid: "P008",
-      name: "Rahul Das",
-      doctor: "Dr. Priya Verma",
-      specialization: "Neurology",
-      time: "12:30 PM",
-      status: "Submitted",
-    },
-  ];
-
+  useEffect(() => {
+    // Fetch patients data from the API
+    const fetchPatients = async () => { 
+      const response = await api.get(`/patientapi/`);
+      const data = response.data;
+      setPatients(data);
+    } 
+  }
+  );
+  
   const displayedPatients =
     activeTab === "assessment" ? assessmentPatients : submittedPatients;
 
