@@ -25,6 +25,9 @@ export const createAppoinment = async (req, res) => {
     });
 
     const savedAppointment = await appointment.save();
+    const result = await Appointment.findById(savedAppointment._id)
+    .populate("patient", "pid name")
+    .populate("doctor", "fullname specialisation");
 
     res.status(201).json(savedAppointment);
   } catch (error) {
