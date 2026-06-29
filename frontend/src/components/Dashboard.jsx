@@ -198,7 +198,7 @@ function getDischargePending(discharge) {
 export default function ManagerDashboard({ role }) {
   const [search, setSearch] = useState("");
   const today = new Date().toISOString().split("T")[0];
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState(today); // Default to today
   const [selectedDoctor, setSelectedDoctor] = useState("");
   const [tab, setTab] = useState("appointments");
   const [appointments, setAppointments] = useState([]);
@@ -229,7 +229,7 @@ export default function ManagerDashboard({ role }) {
     bloodGroup: "O+",
     address: "",
     specialization: specializationsList[0],
-    assignedDoctorId: "",
+    assignedDoctorId: "", // Changed from assignedDoctorName
     appointmentDate: todayDate,
     appointmentTime: "",
     paymentMethod: "Cash",
@@ -305,19 +305,19 @@ export default function ManagerDashboard({ role }) {
     }
   };
 
-  // Filter appointments - now uses helper functions with doctors passed in
+  // Filter appointments - shows today's appointments by default
   const filtered = appointments.filter((a) => {
     const appointmentDate = a.appointmentDate?.split("T")[0];
 
     const matchesSearch =
       getPatientName(a).toLowerCase().includes(search.toLowerCase()) ||
       getPatientPid(a).toLowerCase().includes(search.toLowerCase()) ||
-      getDoctorName(a).toLowerCase().includes(search.toLowerCase());
+      getDoctorName(a, doctors).toLowerCase().includes(search.toLowerCase());
 
     const matchesDate = appointmentDate === selectedDate;
 
     const matchesDoctor =
-      !selectedDoctor || getDoctorName(a) === selectedDoctor;
+      !selectedDoctor || getDoctorName(a, doctors) === selectedDoctor;
 
     return matchesSearch && matchesDate && matchesDoctor;
   });
@@ -327,7 +327,7 @@ export default function ManagerDashboard({ role }) {
   );
 
   const availableDoctors = doctors.filter(
-    (d) => d.specialisation === newAppointmentData.specialization,
+    (d) => d.specialisation === newAppointmentData.specialization, // British spelling
   );
 
   const getAvailableTimeSlots = () => {
@@ -500,7 +500,7 @@ export default function ManagerDashboard({ role }) {
       if (patientMode === "new") {
         const patientData = {
           name: newAppointmentData.name,
-          mobilePhone: newAppointmentData.mobilePhone,
+          mobilePhone: newAppointmentData.mobilePhone, // Fixed: was using phone
           email: newAppointmentData.email,
           dob: newAppointmentData.dob,
           gender: newAppointmentData.gender,
@@ -520,8 +520,8 @@ export default function ManagerDashboard({ role }) {
 
       // Use correct field names that match backend expectations
       const appointmentData = {
-        patient: patientId,
-        doctor: newAppointmentData.assignedDoctorId,
+        patient: patientId, // Changed from patientId
+        doctor: newAppointmentData.assignedDoctorId, // Changed from doctorId
         specialization: newAppointmentData.specialization,
         appointmentDate: newAppointmentData.appointmentDate,
         appointmentTime: newAppointmentData.appointmentTime,
@@ -738,7 +738,7 @@ export default function ManagerDashboard({ role }) {
                             colSpan="7"
                             className="text-center py-8 text-gray-500"
                           >
-                            No appointments found
+                            No appointments found for this date
                           </td>
                         </tr>
                       ) : (
@@ -1901,4 +1901,3 @@ export default function ManagerDashboard({ role }) {
     </>
   );
 }
-;
