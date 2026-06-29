@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema(
       ],
       required: true,
     },
-    specialisation: {
+    specialization: {
       type: String,
       enum: [
         "Neurology",
@@ -80,7 +80,7 @@ const userSchema = new mongoose.Schema(
         function () {
           return this.role === "seniordoctor";
         },
-        "Specialisation is required for senior doctors",
+        "Specialization is required for senior doctors",
       ],
     },
     address: {

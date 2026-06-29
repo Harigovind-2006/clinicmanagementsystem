@@ -355,8 +355,10 @@ export default function MedicineInventory() {
                         >
                           Restock
                         </button>
+                        
 
                         {isManager && (
+                          
                           <button
                             onClick={() => openEditModal(medicine)}
                             title="Edit Medicine"

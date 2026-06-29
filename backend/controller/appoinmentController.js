@@ -18,7 +18,7 @@ export const getAllActiveAppoinments = async (req, res) => {
   try {
     const activeAppoinments = await Appointment.find({ isActive: true })
       .populate("patient", "pid name")
-      .populate("doctor", "fullname specialisation");
+      .populate("doctor", "fullname specialization");
 
     if (!activeAppoinments || activeAppoinments.length === 0) {
       return res.status(200).json(activeAppoinments);
@@ -178,7 +178,7 @@ export const getPatientHistory = async (req, res) => {
             status: "completed" 
         })
         .sort({ appointmentDate: -1, appointmentTime: -1 }) 
-        .populate("doctor", "fullname specialisation")     
+        .populate("doctor", "fullname specialization")     
         .populate("medicine.medicine", "medicinename medScientificName") 
         .populate("procedure", "procedureName amount");     
 
