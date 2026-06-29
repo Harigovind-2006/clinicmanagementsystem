@@ -1,148 +1,98 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../Layout";
+import api from "../../api/axios";
 
 export default function BillPayment() {
   const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const [search, setSearch] = useState("");
+  const [billSummary, setBillSummary] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const billSummary = [
-    {
-      pid: "P001",
-      pname: "John Doe",
-      total: 700,
-      paid: 700,
-      pending: 0,
-      transactions: [
-        {
-          id: 1,
-          purpose: "Registration",
-          amount: 200,
-          method: "Cash",
-          reference: "-",
-          date: "2026-05-20",
-          status: "Paid",
-        },
-        {
-          id: 2,
-          purpose: "Consultation",
-          amount: 500,
-          method: "UPI",
-          reference: "UPI123456",
-          date: "2026-05-20",
-          status: "Paid",
-        },
-      ],
-    },
-    {
-      pid: "P002",
-      pname: "Jane Smith",
-      total: 700,
-      paid: 200,
-      pending: 500,
-      transactions: [
-        {
-          id: 1,
-          purpose: "Registration",
-          amount: 200,
-          method: "Cash",
-          reference: "-",
-          date: "2026-05-21",
-          status: "Paid",
-        },
-        {
-          id: 2,
-          purpose: "Consultation",
-          amount: 500,
-          method: "UPI",
-          reference: "UPI789456",
-          date: "2026-05-21",
-          status: "Pending",
-        },
-      ],
-    },
-    {
-      pid: "P003",
-      pname: "Ravi Kumar",
-      total: 9000,
-      paid: 9000,
-      pending: 0,
-      transactions: [
-        {
-          id: 1,
-          purpose: "Admission Fee",
-          amount: 1000,
-          method: "Cash",
-          reference: "-",
-          date: "2026-05-18",
-          status: "Paid",
-        },
-        {
-          id: 2,
-          purpose: "MRI Scan",
-          amount: 5000,
-          method: "Card",
-          reference: "TXN123456",
-          date: "2026-05-19",
-          status: "Paid",
-        },
-        {
-          id: 3,
-          purpose: "Consultation",
-          amount: 3000,
-          method: "UPI",
-          reference: "UPI654321",
-          date: "2026-05-20",
-          status: "Paid",
-        },
-      ],
-    },
-    {
-      pid: "P005",
-      pname: "Suresh Rao",
-      total: 8000,
-      paid: 8000,
-      pending: 0,
-      transactions: [
-        {
-          id: 1,
-          purpose: "Admission Fee",
-          amount: 1000,
-          method: "Cash",
-          reference: "-",
-          date: "2026-05-15",
-          status: "Paid",
-        },
-        {
-          id: 2,
-          purpose: "CT Scan",
-          amount: 4000,
-          method: "Card",
-          reference: "TXN789123",
-          date: "2026-05-16",
-          status: "Paid",
-        },
-        {
-          id: 3,
-          purpose: "Procedure Charges",
-          amount: 3000,
-          method: "UPI",
-          reference: "UPI456123",
-          date: "2026-05-17",
-          status: "Paid",
-        },
-      ],
-    },
-  ];
+  useEffect(() => {
+    fetchBills();
+  }, []);
 
+  const fetchBills = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg("");
+
+      // Fetch all patients
+      const patientRes = await api.get("/patientapi");
+      const patients = patientRes.data.data || patientRes.data;
+
+      // Fetch invoice for each patient
+      const bills = await Promise.all(
+        patients.map(async (patient) => {
+          try {
+            const invoiceRes = await api.get(
+              `/patientapi/${patient._id}/invoice`
+            );
+
+            const invoice = invoiceRes.data.invoice || invoiceRes.data;
+
+            return {
+              _id: patient._id,
+              pid: patient.pid,
+              pname: patient.name,
+              total: invoice.totalBillAmount || 0,
+              paid: invoice.totalAmountPaid || 0,
+              pending: invoice.totalAmountDue || 0,
+              transactions: invoice.invoiceItems || [],
+            };
+          } catch (error) {
+            // Patient has no invoice yet
+            return {
+              _id: patient._id,
+              pid: patient.pid,
+              pname: patient.name,
+              total: 0,
+              paid: 0,
+              pending: 0,
+              transactions: [],
+            };
+          }
+        })
+      );
+
+      // Filter out patients with no bills (optional - remove if you want to show all)
+      const billsWithTransactions = bills.filter(
+        (bill) => bill.transactions.length > 0 || bill.total > 0
+      );
+
+      setBillSummary(billsWithTransactions);
+    } catch (error) {
+      console.error("Error fetching bills:", error);
+      setErrorMsg("Failed to load billing records. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter patients based on search
   const filteredPatients = billSummary.filter(
     (patient) =>
-      patient.pname.toLowerCase().includes(search.toLowerCase()) ||
-      patient.pid.toLowerCase().includes(search.toLowerCase()),
+      patient.pname?.toLowerCase().includes(search.toLowerCase()) ||
+      patient.pid?.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Loading state
+  if (loading) {
+    return (
+      <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500">Loading billing records...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -166,6 +116,19 @@ export default function BillPayment() {
             </p>
           </div>
         </div>
+
+        {/* Error Message */}
+        {errorMsg && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center justify-between">
+            <span>{errorMsg}</span>
+            <button
+              onClick={() => setErrorMsg("")}
+              className="text-red-500 hover:text-red-700"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Search */}
         <div className="bg-white border border-gray-200 rounded-2xl mb-6 overflow-hidden">
@@ -192,8 +155,8 @@ export default function BillPayment() {
           {filteredPatients.length > 0 ? (
             filteredPatients.map((patient) => (
               <div
-                key={patient.pid}
-                className="grid grid-cols-6 px-6 py-4 border-t border-gray-200 items-center"
+                key={patient._id || patient.pid}
+                className="grid grid-cols-6 px-6 py-4 border-t border-gray-200 items-center hover:bg-gray-50/50 transition-colors"
               >
                 <div className="text-slate-700 font-medium">
                   {patient.pname}
@@ -207,7 +170,9 @@ export default function BillPayment() {
 
                 <div>
                   {patient.pending > 0 ? (
-                    <span className="text-red-500">₹{patient.pending}</span>
+                    <span className="text-red-500 font-medium">
+                      ₹{patient.pending}
+                    </span>
                   ) : (
                     <span className="text-gray-400">Cleared</span>
                   )}
@@ -220,9 +185,9 @@ export default function BillPayment() {
                         state: patient,
                       })
                     }
-                    className="text-blue-600 hover:text-blue-700"
+                    className="text-blue-600 hover:text-blue-700 font-medium text-sm"
                   >
-                    View Details
+                    View Details →
                   </button>
                 </div>
               </div>
@@ -232,7 +197,9 @@ export default function BillPayment() {
               <p className="text-lg text-gray-500">No billing records found</p>
 
               <p className="text-sm text-gray-400 mt-1">
-                Try searching with another patient name or PID
+                {search
+                  ? "Try searching with another patient name or PID"
+                  : "No patients have billing records yet"}
               </p>
             </div>
           )}
@@ -244,8 +211,8 @@ export default function BillPayment() {
             <div className="space-y-4">
               {filteredPatients.map((patient) => (
                 <div
-                  key={patient.pid}
-                  className="bg-white border border-gray-200 rounded-2xl p-5"
+                  key={patient._id || patient.pid}
+                  className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-shadow"
                 >
                   <div className="space-y-2">
                     <p>
@@ -278,9 +245,9 @@ export default function BillPayment() {
                         state: patient,
                       })
                     }
-                    className="mt-4 text-blue-600 hover:text-blue-700"
+                    className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
                   >
-                    View Details
+                    View Details →
                   </button>
                 </div>
               ))}
@@ -290,7 +257,9 @@ export default function BillPayment() {
               <p className="text-lg text-gray-500">No billing records found</p>
 
               <p className="text-sm text-gray-400 mt-1">
-                Try searching with another patient name or PID
+                {search
+                  ? "Try searching with another patient name or PID"
+                  : "No patients have billing records yet"}
               </p>
             </div>
           )}
