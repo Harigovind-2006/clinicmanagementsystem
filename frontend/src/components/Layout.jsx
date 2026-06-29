@@ -80,7 +80,7 @@ export default function Layout({
       break;
 
     case "juniordoctor":
-      menuItems = [{ name: "Dashboard", path: "/juniordoctor" }];
+      menuItems = [{ name: "Dashboard", path: "/junior-doctor" }];
       break;
 
     case "nurse":

@@ -1,115 +1,69 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
+import api from "../../api/axios";
 
 export default function SeniorDoctorDashboard() {
   const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("waiting");
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const current = new Date();
   const formattedDate = `${current.getDate()}/${current.getMonth() + 1}/${current.getFullYear()}`;
 
-  const patients = [
-    {
-      token: 1,
-      pid: "P001",
-      pname: "John Doe",
-      gender: "Male",
-      blood: "O+",
-      date: "2026-06-15",
-      time: "9:00 AM",
-      status: false,
-      dob: "1985-04-12",
-      phone: "9001234567",
-      notes: "Patient recovering well. Continue medication.",
-      observations: "Patient complains of chest pain and shortness of breath.",
-      bp: "120/80",
-      pulse: "72 bpm",
-      temp: "98.6°F",
-      weight: "75 kg",
-    },
-    {
-      token: 2,
-      pid: "P002",
-      pname: "Priya Sharma",
-      gender: "Female",
-      blood: "A+",
-      date: "2026-06-15",
-      time: "9:30 AM",
-      status: false,
-      dob: "1992-08-25",
-      phone: "9876543210",
-      notes: "Responding well to treatment.",
-      observations: "Mild fever and fatigue.",
-      bp: "118/76",
-      pulse: "78 bpm",
-      temp: "99.1°F",
-      weight: "62 kg",
-    },
-    {
-      token: 3,
-      pid: "P003",
-      pname: "Ravi Kumar",
-      gender: "Male",
-      blood: "B+",
-      date: "2026-06-15",
-      time: "10:00 AM",
-      status: false,
-      dob: "1972-01-15",
-      phone: "9003456789",
-      notes: "Stable condition. Under observation.",
-      observations: "History of hypertension.",
-      bp: "130/85",
-      pulse: "74 bpm",
-      temp: "98.4°F",
-      weight: "81 kg",
-    },
-    {
-      token: 4,
-      pid: "P004",
-      pname: "Anjali Gupta",
-      gender: "Female",
-      blood: "AB+",
-      date: "2026-06-15",
-      time: "10:30 AM",
-      status: true,
-      dob: "1988-11-05",
-      phone: "9812345678",
-      notes: "Post-surgery recovery progressing well.",
-      observations: "No signs of infection.",
-      bp: "115/72",
-      pulse: "70 bpm",
-      temp: "98.2°F",
-      weight: "58 kg",
-    },
-    {
-      token: 5,
-      pid: "P005",
-      pname: "Suresh Rao",
-      gender: "Male",
-      blood: "AB+",
-      date: "2026-06-15",
-      time: "11:00 AM",
-      status: false,
-      dob: "1968-09-18",
-      phone: "9123456780",
-      notes: "Diabetic patient. Monitor sugar levels.",
-      observations: "Occasional dizziness reported.",
-      bp: "140/90",
-      pulse: "80 bpm",
-      temp: "98.7°F",
-      weight: "84 kg",
-    },
-  ];
+  // Fetch ALL appointments on component mount
+  useEffect(() => {
+    fetchPatients();
+  }, []);
 
-  const waitingCount = patients.filter((patient) => !patient.status).length;
-  const completedCount = patients.filter((patient) => patient.status).length;
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg("");
+      const res = await api.get("/appoinmentapi");
+      const data = res.data.data || res.data;
+      setPatients(data);
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      setErrorMsg("Failed to load appointments. Please refresh the page.");
+      setPatients([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter counts based on status
+  const waitingCount = patients.filter(
+    (patient) => patient.status === "waiting"
+  ).length;
+
+  const completedCount = patients.filter(
+    (patient) => patient.status === "completed"
+  ).length;
 
   const filteredPatients = patients.filter((patient) =>
-    activeTab === "waiting" ? !patient.status : patient.status
+    activeTab === "waiting"
+      ? patient.status === "waiting"
+      : patient.status === "completed"
   );
+
+  // Loading state
+  if (loading) {
+    return (
+      <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500">Loading appointments...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -122,7 +76,7 @@ export default function SeniorDoctorDashboard() {
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-2 border border-gray-200 rounded-lg bg-white"
           >
-            ===
+            ☰
           </button>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">
@@ -133,6 +87,19 @@ export default function SeniorDoctorDashboard() {
             </p>
           </div>
         </div>
+
+        {/* Error Message */}
+        {errorMsg && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center justify-between">
+            <span>{errorMsg}</span>
+            <button
+              onClick={() => setErrorMsg("")}
+              className="text-red-500 hover:text-red-700"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Navigation Tabs */}
         <div className="flex flex-wrap gap-3 mb-6">
@@ -176,53 +143,59 @@ export default function SeniorDoctorDashboard() {
               </thead>
 
               <tbody className="divide-y divide-gray-200 bg-white">
-                {filteredPatients.map((patient) => (
-                  <tr key={patient.pid} className="hover:bg-gray-50/50 transition-colors whitespace-nowrap">
-                    <td className="p-4 text-sm font-semibold text-blue-600">
-                      #{patient.token}
-                    </td>
-                    <td className="p-4 text-sm font-medium text-gray-900">
-                      {patient.pid}
-                    </td>
-                    <td className="p-4 text-sm font-medium text-gray-700">
-                      {patient.pname}
-                    </td>
-                    <td className="p-4 text-sm text-gray-600">
-                      {patient.date}
-                    </td>
-                    <td className="p-4 text-sm text-gray-600">
-                      {patient.time}
-                    </td>
-                    <td className="p-4 text-sm">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                          patient.status
-                            ? "bg-green-50 text-green-700 border-green-100"
-                            : "bg-yellow-50 text-yellow-700 border-yellow-100"
-                        }`}
-                      >
-                        {patient.status ? "Completed" : "Waiting"}
-                      </span>
-                    </td>
-                    <td className="p-4 text-sm pr-6 text-right">
-                      <button
-                        onClick={() =>
-                          navigate(`/senior-dashboard/${patient.pid}`, {
-                            state: patient,
-                          })
-                        }
-                        className="inline-flex items-center px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200 transition-all"
-                      >
-                        Open Consultation
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-
-                {filteredPatients.length === 0 && (
+                {filteredPatients.length > 0 ? (
+                  filteredPatients.map((patient) => (
+                    <tr key={patient._id} className="hover:bg-gray-50/50 transition-colors whitespace-nowrap">
+                      <td className="p-4 text-sm font-semibold text-blue-600">
+                        #{patient.tokenNumber || "-"}
+                      </td>
+                      <td className="p-4 text-sm font-medium text-gray-900">
+                        {patient.patient?.pid || "N/A"}
+                      </td>
+                      <td className="p-4 text-sm font-medium text-gray-700">
+                        {patient.patient?.name || "Unknown"}
+                      </td>
+                      <td className="p-4 text-sm text-gray-600">
+                        {patient.appointmentDate 
+                          ? new Date(patient.appointmentDate).toLocaleDateString() 
+                          : "N/A"}
+                      </td>
+                      <td className="p-4 text-sm text-gray-600">
+                        {patient.appointmentTime || "N/A"}
+                      </td>
+                      <td className="p-4 text-sm">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                            patient.status === "completed"
+                              ? "bg-green-50 text-green-700 border-green-100"
+                              : patient.status === "waiting"
+                              ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+                              : "bg-blue-50 text-blue-700 border-blue-100"
+                          }`}
+                        >
+                          {patient.status 
+                            ? patient.status.charAt(0).toUpperCase() + patient.status.slice(1)
+                            : "Unknown"}
+                        </span>
+                      </td>
+                      <td className="p-4 text-sm pr-6 text-right">
+                        <button
+                          onClick={() =>
+                            navigate(`/senior-dashboard/${patient._id}`, {
+                              state: patient,
+                            })
+                          }
+                          className="inline-flex items-center px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200 transition-all"
+                        >
+                          {patient.status === "completed" ? "View" : "Open Consultation"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
                   <tr>
                     <td colSpan="7" className="p-8 text-center text-sm text-gray-400 italic bg-gray-50/30">
-                      No matching queue assignments recorded under this category.
+                      No {activeTab === "waiting" ? "waiting" : "completed"} patients found
                     </td>
                   </tr>
                 )}
