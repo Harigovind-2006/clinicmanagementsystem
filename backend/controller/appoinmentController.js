@@ -6,11 +6,31 @@ import Procedure from "../models/procedure.js";
 
 export const createAppoinment = async (req, res) => {
   try {
-    const newAppointment = new Appointment(req.body);
-    const savedAppointment = await newAppointment.save();
-    return res.status(201).json(savedAppointment);
+    const today = new Date(req.body.appointmentDate);
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const count = await Appointment.countDocuments({
+      appointmentDate: {
+        $gte: today,
+        $lt: tomorrow,
+      },
+    });
+
+    const appointment = new Appointment({
+      ...req.body,
+      tokenNumber: count + 1,
+    });
+
+    const savedAppointment = await appointment.save();
+
+    res.status(201).json(savedAppointment);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
 
