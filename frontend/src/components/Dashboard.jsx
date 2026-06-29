@@ -84,7 +84,7 @@ export default function ManagerDashboard({ role }) {
 
   const fetchDischarges = async () => {
     try {
-      const res = await api.get("/discharge", getDischargePatients);
+      const res = await api.get("/roomsapi/discharge");
       setIpDischarges(res.data.data || res.data);
     } catch (err) {
       console.log("Error fetching discharges:", err);
@@ -258,8 +258,8 @@ export default function ManagerDashboard({ role }) {
       
       if (patientMode === 'new') {
         const patientData = {
-          patientName: newAppointmentData.patientName,
-          phone: newAppointmentData.phone,
+          name: newAppointmentData.patientName,
+          mobilePhone: newAppointmentData.phone,
           email: newAppointmentData.email,
           dob: newAppointmentData.dob,
           gender: newAppointmentData.gender,
