@@ -21,7 +21,7 @@ export const getAllActiveAppoinments = async (req, res) => {
       .populate("doctor", "fullname specialisation");
 
     if (!activeAppoinments || activeAppoinments.length === 0) {
-      return res.status(404).json({ message: "No Appoinments found" });
+      return res.status(200).json(activeAppoinments);
     }
 
     return res.status(200).json(activeAppoinments);
