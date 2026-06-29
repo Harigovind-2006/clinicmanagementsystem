@@ -17,7 +17,7 @@ export default function MedicineInventory() {
   const [showRestockModal, setShowRestockModal] = useState(false);
   const [restockMedicine, setRestockMedicine] = useState(null);
   const [restockQty, setRestockQty] = useState("");
-  const isManager = userRole === "manager" || userRole === "pharmacist";
+  const isManager = userRole === "manager" ;
 
   const [form, setForm] = useState({
     medicinename: "",
