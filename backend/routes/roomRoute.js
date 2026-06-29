@@ -17,6 +17,6 @@ route.put("/assign/by-manager/:id", managerAssignsRoom);
 
 route.put("/update/by-manager/:id", managerUpdatesRoom);
 
-router.get("/discharge", getDischargePatients);
+route.get("/discharge", getDischargePatients);
 
 export default route;
