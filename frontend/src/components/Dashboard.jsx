@@ -528,7 +528,7 @@ export default function ManagerDashboard({ role }) {
         paymentMethod: newAppointmentData.paymentMethod,
         upiId: newAppointmentData.upiId || undefined,
         consultationFee: newAppointmentData.consultationFee,
-        from: newAppointmentData.from || "OPD",
+        from: newAppointmentData.from || "OP",
       };
 
       const appointmentRes = await api.post("/appoinmentapi", appointmentData);
