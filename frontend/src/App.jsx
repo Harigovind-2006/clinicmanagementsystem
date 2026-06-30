@@ -27,7 +27,6 @@ import Admission from "./components/AdmissionComponent/Admission";
 import Users from "./components/Users";
 import PharmacyBill from "./pages/Pharmacist/PharmacyBill";
 
-
 import PatientsList from "./components/PatientComponent/PatientsList";
 import PatientsProfile from "./components/PatientComponent/PatientsProfile";
 import PatientHistory from "./components/PatientComponent/PatientHistory";
@@ -40,9 +39,6 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
 
       <Route path="/nurse" element={<NursePage />} />
-      <Route path="/patient/:pid" element={<PatientDashboard />} />
-      <Route path='/PatientsList' element={<PatientsList/>} />
-      <Route path='/PatientsProfile' element={<PatientsProfile/>}/>
 
       <Route path="/junior-doctor" element={<JuniorDoctor />} />
       <Route path="/assessment/:pid" element={<PatientAssessment />} />
@@ -79,18 +75,18 @@ function App() {
       <Route path="/users" element={<Users />} />
 
       <Route path="/patients" element={<PatientsList />} />
-      
+      <Route path="/patients/:id" element={<PatientsProfile />} />
+      <Route path="/patients/history/:id" element={<PatientHistory />} />
 
       <Route path="/patient-history/:pid" element={<PatientHistory />} />
 
-      <Route path="/procedure-Inventory" element={<ProcedureInventory/>} />
+      <Route path="/procedure-Inventory" element={<ProcedureInventory />} />
 
       <Route
         path="*"
         element={<div className="p-10 text-center">Page Not Found</div>}
       />
     </Routes>
-
   );
 }
 
