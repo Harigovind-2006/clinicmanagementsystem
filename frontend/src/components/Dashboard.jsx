@@ -260,20 +260,25 @@ export default function ManagerDashboard({ role }) {
     try {
       setLoading(true);
       const res = await api.get("/appoinmentapi");
-      console.log("Appointments API Response:", res.data); // Debug log
-      
+      console.log("Appointments API Response:", res.data);
+
       // Handle different response structures
       let appointmentsData = [];
-      if (res.data?.data?.appointments) {
+
+      if (Array.isArray(res.data)) {
+        // Direct array response (from getAllActiveAppoinments)
+        appointmentsData = res.data;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        // Nested data array (from getTodayAppointments)
+        appointmentsData = res.data.data;
+      } else if (res.data?.data?.appointments) {
         appointmentsData = res.data.data.appointments;
       } else if (res.data?.appointments) {
         appointmentsData = res.data.appointments;
-      } else if (res.data?.data) {
-        appointmentsData = Array.isArray(res.data.data) ? res.data.data : [];
       } else {
-        appointmentsData = Array.isArray(res.data) ? res.data : [];
+        appointmentsData = [];
       }
-      
+
       setAppointments(appointmentsData);
     } catch (err) {
       console.error("Error fetching appointments:", err);
@@ -341,8 +346,7 @@ export default function ManagerDashboard({ role }) {
 
     // FIXED: Check all possible doctor reference formats
     const matchesDoctor =
-      !selectedDoctor || 
-      getDoctorName(a, doctors) === selectedDoctor;
+      !selectedDoctor || getDoctorName(a, doctors) === selectedDoctor;
 
     return matchesSearch && matchesDate && matchesDoctor;
   });
@@ -566,9 +570,7 @@ export default function ManagerDashboard({ role }) {
         paymentMethod: newAppointmentData.paymentMethod,
         consultationFee: newAppointmentData.consultationFee,
         registrationFee:
-          patientMode === "new"
-            ? newAppointmentData.registrationFee
-            : 0, // ✅ Only for new patients
+          patientMode === "new" ? newAppointmentData.registrationFee : 0, // ✅ Only for new patients
         upiId:
           newAppointmentData.paymentMethod === "UPI"
             ? newAppointmentData.upiId
@@ -589,10 +591,10 @@ export default function ManagerDashboard({ role }) {
       }));
 
       setWizardStep(4);
-      
+
       // FIXED: Use await to ensure appointments are refreshed
       await fetchAppointments();
-      
+
       setErrorMsg("");
     } catch (err) {
       console.error("❌ Error saving appointment:", err);
@@ -1968,7 +1970,9 @@ export default function ManagerDashboard({ role }) {
               <span>
                 Rs.{" "}
                 {newAppointmentData.consultationFee +
-                  (patientMode === "new" ? newAppointmentData.registrationFee : 0)}
+                  (patientMode === "new"
+                    ? newAppointmentData.registrationFee
+                    : 0)}
               </span>
             </div>
           </div>
@@ -1985,4 +1989,4 @@ export default function ManagerDashboard({ role }) {
       </div>
     </>
   );
-};
+}
