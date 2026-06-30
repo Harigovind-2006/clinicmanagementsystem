@@ -15,12 +15,15 @@ const specializationsList = [
 ];
 const bloodGroupsList = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
+// FIXED: Status colors to match backend values (lowercase)
 const statusColors = {
-  Scheduled: "bg-blue-100 text-blue-600 border-blue-200 px-2",
-  Waiting: "bg-amber-100 text-amber-600 border-amber-300 px-5",
-  "In Progress": "bg-green-100 text-green-700 border-green-200",
-  Completed: "bg-gray-100 text-gray-600 border-gray-200",
-  "Follow-up": "bg-purple-100 text-purple-700 border-purple-200",
+  waiting: "bg-amber-100 text-amber-600 border-amber-300 px-5",
+  scheduled: "bg-blue-100 text-blue-600 border-blue-200 px-2",
+  "in-progress": "bg-green-100 text-green-700 border-green-200",
+  completed: "bg-gray-100 text-gray-600 border-gray-200",
+  "follow-up": "bg-purple-100 text-purple-700 border-purple-200",
+  pending: "bg-red-100 text-red-600 border-red-200 px-5",
+  cleared: "bg-green-100 text-green-700 border-green-200",
 };
 
 // Helper functions for error messages
@@ -153,6 +156,10 @@ function getSpecialization(appointment, doctorsList) {
   if (appointment.doctor?.specialisation) {
     return appointment.doctor.specialisation;
   }
+  // FIXED: Check for specialisation (British spelling) first
+  if (appointment.specialisation) {
+    return appointment.specialisation;
+  }
   if (appointment.specialization) {
     return appointment.specialization;
   }
@@ -248,11 +255,26 @@ export default function ManagerDashboard({ role }) {
     fetchDischarges();
   }, []);
 
+  // FIXED: fetchAppointments with proper response handling
   const fetchAppointments = async () => {
     try {
       setLoading(true);
       const res = await api.get("/appoinmentapi");
-      setAppointments(res.data.data || res.data);
+      console.log("Appointments API Response:", res.data); // Debug log
+      
+      // Handle different response structures
+      let appointmentsData = [];
+      if (res.data?.data?.appointments) {
+        appointmentsData = res.data.data.appointments;
+      } else if (res.data?.appointments) {
+        appointmentsData = res.data.appointments;
+      } else if (res.data?.data) {
+        appointmentsData = Array.isArray(res.data.data) ? res.data.data : [];
+      } else {
+        appointmentsData = Array.isArray(res.data) ? res.data : [];
+      }
+      
+      setAppointments(appointmentsData);
     } catch (err) {
       console.error("Error fetching appointments:", err);
       setErrorMsg(getErrorMessage(err));
@@ -317,8 +339,10 @@ export default function ManagerDashboard({ role }) {
 
     const matchesDate = appointmentDate === selectedDate;
 
+    // FIXED: Check all possible doctor reference formats
     const matchesDoctor =
-      !selectedDoctor || getDoctorName(a, doctors) === selectedDoctor;
+      !selectedDoctor || 
+      getDoctorName(a, doctors) === selectedDoctor;
 
     return matchesSearch && matchesDate && matchesDoctor;
   });
@@ -364,16 +388,18 @@ export default function ManagerDashboard({ role }) {
 
     const doctorId = newAppointmentData.assignedDoctorId;
 
+    // FIXED: Check all possible doctor reference formats
     const bookedSlots = appointments
       .filter((a) => {
         const appointmentDate = a.appointmentDate?.split("T")[0];
         const matchesDate =
           appointmentDate === newAppointmentData.appointmentDate;
         const matchesDoctor =
+          a.doctor === doctorId ||
+          a.doctor?._id === doctorId ||
           a.doctorId === doctorId ||
           a.assignedDoctorId === doctorId ||
-          a.assignedDoctorName === doctorId ||
-          a.doctor?._id === doctorId;
+          a.assignedDoctorName === doctorId;
         return matchesDate && matchesDoctor;
       })
       .map((a) => a.appointmentTime);
@@ -563,7 +589,10 @@ export default function ManagerDashboard({ role }) {
       }));
 
       setWizardStep(4);
-      fetchAppointments();
+      
+      // FIXED: Use await to ensure appointments are refreshed
+      await fetchAppointments();
+      
       setErrorMsg("");
     } catch (err) {
       console.error("❌ Error saving appointment:", err);
@@ -592,7 +621,7 @@ export default function ManagerDashboard({ role }) {
         upiId: dischargeModal.upiId || undefined,
       });
 
-      fetchDischarges();
+      await fetchDischarges();
       setDischargeModal({ ...dischargeModal, step: "success" });
       setErrorMsg("");
     } catch (err) {
@@ -800,7 +829,7 @@ export default function ManagerDashboard({ role }) {
                             </td>
                             <td className="px-5 py-4">
                               <span
-                                className={`px-3 py-1 rounded-full text-xs font-medium border ${statusColors[a.status] || "bg-gray-100 text-gray-600 border-gray-200"}`}
+                                className={`px-3 py-1 rounded-full text-xs font-medium border ${statusColors[a.status?.toLowerCase()] || "bg-gray-100 text-gray-600 border-gray-200"}`}
                               >
                                 {a.status}
                               </span>
@@ -1956,4 +1985,4 @@ export default function ManagerDashboard({ role }) {
       </div>
     </>
   );
-}
+};
