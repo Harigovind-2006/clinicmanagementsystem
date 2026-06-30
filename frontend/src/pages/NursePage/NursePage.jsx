@@ -54,7 +54,7 @@ export default function NursePage() {
               ☰
             </button>
 
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl font-semibold text-gray-900">
               Patient List
             </h1>
           </div>
@@ -70,26 +70,26 @@ export default function NursePage() {
           {filteredRooms.map((room) => (
             <div
               key={room.pid}
-              className="bg-white rounded-xl shadow p-4"
+              className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5"
             >
-              <p>
-                <strong>PID:</strong> {room.pid}
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold text-gray-900">PID:</span> {room.pid}
               </p>
 
-              <p>
-                <strong>Name:</strong> {room.pname}
+              <p className="text-sm text-gray-700 mt-2">
+                <span className="font-semibold text-gray-900">Name:</span> {room.pname}
               </p>
 
-              <p>
-                <strong>Gender:</strong> {room.gender}
+              <p className="text-sm text-gray-700 mt-2">
+                <span className="font-semibold text-gray-900">Gender:</span> {room.gender}
               </p>
 
-              <p>
-                <strong>Blood Group:</strong> {room.blood}
+              <p className="text-sm text-gray-700 mt-2">
+                <span className="font-semibold text-gray-900">Blood Group:</span> {room.blood}
               </p>
 
-              <p>
-                <strong>Room:</strong> {room.id}
+              <p className="text-sm text-gray-700 mt-2">
+                <span className="font-semibold text-gray-900">Room:</span> {room.id}
               </p>
 
               <button
@@ -98,7 +98,7 @@ export default function NursePage() {
                     state: room,
                   })
                 }
-                className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+                className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl transition-colors"
               >
                 View Patient
               </button>
@@ -107,26 +107,26 @@ export default function NursePage() {
         </div>
 
         {/* Desktop View */}
-        <div className="hidden lg:block bg-white rounded-xl shadow overflow-hidden">
-          <div className="grid grid-cols-6 gap-4 px-6 py-4 bg-gray-100 font-semibold text-gray-700">
+        <div className="hidden lg:block bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="grid grid-cols-6 gap-4 px-6 py-4 bg-gray-50/50 text-sm font-semibold text-gray-700">
             <div>PID</div>
             <div>Name</div>
             <div>Gender</div>
             <div>Blood Group</div>
             <div>Room</div>
-            <div>Action</div>
+            <div className="text-right">Action</div>
           </div>
 
           {filteredRooms.map((room) => (
             <div
               key={room.pid}
-              className="grid grid-cols-6 gap-4 px-6 py-4 items-center hover:bg-gray-50"
+              className="grid grid-cols-6 gap-4 px-6 py-4 border-t border-gray-200 items-center hover:bg-gray-50/50 transition-colors"
             >
-              <div>{room.pid}</div>
-              <div>{room.pname}</div>
-              <div>{room.gender}</div>
-              <div>{room.blood}</div>
-              <div>Room {room.id}</div>
+              <div className="text-sm text-gray-900 font-medium">{room.pid}</div>
+              <div className="text-sm text-gray-900 font-medium">{room.pname}</div>
+              <div className="text-sm text-gray-700">{room.gender}</div>
+              <div className="text-sm text-gray-700">{room.blood}</div>
+              <div className="text-sm text-gray-700">Room {room.id}</div>
 
               <button
                 onClick={() =>
@@ -134,7 +134,7 @@ export default function NursePage() {
                     state: room,
                   })
                 }
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                className="ml-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-colors"
               >
                 View Patient
               </button>
