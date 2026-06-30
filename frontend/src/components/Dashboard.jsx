@@ -4,6 +4,9 @@ import Layout from "./Layout";
 import api from "../api/axios";
 
 const todayDate = new Date().toISOString().split("T")[0];
+const maxAppointmentDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+  .toISOString()
+  .split("T")[0];
 
 const specializationsList = [
   "Cardiology",
@@ -612,8 +615,8 @@ export default function ManagerDashboard({ role }) {
 
       <div className="print:hidden">
         <Layout>
-          <div className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+          <div className="p-3 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto overflow-x-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
               <div>
                 <h1 className="text-2xl font-semibold text-gray-900">
                   Dashboard
@@ -630,14 +633,14 @@ export default function ManagerDashboard({ role }) {
               <button
                 onClick={openNewAppointmentModal}
                 disabled={loading}
-                className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
               >
                 {loading && <span className="loading-spinner"></span>}
                 <Plus className="w-4 h-4" /> New Appointment
               </button>
             </div>
 
-            <div className="flex gap-2 mb-6">
+            <div className="flex flex-col sm:flex-row gap-2 mb-6">
               <button
                 onClick={() => setTab("appointments")}
                 className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${tab === "appointments" ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
@@ -673,8 +676,8 @@ export default function ManagerDashboard({ role }) {
 
             {tab === "appointments" && (
               <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-[250px] bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+               <div className="px-5 py-4 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center gap-3">
+                  <div className="flex items-center gap-3 w-full lg:flex-1 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
                     <Search className="w-6 h-4" />
                     <input
                       placeholder="Search by name, PID, doctor..."
@@ -687,7 +690,7 @@ export default function ManagerDashboard({ role }) {
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                    className="w-full lg:w-56 px-3 py-2 rounded-lg border border-gray-200 text-sm"
                   />
                   <select
                     value={selectedDoctor}
@@ -703,7 +706,7 @@ export default function ManagerDashboard({ role }) {
                   </select>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="min-w-[950px] w-full text-sm">
                     <thead className="bg-gray-50/50 border-b border-gray-100">
                       <tr>
                         {[
@@ -919,7 +922,7 @@ export default function ManagerDashboard({ role }) {
             {/* MODAL: NEW APPOINTMENT */}
             {showModal && isNewAppointmentWizard && (
               <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh]">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl h-[95vh] sm:h-auto flex flex-col max-h-[95vh]">
                   <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
                     <h2 className="text-lg font-semibold text-gray-900">
                       New Appointment —{" "}
@@ -944,7 +947,7 @@ export default function ManagerDashboard({ role }) {
 
                   <div className="p-4 sm:p-6 overflow-y-auto">
                     {wizardStep < 4 && (
-                      <div className="flex items-center gap-4 mb-6 text-sm font-medium">
+                      <div className="flex flex-wrap items-center gap-3 mb-6 text-sm font-medium">
                         <div className="flex items-center gap-2">
                           <div
                             className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm ${wizardStep >= 1 ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400"}`}
@@ -1174,7 +1177,7 @@ export default function ManagerDashboard({ role }) {
                                 className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                               />
                             </div>
-                            <div className="rounded-lg border border-gray-200 overflow-hidden shadow-sm h-64 overflow-y-auto">
+                            <div  className="rounded-lg border border-gray-200 overflow-x-auto overflow-y-auto shadow-sm h-64">
                               <table className="w-full text-sm">
                                 <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
                                   <tr>
@@ -1239,7 +1242,7 @@ export default function ManagerDashboard({ role }) {
 
                     {wizardStep === 2 && (
                       <div className="space-y-5">
-                        <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm flex gap-4 shadow-sm">
+                        <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm flex flex-col sm:flex-row gap-4 shadow-sm">
                           <div>
                             <span className="text-gray-500 text-xs block">
                               Patient
@@ -1248,7 +1251,7 @@ export default function ManagerDashboard({ role }) {
                               {newAppointmentData.name || "Unknown"}
                             </span>
                           </div>
-                          <div className="w-px h-8 bg-blue-200"></div>
+                          <div className="hidden sm:block w-px h-8 bg-blue-200"></div>
                           <div>
                             <span className="text-gray-500 text-xs block">
                               PID
@@ -1491,7 +1494,7 @@ export default function ManagerDashboard({ role }) {
                           <div className="text-sm font-medium text-gray-700">
                             Payment Method
                           </div>
-                          <div className="grid gap-3 grid-cols-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             {["Cash", "UPI", "Card"].map((method) => (
                               <button
                                 key={method}
@@ -1605,7 +1608,7 @@ export default function ManagerDashboard({ role }) {
                             </div>
                           </div>
                         </div>
-                        <div className="flex gap-3 justify-center max-w-md mx-auto">
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
                           <button
                             onClick={() => window.print()}
                             className="flex-1 flex items-center justify-center gap-2 border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50"
@@ -1633,7 +1636,7 @@ export default function ManagerDashboard({ role }) {
                             {errorMsg}
                           </div>
                         )}
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
                           <button
                             type="button"
                             onClick={() => {
@@ -1672,7 +1675,7 @@ export default function ManagerDashboard({ role }) {
             {/* MODAL: DISCHARGE PAYMENT */}
             {dischargeModal && (
               <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[95vh] overflow-y-auto flex flex-col">
                   <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
                     <h2 className="text-lg font-bold text-gray-900">
                       Discharge Clearance

@@ -18,3 +18,17 @@ body {
     sans-serif;
   background: #f8fafc;
 }
+/* Hide the browser's default eye icon (Edge and IE) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+}
+
+/* Hide default webkit password toggles if any active */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
