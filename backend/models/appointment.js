@@ -41,6 +41,10 @@ const appointmentSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Doctor reference is required"],
     },
+    specialisation: {
+      type: String,
+      required: true,
+    },
     status: {
       type: String,
       enum: ["waiting", "scheduled", "completed", "in-progress", "follow-up"],
@@ -75,9 +79,9 @@ const appointmentSchema = new mongoose.Schema(
     },
     roomNumber: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Room', 
+      ref: 'Room',
       required: [
-        function() {
+        function () {
           return this.patientType === "ip";
         },
         "Room number is required for In-Patients (ip)"
@@ -147,25 +151,25 @@ appointmentSchema.index({ patient: 1, appointmentDate: -1 });
 appointmentSchema.index({ status: 1 });
 appointmentSchema.index({ tokenNumber: 1 }, { unique: true });
 
-appointmentSchema.pre('save', function(next) {
+appointmentSchema.pre('save', function (next) {
   if (this.paymentMethod && !this.paymentTimestamp) {
     this.paymentTimestamp = new Date();
   }
   next();
 });
 
-appointmentSchema.virtual('paymentStatus').get(function() {
+appointmentSchema.virtual('paymentStatus').get(function () {
   if (this.paymentMethod && this.paymentTimestamp) {
     return 'Paid';
   }
   return 'Pending';
 });
 
-appointmentSchema.virtual('assignedDoctorName').get(function() {
-  return this.doctor; 
+appointmentSchema.virtual('assignedDoctorName').get(function () {
+  return this.doctor;
 });
 
-appointmentSchema.virtual('specialization').get(function() {
+appointmentSchema.virtual('specialization').get(function () {
   return this.doctor?.specialisation || 'N/A';
 });
 
