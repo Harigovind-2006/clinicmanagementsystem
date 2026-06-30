@@ -2,35 +2,59 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../Layout";
 import api from "../../api/axios";
+
 export default function PatientsList() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true); // ✅ Added loading state
+  const [error, setError] = useState(""); // ✅ Added error state
+
   useEffect(() => {
     // Fetch patients data from the API
     const fetchPatients = async () => {
       try {
-      const response = await api.get(`/patientapi/`);
+        setLoading(true);
+        setError("");
+        const response = await api.get(`/patientapi/`);
         const data = response.data;
-        setPatients(data);
+        // Handle different response structures
+        setPatients(data.data || data || []);
       } catch (error) {
         console.error("Error fetching patients:", error);
+        setError("Failed to fetch patients. Please try again later.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPatients();
   }, []);
 
-  // Filter logic for PID, Name, or Phone
-  const filteredPatients = patients.filter((patient) => {
+  // ✅ Filter logic for PID, Name, or Phone - with safer checks
+  const filteredPatients = (patients || []).filter((patient) => {
     const query = searchQuery.toLowerCase();
 
     return (
-      patient.name?.toLowerCase().includes(query) ||
-      patient.pid?.toLowerCase().includes(query) ||
-      patient.mobilePhone?.includes(query)
+      (patient.name || "").toLowerCase().includes(query) ||
+      (patient.pid || "").toLowerCase().includes(query) ||
+      (patient.mobilePhone || "").includes(query)
     );
   });
+
+  // ✅ Loading screen
+  if (loading) {
+    return (
+      <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="flex justify-center items-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading patients...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -55,6 +79,13 @@ export default function PatientsList() {
             className="w-full px-5 py-4 text-gray-600 placeholder-gray-400 focus:outline-none"
           />
         </div>
+
+        {/* ✅ Error Message */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            {error}
+          </div>
+        )}
 
         {/* SCROLLABLE TABLE CONTAINER */}
         <div className="w-full max-w-full block bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -87,7 +118,7 @@ export default function PatientsList() {
                 {filteredPatients.length > 0 ? (
                   filteredPatients.map((patient) => (
                     <tr
-                      key={patient.pid}
+                      key={patient._id} // ✅ Changed from patient.pid to patient._id
                       className="hover:bg-gray-50/50 transition-colors whitespace-nowrap"
                     >
                       <td className="p-4 text-sm font-medium text-gray-900">
@@ -100,22 +131,29 @@ export default function PatientsList() {
                         {patient.mobilePhone}
                       </td>
                       <td className="p-4 text-sm text-gray-600">
-                        {patient.gender}
+                        {/* ✅ Formatted gender */}
+                        {patient.gender ? patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1).toLowerCase() : "-"}
                       </td>
                       <td className="p-4 text-sm">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                            patient.patientType === "op"
+                            patient.patientType?.toLowerCase() === "op"
                               ? "bg-blue-50 text-blue-700 border-blue-100"
-                              : "bg-green-50 text-green-700 border-green-100"
+                              : patient.patientType?.toLowerCase() === "ip"
+                              ? "bg-green-50 text-green-700 border-green-100"
+                              : "bg-gray-50 text-gray-700 border-gray-100"
                           }`}
                         >
-                          {patient.patientType?.toUpperCase()}
+                          {patient.patientType?.toLowerCase() === "op" 
+                            ? "OP" 
+                            : patient.patientType?.toLowerCase() === "ip" 
+                            ? "IP" 
+                            : patient.patientType?.toUpperCase() || "-"}
                         </span>
                       </td>
                       <td className="p-4 text-sm pr-6 text-right">
                         <Link
-                          to={`/patients/${patient.pid}`}
+                          to={`/patients/${patient._id}`} // ✅ Changed from patient.pid to patient._id
                           className="inline-flex items-center px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200 transition-all"
                         >
                           View Details
@@ -129,13 +167,20 @@ export default function PatientsList() {
                       colSpan="6"
                       className="p-8 text-center text-sm text-gray-500"
                     >
-                      No patients found matching "{searchQuery}"
+                      {searchQuery 
+                        ? `No patients found matching "${searchQuery}"` 
+                        : "No patients found"}
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* ✅ Patient count */}
+        <div className="mt-4 text-sm text-gray-500">
+          Showing {filteredPatients.length} of {(patients || []).length} patients
         </div>
       </div>
     </Layout>

@@ -28,9 +28,9 @@ export const createAppoinment = async (req, res) => {
 
     const patient = await Patient.findById(savedAppointment.patient)
       .select("pid name mobilePhone email dob gender bloodGroup address");
-    
+
     const doctor = await User.findById(savedAppointment.doctor)
-      .select("fullname specialisation email mobilePhone");
+      .select("fullname specialization email mobilePhone");
 
     const result = {
       ...savedAppointment.toObject(),
@@ -40,14 +40,26 @@ export const createAppoinment = async (req, res) => {
 
     return res.status(201).json(result);
   } catch (error) {
+    console.error("===== CREATE APPOINTMENT ERROR =====");
+    console.error(error);
+
+    if (error.errors) {
+      console.error("Validation Errors:", error.errors);
+    }
+
+    console.error("Request Body:", req.body);
+
     if (error.code === 11000) {
-      return res.status(400).json({ 
-        message: "This doctor already has an appointment at the selected time. Please choose another time slot." 
+      return res.status(400).json({
+        message: "This doctor already has an appointment at the selected time."
       });
     }
-    return res.status(500).json({ message: error.message });
+
+    return res.status(500).json({
+      message: error.message,
+    });
   }
-};
+}; // ✅ FIXED: Added missing closing brace
 
 export const getAllActiveAppoinments = async (req, res) => {
   try {
@@ -62,9 +74,9 @@ export const getAllActiveAppoinments = async (req, res) => {
       activeAppoinments.map(async (appointment) => {
         const patient = await Patient.findById(appointment.patient)
           .select("pid name mobilePhone email");
-        
+
         const doctor = await User.findById(appointment.doctor)
-          .select("fullname specialisation email mobilePhone");
+          .select("fullname specialization email mobilePhone");
 
         return {
           ...appointment.toObject(),
@@ -91,9 +103,9 @@ export const getAppoinmentById = async (req, res) => {
 
     const patient = await Patient.findById(foundAppoinment.patient)
       .select("pid name mobilePhone email dob gender bloodGroup address");
-    
+
     const doctor = await User.findById(foundAppoinment.doctor)
-      .select("fullname specialisation email mobilePhone");
+      .select("fullname specialization email mobilePhone");
 
     const medicineDetails = await Promise.all(
       (foundAppoinment.medicine || []).map(async (med) => {
@@ -142,9 +154,9 @@ export const updateAppoinment = async (req, res) => {
 
     const patient = await Patient.findById(updatedAppoinment.patient)
       .select("pid name mobilePhone email");
-    
+
     const doctor = await User.findById(updatedAppoinment.doctor)
-      .select("fullname specialisation email mobilePhone");
+      .select("fullname specialization email mobilePhone");
 
     const result = {
       ...updatedAppoinment.toObject(),
@@ -155,8 +167,8 @@ export const updateAppoinment = async (req, res) => {
     return res.status(200).json(result);
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({ 
-        message: "This doctor already has an appointment at the selected time. Please choose another time slot." 
+      return res.status(400).json({
+        message: "This doctor already has an appointment at the selected time. Please choose another time slot."
       });
     }
     return res.status(500).json({ message: error.message });
@@ -180,7 +192,7 @@ export const deleteAppoinment = async (req, res) => {
 
 export const doctorAddsProcedure = async (req, res) => {
   try {
-    const { id } = req.params; 
+    const { id } = req.params;
     const { procedureId } = req.body;
 
     const procedureDetails = await Procedure.findById(procedureId);
@@ -200,9 +212,9 @@ export const doctorAddsProcedure = async (req, res) => {
 
     const patient = await Patient.findById(appointment.patient)
       .select("pid name");
-    
+
     const doctor = await User.findById(appointment.doctor)
-      .select("fullname specialisation");
+      .select("fullname specialization");
 
     const procedures = await Promise.all(
       (appointment.procedure || []).map(async (procId) => {
@@ -225,10 +237,10 @@ export const doctorAddsProcedure = async (req, res) => {
     };
     await Patient.findByIdAndUpdate(appointment.patient, { $set: billUpdate });
 
-    res.status(200).json({ 
-      success: true, 
-      message: "Procedure ordered and logged to billing", 
-      data: result 
+    res.status(200).json({
+      success: true,
+      message: "Procedure ordered and logged to billing",
+      data: result
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -237,14 +249,14 @@ export const doctorAddsProcedure = async (req, res) => {
 
 export const doctorPrescribesMedicine = async (req, res) => {
   try {
-    const { id } = req.params; 
-    const { medicineId, days, frequency } = req.body; 
+    const { id } = req.params;
+    const { medicineId, days, frequency } = req.body;
 
     const medicineExists = await Medicine.findById(medicineId);
     if (!medicineExists) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Medicine not found in inventory" 
+      return res.status(404).json({
+        success: false,
+        message: "Medicine not found in inventory"
       });
     }
 
@@ -260,9 +272,9 @@ export const doctorPrescribesMedicine = async (req, res) => {
 
     const patient = await Patient.findById(appointment.patient)
       .select("pid name");
-    
+
     const doctor = await User.findById(appointment.doctor)
-      .select("fullname specialisation");
+      .select("fullname specialization");
 
     const medicineDetails = await Promise.all(
       (appointment.medicine || []).map(async (med) => {
@@ -282,10 +294,10 @@ export const doctorPrescribesMedicine = async (req, res) => {
       medicine: medicineDetails
     };
 
-    res.status(200).json({ 
-      success: true, 
-      message: "Prescription saved for Pharmacist clearance", 
-      data: result 
+    res.status(200).json({
+      success: true,
+      message: "Prescription saved for Pharmacist clearance",
+      data: result
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -294,13 +306,13 @@ export const doctorPrescribesMedicine = async (req, res) => {
 
 export const pharmacistDispenseAndBill = async (req, res) => {
   try {
-    const { id } = req.params; 
-    const { dispensedMedicines } = req.body; 
+    const { id } = req.params;
+    const { dispensedMedicines } = req.body;
 
     if (!dispensedMedicines || !Array.isArray(dispensedMedicines) || dispensedMedicines.length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Please provide at least one medicine to dispense" 
+      return res.status(400).json({
+        success: false,
+        message: "Please provide at least one medicine to dispense"
       });
     }
 
@@ -315,16 +327,16 @@ export const pharmacistDispenseAndBill = async (req, res) => {
     for (const disp of dispensedMedicines) {
       const med = await Medicine.findById(disp.medicineId);
       if (!med) {
-        return res.status(404).json({ 
-          success: false, 
-          message: `Medicine ID ${disp.medicineId} not found in inventory` 
+        return res.status(404).json({
+          success: false,
+          message: `Medicine ID ${disp.medicineId} not found in inventory`
         });
       }
 
       if (med.quantityLeft < disp.quantity) {
-        return res.status(400).json({ 
-          success: false, 
-          message: `Insufficient inventory for ${med.medicinename}. Only ${med.quantityLeft} left.` 
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient inventory for ${med.medicinename}. Only ${med.quantityLeft} left.`
         });
       }
 
@@ -341,7 +353,7 @@ export const pharmacistDispenseAndBill = async (req, res) => {
         amount: totalCost,
         status: "unpaid"
       };
-      
+
       dispensedItems.push({
         medicineName: med.medicinename,
         quantity: disp.quantity,
@@ -353,12 +365,12 @@ export const pharmacistDispenseAndBill = async (req, res) => {
     await Patient.findByIdAndUpdate(appointment.patient, { $set: dynamicBillUpdates });
 
     const updatedAppointment = await Appointment.findById(id);
-    
+
     const patient = await Patient.findById(updatedAppointment.patient)
       .select("pid name");
-    
+
     const doctor = await User.findById(updatedAppointment.doctor)
-      .select("fullname specialisation");
+      .select("fullname specialization");
 
     const medicineDetails = await Promise.all(
       (updatedAppointment.medicine || []).map(async (med) => {
@@ -378,8 +390,8 @@ export const pharmacistDispenseAndBill = async (req, res) => {
       medicine: medicineDetails
     };
 
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       message: "Pharmacy inventory updated and transaction posted to patient invoice!",
       data: {
         appointment: result,
@@ -394,7 +406,7 @@ export const pharmacistDispenseAndBill = async (req, res) => {
 
 export const getPatientHistory = async (req, res) => {
   try {
-    const { patientId } = req.params; 
+    const { patientId } = req.params;
 
     if (!patientId) {
       return res.status(400).json({
@@ -403,26 +415,26 @@ export const getPatientHistory = async (req, res) => {
       });
     }
 
-    const history = await Appointment.find({ 
-      patient: patientId, 
-      status: "completed" 
+    const history = await Appointment.find({
+      patient: patientId,
+      status: "completed"
     })
-    .sort({ appointmentDate: -1, appointmentTime: -1 });
+      .sort({ appointmentDate: -1, appointmentTime: -1 });
 
     if (!history || history.length === 0) {
-      return res.status(200).json({ 
-        success: true, 
-        message: "No past medical history found for this patient.", 
+      return res.status(200).json({
+        success: true,
+        message: "No past medical history found for this patient.",
         count: 0,
-        data: [] 
+        data: []
       });
     }
 
     const populatedHistory = await Promise.all(
       history.map(async (appointment) => {
         const doctor = await User.findById(appointment.doctor)
-          .select("fullname specialisation email");
-        
+          .select("fullname specialization email");
+
         const medicineDetails = await Promise.all(
           (appointment.medicine || []).map(async (med) => {
             const medicine = await Medicine.findById(med.medicine)
@@ -478,15 +490,15 @@ export const getTodayAppointments = async (req, res) => {
       },
       isActive: true
     })
-    .sort({ appointmentTime: 1 });
+      .sort({ appointmentTime: 1 });
 
     const populatedAppointments = await Promise.all(
       appointments.map(async (appointment) => {
         const patient = await Patient.findById(appointment.patient)
           .select("pid name mobilePhone");
-        
+
         const doctor = await User.findById(appointment.doctor)
-          .select("fullname specialisation");
+          .select("fullname specialization");
 
         return {
           ...appointment.toObject(),
@@ -512,7 +524,7 @@ export const getAppointmentsByDoctor = async (req, res) => {
     const { date } = req.query;
 
     const query = { doctor: doctorId, isActive: true };
-    
+
     if (date) {
       const searchDate = new Date(date);
       searchDate.setHours(0, 0, 0, 0);
@@ -531,9 +543,9 @@ export const getAppointmentsByDoctor = async (req, res) => {
       appointments.map(async (appointment) => {
         const patient = await Patient.findById(appointment.patient)
           .select("pid name mobilePhone");
-        
+
         const doctor = await User.findById(appointment.doctor)
-          .select("fullname specialisation");
+          .select("fullname specialization");
 
         return {
           ...appointment.toObject(),
