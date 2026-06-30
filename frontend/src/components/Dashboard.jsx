@@ -529,6 +529,8 @@ export default function ManagerDashboard({ role }) {
         upiId: newAppointmentData.upiId || undefined,
         consultationFee: newAppointmentData.consultationFee,
         from: newAppointmentData.from || "OP",
+        registrationFee,
+        totalAmount: consultationFee + registrationFee,
       };
 
       if (newAppointmentData.isNewPatient) {
