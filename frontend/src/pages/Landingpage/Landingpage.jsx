@@ -10,70 +10,12 @@ const handleAnimationComplete = () => {
 export default function Landingpage() {
   const navigate = useNavigate();
 
-  const [selectedRole, setSelectedRole] = useState("");
-
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
 
   const [error, setError] = useState("");
-
-  const roleCredentials = {
-    manager: {
-      username: "manager",
-      password: "manager123",
-      route: "/dashboard",
-    },
-
-    frontoffice: {
-      username: "frontoffice",
-      password: "fo123",
-      route: "/admission",
-    },
-
-    seniordoctor: {
-      username: "seniordoctor",
-      password: "sd123",
-      route: "/senior-doctor",
-    },
-
-    juniordoctor: {
-      username: "juniordoctor",
-      password: "jd123",
-      route: "/junior-doctor",
-    },
-
-    nurse: {
-      username: "nurse",
-      password: "nurse123",
-      route: "/nurse",
-    },
-
-    pharmacist: {
-      username: "pharmacist",
-      password: "pharma123",
-      route: "/pharmacist",
-    },
-  };
-
-  const handleRoleChange = (e) => {
-    const role = e.target.value;
-
-    setSelectedRole(role);
-
-    if (roleCredentials[role]) {
-      setFormData({
-        username: roleCredentials[role].username,
-        password: roleCredentials[role].password,
-      });
-    } else {
-      setFormData({
-        username: "",
-        password: "",
-      });
-    }
-  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -82,28 +24,48 @@ export default function Landingpage() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedRole) {
-      setError("Please select a role");
-      return;
-    }
+    try {
+      const data = await loginUser(formData);
 
-    const role = roleCredentials[selectedRole];
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("name", data.user.name);
 
-    if (
-      formData.username === role.username &&
-      formData.password === role.password
-    ) {
-      setError("");
+      switch (data.user.role) {
+        case "manager":
+          navigate("/dashboard");
+        break;
 
-      // SAVE ROLE FOR LAYOUT
-      localStorage.setItem("role", selectedRole);
+        case "frontoffice":
+          navigate("/dashboard");
+        break;
 
-      navigate(role.route);
-    } else {
-      setError("Invalid username or password");
+        case "seniordoctor":
+          navigate("/senior-doctor");
+        break;
+
+        case "juniordoctor":
+          navigate("/junior-doctor");
+        break;
+
+        case "nurse":
+          navigate("/nurse");
+        break;
+
+        case "pharmacist":
+          navigate("/pharmacist");
+        break;
+
+        default:
+          navigate("/");
+      }
+    } catch (error) {
+    setError(
+      error.response?.data?.message || "Login Failed"
+      );
     }
   };
 
@@ -166,33 +128,6 @@ export default function Landingpage() {
             </div>
           )}
 
-          {/* Role */}
-          <div>
-            <label className="block mb-2 font-semibold text-slate-700">
-              Role
-            </label>
-
-            <select
-              value={selectedRole}
-              onChange={handleRoleChange}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-blue-500 focus:outline-none"
-            >
-              <option value="">Select Role</option>
-
-              <option value="manager">Manager</option>
-
-              <option value="frontoffice">Front Office</option>
-
-              <option value="seniordoctor">Senior Doctor</option>
-
-              <option value="juniordoctor">Junior Doctor</option>
-
-              <option value="nurse">Nurse</option>
-
-              <option value="pharmacist">Pharmacist</option>
-            </select>
-          </div>
-
           {/* Username */}
           <div>
             <label className="block mb-2 font-semibold text-slate-700">
@@ -240,60 +175,3 @@ export default function Landingpage() {
   );
 }
 
-
-const handleLogin = async () => {
-  try {
-    const data = await loginUser({
-      username,
-      password,
-    });
-
-    localStorage.setItem(
-      "token",
-      data.token
-    );
-
-    localStorage.setItem(
-      "role",
-       data.role
-    );
-    
-    localStorage.setItem(
-      "name",
-      data.name
-    );
-
-    switch (data.role) {
-      case "manager" :
-        navigate("/dashboard");
-        break;
-
-      case "frontofficestaff":
-        navigate("/dashboard");
-        break;
-
-      case "seniordoctor":
-        navigate("/seniorDoctor");
-        break;
-
-      case "juniordoctor":
-        navigate("/juniorDoctor");
-        break;
-
-      case "nurse":
-        navigate("/nurse");
-        break;
-
-      case "pharmacist":
-        navigate("/Pharmacist");
-        break;
-
-      default:
-        navigate("/");
-    }
-  } catch (error) {
-    alert (
-      error.response?.data?.message || "Login Failed"
-    );
-  }
-};

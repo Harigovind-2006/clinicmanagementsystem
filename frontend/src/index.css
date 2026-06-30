@@ -18,3 +18,9 @@ body {
     sans-serif;
   background: #f8fafc;
 }
+
+/* Hide Microsoft Edge password reveal button */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
