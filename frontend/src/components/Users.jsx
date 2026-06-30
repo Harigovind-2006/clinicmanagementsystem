@@ -361,8 +361,7 @@ export default function Users() {
                   <th className="px-5 py-4">Designation</th>
                   <th className="px-5 py-4">Mobile</th>
                   <th className="px-5 py-4">Email</th>
-                  <th className="px-5 py-4 w-28">Status</th>
-                  <th className="px-5 py-4 text-right pr-6">Actions</th>
+                  <th className="px-5 py-4  ">Actions</th>
                 </tr>
               </thead>
 
@@ -385,29 +384,8 @@ export default function Users() {
                     </td>
                     <td className="px-5 py-4 text-gray-600">{user.mobile}</td>
                     <td className="px-5 py-4 text-gray-600">{user.email}</td>
-                    <td className="px-5 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                          user.status === "Active"
-                            ? "bg-green-50 text-green-700 border-green-200"
-                            : "bg-red-50 text-red-700 border-red-200"
-                        }`}
-                      >
-                        {user.status || "Active"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 pr-6 text-right">
+                    <td className="px-4 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => toggleStatus(user)}
-                          className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
-                            user.status === "Active"
-                              ? "border-red-200 text-red-600 hover:bg-red-50"
-                              : "border-green-200 text-green-600 hover:bg-green-50"
-                          }`}
-                        >
-                          {user.status === "Active" ? "Deactivate" : "Activate"}
-                        </button>
                         <button
                           className="text-gray-400 hover:text-blue-600 p-1.5 rounded-md hover:bg-blue-50 transition-colors"
                           onClick={() => handleEdit(user)}
@@ -416,7 +394,7 @@ export default function Users() {
                         </button>
 
                         <button
-                          className="text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors"
+                          className=" text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors"
                           onClick={() => handleDelete(user._id)}
                         >
                           <Trash2 className="w-4 h-4" />
