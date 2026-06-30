@@ -30,7 +30,7 @@ export const createAppoinment = async (req, res) => {
       .select("pid name mobilePhone email dob gender bloodGroup address");
 
     const doctor = await User.findById(savedAppointment.doctor)
-      .select("fullname specialisation email mobilePhone");
+      .select("fullname specialization email mobilePhone");
 
     const result = {
       ...savedAppointment.toObject(),
@@ -76,7 +76,7 @@ export const getAllActiveAppoinments = async (req, res) => {
           .select("pid name mobilePhone email");
 
         const doctor = await User.findById(appointment.doctor)
-          .select("fullname specialisation email mobilePhone");
+          .select("fullname specialization email mobilePhone");
 
         return {
           ...appointment.toObject(),
@@ -105,7 +105,7 @@ export const getAppoinmentById = async (req, res) => {
       .select("pid name mobilePhone email dob gender bloodGroup address");
 
     const doctor = await User.findById(foundAppoinment.doctor)
-      .select("fullname specialisation email mobilePhone");
+      .select("fullname specialization email mobilePhone");
 
     const medicineDetails = await Promise.all(
       (foundAppoinment.medicine || []).map(async (med) => {
@@ -156,7 +156,7 @@ export const updateAppoinment = async (req, res) => {
       .select("pid name mobilePhone email");
 
     const doctor = await User.findById(updatedAppoinment.doctor)
-      .select("fullname specialisation email mobilePhone");
+      .select("fullname specialization email mobilePhone");
 
     const result = {
       ...updatedAppoinment.toObject(),
@@ -214,7 +214,7 @@ export const doctorAddsProcedure = async (req, res) => {
       .select("pid name");
 
     const doctor = await User.findById(appointment.doctor)
-      .select("fullname specialisation");
+      .select("fullname specialization");
 
     const procedures = await Promise.all(
       (appointment.procedure || []).map(async (procId) => {
@@ -274,7 +274,7 @@ export const doctorPrescribesMedicine = async (req, res) => {
       .select("pid name");
 
     const doctor = await User.findById(appointment.doctor)
-      .select("fullname specialisation");
+      .select("fullname specialization");
 
     const medicineDetails = await Promise.all(
       (appointment.medicine || []).map(async (med) => {
@@ -370,7 +370,7 @@ export const pharmacistDispenseAndBill = async (req, res) => {
       .select("pid name");
 
     const doctor = await User.findById(updatedAppointment.doctor)
-      .select("fullname specialisation");
+      .select("fullname specialization");
 
     const medicineDetails = await Promise.all(
       (updatedAppointment.medicine || []).map(async (med) => {
@@ -433,7 +433,7 @@ export const getPatientHistory = async (req, res) => {
     const populatedHistory = await Promise.all(
       history.map(async (appointment) => {
         const doctor = await User.findById(appointment.doctor)
-          .select("fullname specialisation email");
+          .select("fullname specialization email");
 
         const medicineDetails = await Promise.all(
           (appointment.medicine || []).map(async (med) => {
@@ -498,7 +498,7 @@ export const getTodayAppointments = async (req, res) => {
           .select("pid name mobilePhone");
 
         const doctor = await User.findById(appointment.doctor)
-          .select("fullname specialisation");
+          .select("fullname specialization");
 
         return {
           ...appointment.toObject(),
@@ -545,7 +545,7 @@ export const getAppointmentsByDoctor = async (req, res) => {
           .select("pid name mobilePhone");
 
         const doctor = await User.findById(appointment.doctor)
-          .select("fullname specialisation");
+          .select("fullname specialization");
 
         return {
           ...appointment.toObject(),

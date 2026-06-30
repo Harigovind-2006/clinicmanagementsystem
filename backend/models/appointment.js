@@ -175,7 +175,7 @@ appointmentSchema.virtual('assignedDoctorName').get(function () {
 });
 
 appointmentSchema.virtual('specialization').get(function () {
-  return this.doctor?.specialisation || 'N/A';
+  return this.doctor?.specialization || 'N/A';
 });
 
 appointmentSchema.set('toJSON', { virtuals: true });
