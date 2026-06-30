@@ -542,6 +542,9 @@ export default function ManagerDashboard({ role }) {
         appointmentData.upiId = newAppointmentData.upiId;
       }
 
+      console.log("Patient ID:", patientId);
+      console.log("Appointment Data:", appointmentData);
+
       const appointmentRes = await api.post("/appoinmentapi", appointmentData);
       const newAppointment = appointmentRes.data.data || appointmentRes.data;
 
