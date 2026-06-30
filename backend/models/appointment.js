@@ -170,13 +170,6 @@ appointmentSchema.virtual('paymentStatus').get(function () {
   return 'Pending';
 });
 
-appointmentSchema.virtual('assignedDoctorName').get(function () {
-  return this.doctor;
-});
-
-appointmentSchema.virtual('specialization').get(function () {
-  return this.doctor?.specialization || 'N/A';
-});
 
 appointmentSchema.set('toJSON', { virtuals: true });
 appointmentSchema.set('toObject', { virtuals: true });
