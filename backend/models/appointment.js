@@ -156,11 +156,10 @@ appointmentSchema.index({ patient: 1, appointmentDate: -1 });
 appointmentSchema.index({ status: 1 });
 appointmentSchema.index({ tokenNumber: 1 }, { unique: true });
 
-appointmentSchema.pre('save', function (next) {
+appointmentSchema.pre("save", function () {
   if (this.paymentMethod && !this.paymentTimestamp) {
     this.paymentTimestamp = new Date();
   }
-  next();
 });
 
 appointmentSchema.virtual('paymentStatus').get(function () {
