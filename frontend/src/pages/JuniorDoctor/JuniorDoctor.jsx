@@ -59,25 +59,25 @@ export default function JuniorDoctor() {
 
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
-      <div className="w-full">
+      <div className="p-3 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto overflow-x-hidden">
         {/* Title Block */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-[#0F172A] tracking-tight">
+        <div className="mb-9">
+          <h1 className="text-2xl font-semibold text-gray-900">
             Junior Doctor Dashboard
           </h1>
-          <p className="mt-1 text-[#64748B] text-[15px]">
+          <p className="text-sm text-gray-500 mt-1">
             Click a patient to open their assessment page
           </p>
         </div>
 
         {/* Custom Pill Tab Controls */}
-        <div className="flex gap-2 mb-8 bg-[#F1F5F9] p-1.5 rounded-xl w-fit border border-[#E2E8F0]">
+        <div className="flex gap-2 mb-8 p-1.5 ">
           <button
             onClick={() => setActiveTab("assessment")}
-            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+            className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === "assessment"
-                ? "bg-[#0052FF] text-white shadow-sm"
-                : "text-[#64748B] hover:text-[#334155]"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
           >
             For Assessment ({assessmentPatients.length})
@@ -87,8 +87,8 @@ export default function JuniorDoctor() {
             onClick={() => setActiveTab("submitted")}
             className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
               activeTab === "submitted"
-                ? "bg-[#0052FF] text-white shadow-sm"
-                : "text-[#64748B] hover:text-[#334155]"
+                 ? "bg-blue-600 text-white"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
           >
             Waiting / Submitted ({submittedPatients.length})

@@ -60,6 +60,7 @@ export default function Users() {
 
   const initialUserState = {
     fullName: "",
+    employeeId: "",
     dob: "",
     mobile: "",
     email: "",
@@ -74,6 +75,20 @@ export default function Users() {
   };
 
   const [userData, setUserData] = useState(initialUserState);
+
+  const generateEmployeeId = () => {
+    const timestamp = Date.now().toString().slice(-6);
+    const randomSuffix = Math.floor(100 + Math.random() * 900);
+    return `EMP${timestamp}${randomSuffix}`;
+  };
+
+  const getEmployeeId = (user) => {
+    if (user.employeeId) return user.employeeId;
+    if (user.username) {
+      return `EMP-${user.username.slice(0, 3).toUpperCase()}${user._id?.slice(-4) || ""}`;
+    }
+    return `EMP-${user._id?.slice(-6) || "000000"}`;
+  };
 
   // --- API Integrations ---
 
@@ -115,6 +130,12 @@ export default function Users() {
       return;
     }
 
+    const today = new Date().toISOString().split("T")[0];
+    if (userData.dob > today) {
+      setErrorMsg("Date of Birth cannot be in the future.");
+      return;
+    }
+
     if (userData.designation === "Senior Doctor" && !userData.specialization) {
       setErrorMsg("Please select a specialization for the Senior Doctor.");
       return;
@@ -140,6 +161,7 @@ export default function Users() {
       // Build dynamic payload to avoid enum validation errors
       const payload = {
         fullname: userData.fullName,
+        employeeId: userData.employeeId || generateEmployeeId(),
         username: userData.username,
         password: userData.password,
         email: userData.email,
@@ -239,10 +261,17 @@ export default function Users() {
       return;
     }
 
+    const today = new Date().toISOString().split("T")[0];
+    if (editData.dob && editData.dob > today) {
+      setErrorMsg("Date of Birth cannot be in the future.");
+      return;
+    }
+
     try {
       // Build dynamic payload for updates
       const updatePayload = {
         fullname: editData.fullname,
+        employeeId: editData.employeeId,
         mobile: editData.mobile,
         email: editData.email,
         dob: editData.dob,
@@ -358,10 +387,11 @@ export default function Users() {
               <thead className="bg-white border-b border-gray-200">
                 <tr className="text-gray-500 font-semibold uppercase tracking-wider text-xs">
                   <th className="px-5 py-4">Name</th>
+                  <th className="px-5 py-4">Employee ID</th>
                   <th className="px-5 py-4">Designation</th>
                   <th className="px-5 py-4">Mobile</th>
                   <th className="px-5 py-4">Email</th>
-                  <th className="px-5 py-4  ">Actions</th>
+                  <th className="px-5 py-4">Actions</th>
                 </tr>
               </thead>
 
@@ -378,6 +408,9 @@ export default function Users() {
                           {user.specialisation}
                         </div>
                       )}
+                    </td>
+                    <td className="px-5 py-4 text-gray-600 font-medium">
+                      {getEmployeeId(user)}
                     </td>
                     <td className="px-5 py-4 text-gray-700">
                       {reverseRoleMap[user.role] || user.role}
@@ -407,7 +440,7 @@ export default function Users() {
                 {filteredUsers.length === 0 && (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="text-center py-12 text-gray-400 bg-gray-50/30"
                     >
                       No users found matching your criteria.
