@@ -128,26 +128,26 @@ function getPatientPid(appointment) {
 
 // Helper functions for doctor data
 function getDoctorName(appointment, doctorsList) {
-  if (appointment.doctor?.fullname) {
-    return appointment.doctor.fullname;
+  if (appointment.doctor?.name) {
+    return appointment.doctor.name;
   }
   if (appointment.doctorId) {
     const doc = doctorsList?.find((d) => d._id === appointment.doctorId);
-    if (doc) return doc.fullname;
+    if (doc) return doc.name;
   }
   if (appointment.assignedDoctorId) {
     const doc = doctorsList?.find(
       (d) => d._id === appointment.assignedDoctorId,
     );
-    if (doc) return doc.fullname;
+    if (doc) return doc.name;
   }
   if (appointment.assignedDoctorName) {
     const doc = doctorsList?.find(
       (d) =>
         d._id === appointment.assignedDoctorName ||
-        d.fullname === appointment.assignedDoctorName,
+        d.name === appointment.assignedDoctorName,
     );
-    return doc?.fullname || appointment.assignedDoctorName;
+    return doc?.name || appointment.assignedDoctorName;
   }
   return "N/A";
 }
@@ -244,7 +244,7 @@ export default function ManagerDashboard({ role }) {
     paymentTimestamp: null,
     consultationFee: 500,
     registrationFee: 100,
-    from: "OPD",
+    from: "OP",
   });
 
   useEffect(() => {
@@ -450,7 +450,7 @@ export default function ManagerDashboard({ role }) {
       paymentTimestamp: null,
       consultationFee: 500,
       registrationFee: 100,
-      from: "OPD",
+      from: "OP",
     });
     setTimeQuery("");
     setPatientMode("new");
@@ -572,7 +572,7 @@ export default function ManagerDashboard({ role }) {
           newAppointmentData.paymentMethod === "UPI"
             ? newAppointmentData.upiId
             : "", 
-        from: newAppointmentData.from || "OPD",
+        from: newAppointmentData.from || "OP",
       };
 
       console.log(JSON.stringify(appointmentData, null, 2));
@@ -742,8 +742,8 @@ export default function ManagerDashboard({ role }) {
                   >
                     <option value="">All Doctors</option>
                     {doctors.map((doctor) => (
-                      <option key={doctor._id} value={doctor.fullname}>
-                        {doctor.fullname}
+                      <option key={doctor._id} value={doctor.name}>
+                        {doctor.name}
                       </option>
                     ))}
                   </select>
@@ -823,7 +823,7 @@ export default function ManagerDashboard({ role }) {
                                     : "bg-blue-100 text-blue-700 border-blue-200"
                                 }`}
                               >
-                                {a.from || "OPD"}
+                                {a.from || "OP"}
                               </span>
                             </td>
                             <td className="px-5 py-4">
@@ -1353,7 +1353,7 @@ export default function ManagerDashboard({ role }) {
                             >
                               {availableDoctors.map((doc) => (
                                 <option key={doc._id} value={doc._id}>
-                                  {doc.fullname}
+                                  {doc.name}
                                 </option>
                               ))}
                             </select>
@@ -1498,7 +1498,7 @@ export default function ManagerDashboard({ role }) {
                               Doctor
                             </span>
                             <span className="font-semibold text-gray-900">
-                              {selectedDoctorInfo?.fullname || "N/A"}
+                              {selectedDoctorInfo?.name || "N/A"}
                             </span>
                           </div>
                           <div className="w-px h-8 bg-blue-200"></div>
@@ -1634,7 +1634,7 @@ export default function ManagerDashboard({ role }) {
                             <div className="flex justify-between">
                               <span className="text-gray-500">Doctor</span>
                               <span className="text-gray-900 font-medium">
-                                {selectedDoctorInfo?.fullname || "N/A"}
+                                {selectedDoctorInfo?.name || "N/A"}
                               </span>
                             </div>
                             <div className="flex justify-between">
@@ -1930,7 +1930,7 @@ export default function ManagerDashboard({ role }) {
                 Doctor
               </span>
               <span className="font-bold text-gray-900">
-                {selectedDoctorInfo?.fullname || "N/A"}
+                {selectedDoctorInfo?.name || "N/A"}
               </span>
             </div>
             <div className="flex justify-between border-b border-gray-100 pb-3">

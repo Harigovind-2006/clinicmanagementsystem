@@ -74,8 +74,8 @@ const appointmentSchema = new mongoose.Schema(
     },
     from: {
       type: String,
-      enum: ["OPD", "IP"],
-      default: "OPD",
+      enum: ["OP", "IP"],
+      default: "OP",
     },
     roomNumber: {
       type: mongoose.Schema.Types.ObjectId,
