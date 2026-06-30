@@ -279,7 +279,7 @@ export default function PatientAssessment() {
               <p><strong>PID:</strong> {patient.patient?.pid || "N/A"}</p>
               <p><strong>Name:</strong> {patient.patient?.name || "Unknown"}</p>
               <p><strong>Doctor:</strong> {patient.doctor?.fullname || "N/A"}</p>
-              <p><strong>Specialization:</strong> {patient.doctor?.specialisation || "N/A"}</p>
+              <p><strong>Specialization:</strong> {patient.doctor?.specialization || "N/A"}</p>
               <p><strong>Token:</strong> #{patient.tokenNumber || "N/A"}</p>
               <p><strong>Date:</strong> {patient.appointmentDate ? new Date(patient.appointmentDate).toLocaleDateString() : "N/A"}</p>
               <p><strong>Time:</strong> {patient.appointmentTime || "N/A"}</p>

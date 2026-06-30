@@ -116,7 +116,7 @@ export default function Users() {
     }
 
     if (
-      !userData.fullName.trim() ||
+      !userData.name.trim() ||
       !userData.dob ||
       !userData.mobile.trim() ||
       !userData.email.trim() ||
@@ -256,7 +256,7 @@ export default function Users() {
       return;
     }
 
-    if (!editData.fullname || !editData.mobile || !editData.email) {
+    if (!editData.name || !editData.mobile || !editData.email) {
       setErrorMsg("Name, Mobile, and Email are mandatory.");
       return;
     }
@@ -283,7 +283,7 @@ export default function Users() {
 
       // Only attach specialization if the role is Senior Doctor
       if (updatePayload.role === "seniordoctor") {
-        updatePayload.specialization = editData.specialisation || editData.specialization;
+        updatePayload.specialization = editData.specialization || editData.specialization;
       }
 
       const response = await fetch(
@@ -312,7 +312,7 @@ export default function Users() {
   // --- Search Filtering Processing ---
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      (user.fullname || "").toLowerCase().includes(search.toLowerCase()) ||
+      (user.name || "").toLowerCase().includes(search.toLowerCase()) ||
       (user.email || "").toLowerCase().includes(search.toLowerCase());
 
     const mappedFilterDesignation = roleMap[designation];
@@ -402,10 +402,10 @@ export default function Users() {
                     className="hover:bg-gray-50/50 transition-colors"
                   >
                     <td className="px-5 py-4 font-medium text-gray-900">
-                      <div>{user.fullname}</div>
-                      {user.specialisation && user.specialisation !== "-" && (
+                      <div>{user.name}</div>
+                      {user.specialization && user.specialization !== "-" && (
                         <div className="text-xs text-gray-500 italic mt-0.5">
-                          {user.specialisation}
+                          {user.specialization}
                         </div>
                       )}
                     </td>
@@ -518,11 +518,11 @@ export default function Users() {
                       </label>
                       <input
                         type="text"
-                        value={userData.fullName}
+                        value={userData.name}
                         onChange={(e) => {
                           setUserData({
                             ...userData,
-                            fullName: e.target.value,
+                            name: e.target.value,
                           });
                           setErrorMsg("");
                         }}
@@ -724,7 +724,7 @@ export default function Users() {
                           Account For
                         </p>
                         <p className="text-sm font-bold text-gray-900">
-                          {userData.fullName}
+                          {userData.name}
                         </p>
                       </div>
                       <div className="flex-1 border-l border-blue-200 pl-4">
@@ -861,9 +861,9 @@ export default function Users() {
                     </label>
                     <input
                       type="text"
-                      value={editData.fullname || ""}
+                      value={editData.name || ""}
                       onChange={(e) => {
-                        setEditData({ ...editData, fullname: e.target.value });
+                        setEditData({ ...editData, name: e.target.value });
                         setErrorMsg("");
                       }}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -973,7 +973,7 @@ export default function Users() {
                         setEditData({
                           ...editData,
                           role: e.target.value,
-                          specialisation: "-",
+                          specialization: "-",
                         })
                       }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -993,11 +993,11 @@ export default function Users() {
                         Specialization <span className="text-red-500">*</span>
                       </label>
                       <select
-                        value={editData.specialisation || ""}
+                        value={editData.specialization || ""}
                         onChange={(e) =>
                           setEditData({
                             ...editData,
-                            specialisation: e.target.value,
+                            specialization: e.target.value,
                           })
                         }
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"

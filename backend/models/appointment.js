@@ -41,9 +41,13 @@ const appointmentSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Doctor reference is required"],
     },
+    specialization: {
+      type: String,
+      required: true,
+    },
     status: {
       type: String,
-      enum: ["waiting", "scheduled", "completed", "in-progress", "follow-up"],
+      enum: ["waiting", "scheduled", "completed", "in-progress"],
       default: "waiting",
     },
     appointmentDate: {
@@ -70,14 +74,14 @@ const appointmentSchema = new mongoose.Schema(
     },
     from: {
       type: String,
-      enum: ["OPD", "IP"],
-      default: "OPD",
+      enum: ["OP", "IP"],
+      default: "OP",
     },
     roomNumber: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Room', 
+      ref: 'Room',
       required: [
-        function() {
+        function () {
           return this.patientType === "ip";
         },
         "Room number is required for In-Patients (ip)"
@@ -97,6 +101,11 @@ const appointmentSchema = new mongoose.Schema(
       type: Number,
       default: 500,
       min: [0, "Consultation fee cannot be negative"],
+    },
+    registrationFee: {
+      type: Number,
+      default: 150,
+      min: 0,
     },
     paymentTimestamp: {
       type: Date,
@@ -147,27 +156,19 @@ appointmentSchema.index({ patient: 1, appointmentDate: -1 });
 appointmentSchema.index({ status: 1 });
 appointmentSchema.index({ tokenNumber: 1 }, { unique: true });
 
-appointmentSchema.pre('save', function(next) {
+appointmentSchema.pre("save", function () {
   if (this.paymentMethod && !this.paymentTimestamp) {
     this.paymentTimestamp = new Date();
   }
-  next();
 });
 
-appointmentSchema.virtual('paymentStatus').get(function() {
+appointmentSchema.virtual('paymentStatus').get(function () {
   if (this.paymentMethod && this.paymentTimestamp) {
     return 'Paid';
   }
   return 'Pending';
 });
 
-appointmentSchema.virtual('assignedDoctorName').get(function() {
-  return this.doctor; 
-});
-
-appointmentSchema.virtual('specialization').get(function() {
-  return this.doctor?.specialisation || 'N/A';
-});
 
 appointmentSchema.set('toJSON', { virtuals: true });
 appointmentSchema.set('toObject', { virtuals: true });
