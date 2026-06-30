@@ -198,7 +198,7 @@ function getDischargePending(discharge) {
 export default function ManagerDashboard({ role }) {
   const [search, setSearch] = useState("");
   const today = new Date().toISOString().split("T")[0];
-  const [selectedDate, setSelectedDate] = useState(today); // Default to today
+  const [selectedDate, setSelectedDate] = useState(today);
   const [selectedDoctor, setSelectedDoctor] = useState("");
   const [tab, setTab] = useState("appointments");
   const [appointments, setAppointments] = useState([]);
@@ -229,7 +229,7 @@ export default function ManagerDashboard({ role }) {
     bloodGroup: "O+",
     address: "",
     specialization: specializationsList[0],
-    assignedDoctorId: "", // Changed from assignedDoctorName
+    assignedDoctorId: "",
     appointmentDate: todayDate,
     appointmentTime: "",
     paymentMethod: "Cash",
@@ -237,6 +237,7 @@ export default function ManagerDashboard({ role }) {
     tokenNumber: null,
     paymentTimestamp: null,
     consultationFee: 500,
+    registrationFee: 100,
     from: "OPD",
   });
 
@@ -327,7 +328,7 @@ export default function ManagerDashboard({ role }) {
   );
 
   const availableDoctors = doctors.filter(
-    (d) => d.specialisation === newAppointmentData.specialization, // British spelling
+    (d) => d.specialisation === newAppointmentData.specialization,
   );
 
   const getAvailableTimeSlots = () => {
@@ -419,6 +420,7 @@ export default function ManagerDashboard({ role }) {
       tokenNumber: null,
       paymentTimestamp: null,
       consultationFee: 500,
+      registrationFee: 100,
       from: "OPD",
     });
     setTimeQuery("");
@@ -487,6 +489,9 @@ export default function ManagerDashboard({ role }) {
     }
   };
 
+  // ============================================================
+  // CRITICAL FIX: This is the main function that creates the appointment
+  // ============================================================
   const saveNewAppointment = async () => {
     try {
       setLoading(true);
@@ -495,12 +500,13 @@ export default function ManagerDashboard({ role }) {
         timeStyle: "short",
       });
 
-      let patientId = newAppointmentData.pid;
+      let patientId;
 
       if (patientMode === "new") {
+        // Create new patient
         const patientData = {
           name: newAppointmentData.name,
-          mobilePhone: newAppointmentData.mobilePhone, // Fixed: was using phone
+          mobilePhone: newAppointmentData.mobilePhone,
           email: newAppointmentData.email,
           dob: newAppointmentData.dob,
           gender: newAppointmentData.gender,
@@ -517,37 +523,39 @@ export default function ManagerDashboard({ role }) {
           pid: patientId,
           paymentTimestamp,
         }));
+      } else {
+        // Use existing patient ID
+        patientId = newAppointmentData.pid;
       }
 
+      // ============================================================
+      // CORRECT APPOINTMENT DATA STRUCTURE - MATCHES BACKEND MODEL
+      // ============================================================
       const appointmentData = {
-        patient: patientId,
-        doctor: newAppointmentData.assignedDoctorId,
-        specialization: newAppointmentData.specialization,
+        patient: patientId, // ✅ Backend expects 'patient'
+        doctor: newAppointmentData.assignedDoctorId, // ✅ Backend expects 'doctor'
+        specialisation: newAppointmentData.specialization, // ✅ Backend expects 'specialisation' (British spelling)
         appointmentDate: newAppointmentData.appointmentDate,
         appointmentTime: newAppointmentData.appointmentTime,
         paymentMethod: newAppointmentData.paymentMethod,
-        upiId: newAppointmentData.upiId || undefined,
         consultationFee: newAppointmentData.consultationFee,
-        from: newAppointmentData.from || "OP",
-        registrationFee,
-        totalAmount: consultationFee + registrationFee,
+        registrationFee:
+          patientMode === "new"
+            ? newAppointmentData.registrationFee
+            : 0, // ✅ Only for new patients
+        upiId:
+          newAppointmentData.paymentMethod === "UPI"
+            ? newAppointmentData.upiId
+            : "", // ✅ Only for UPI payments
+        from: newAppointmentData.from || "OPD",
       };
 
-      if (newAppointmentData.isNewPatient) {
-        appointmentData.registrationFee = newAppointmentData.registrationFee;
-      }
-
-      // Add UPI ID only if payment method is UPI
-      if (newAppointmentData.paymentMethod === "UPI") {
-        appointmentData.upiId = newAppointmentData.upiId;
-      }
-
-      console.log("Patient ID:", patientId);
-      console.log("Appointment Data:", appointmentData);
+      console.log(JSON.stringify(appointmentData, null, 2));
 
       const appointmentRes = await api.post("/appoinmentapi", appointmentData);
       const newAppointment = appointmentRes.data.data || appointmentRes.data;
 
+      // ✅ Read patient.pid from response (not patientId)
       setNewAppointmentData((prev) => ({
         ...prev,
         tokenNumber: newAppointment.tokenNumber,
@@ -556,8 +564,9 @@ export default function ManagerDashboard({ role }) {
 
       setWizardStep(4);
       fetchAppointments();
+      setErrorMsg("");
     } catch (err) {
-      console.error("Error saving appointment:", err);
+      console.error("❌ Error saving appointment:", err);
       setErrorMsg(getErrorMessage(err));
     } finally {
       setLoading(false);
@@ -1219,7 +1228,7 @@ export default function ManagerDashboard({ role }) {
                                         onClick={() => {
                                           setNewAppointmentData({
                                             ...newAppointmentData,
-                                            pid: patient._id || patient.pid,
+                                            pid: patient._id,
                                             name: patient.name,
                                             mobilePhone: patient.mobilePhone,
                                           });
@@ -1481,6 +1490,14 @@ export default function ManagerDashboard({ role }) {
                             Fee Breakdown
                           </div>
                           <div className="p-4 space-y-3">
+                            {patientMode === "new" && (
+                              <div className="flex justify-between text-sm text-gray-600">
+                                <span>Registration Fee</span>
+                                <span className="font-medium text-gray-900">
+                                  Rs. {newAppointmentData.registrationFee}
+                                </span>
+                              </div>
+                            )}
                             <div className="flex justify-between text-sm text-gray-600">
                               <span>Consultation Fee</span>
                               <span className="font-medium text-gray-900">
@@ -1490,7 +1507,11 @@ export default function ManagerDashboard({ role }) {
                             <div className="flex justify-between text-base font-semibold text-blue-700 bg-blue-50 p-3 rounded-lg -mx-2">
                               <span>Amount to Collect</span>
                               <span>
-                                Rs. {newAppointmentData.consultationFee}
+                                Rs.{" "}
+                                {newAppointmentData.consultationFee +
+                                  (patientMode === "new"
+                                    ? newAppointmentData.registrationFee
+                                    : 0)}
                               </span>
                             </div>
                           </div>
@@ -1610,7 +1631,13 @@ export default function ManagerDashboard({ role }) {
                               <span>
                                 Paid via {newAppointmentData.paymentMethod}
                               </span>
-                              <span>₹{newAppointmentData.consultationFee}</span>
+                              <span>
+                                ₹
+                                {newAppointmentData.consultationFee +
+                                  (patientMode === "new"
+                                    ? newAppointmentData.registrationFee
+                                    : 0)}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1888,7 +1915,17 @@ export default function ManagerDashboard({ role }) {
               </span>
             </div>
 
-            <div className="flex justify-between pt-6 mt-4">
+            {patientMode === "new" && (
+              <div className="flex justify-between border-b border-gray-100 pb-3">
+                <span className="font-semibold text-gray-500 uppercase tracking-wide text-sm">
+                  Registration Fee
+                </span>
+                <span className="font-medium text-gray-900">
+                  Rs. {newAppointmentData.registrationFee}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between border-b border-gray-100 pb-3">
               <span className="font-semibold text-gray-500 uppercase tracking-wide text-sm">
                 Consultation Fee
               </span>
@@ -1896,9 +1933,14 @@ export default function ManagerDashboard({ role }) {
                 Rs. {newAppointmentData.consultationFee}
               </span>
             </div>
+
             <div className="flex justify-between font-bold text-xl pt-4 border-t-2 border-gray-800 mt-2">
               <span>Total Paid ({newAppointmentData.paymentMethod})</span>
-              <span>Rs. {newAppointmentData.consultationFee}</span>
+              <span>
+                Rs.{" "}
+                {newAppointmentData.consultationFee +
+                  (patientMode === "new" ? newAppointmentData.registrationFee : 0)}
+              </span>
             </div>
           </div>
 
