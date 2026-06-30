@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import Layout from "../../components/Layout"; 
+import Layout from "../../components/Layout";
 import PatientVisitTabs from "./PatientVisitTabs";
 import api from "../../api/axios";
 
@@ -41,17 +41,15 @@ export default function PatientDetails() {
         setPatientData(patientRes.data);
 
         // Fetch patient history/appointments
-        const historyRes = await api.get(
-          `/appoinmentapi/history/${id}`
-        );
+        const historyRes = await api.get(`/appoinmentapi/history/${id}`);
 
         const appointments = historyRes.data.data || historyRes.data || [];
-        
+
         // ✅ Sort appointments by createdAt (newest first)
         appointments.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
         );
-        
+
         setHistory(appointments);
 
         // Set the most recent appointment as current
@@ -77,16 +75,12 @@ export default function PatientDetails() {
   // --- Handlers for Editing ---
   const handleSave = async () => {
     try {
-      const { data } = await api.put(
-        `/patientapi/${id}`,
-        editForm
-      );
+      const { data } = await api.put(`/patientapi/${id}`, editForm);
 
       setPatientData(data);
       setEditForm(data);
       setIsEditing(false);
       setError("");
-
     } catch (error) {
       console.error("Error saving patient data:", error);
       setError("Failed to save changes. Please try again.");
@@ -203,7 +197,7 @@ export default function PatientDetails() {
         {/* --- Unified Tabs Component --- */}
         {hasAdvancedAccess && (
           <PatientVisitTabs
-            pid={patientData.pid}
+            id={id} // ✅ Pass 'id', NOT 'pid'
             historyCount={history.length}
             activeTab="current"
           />
@@ -354,9 +348,11 @@ export default function PatientDetails() {
                       Registered
                     </span>
                     <input
-                      value={patientData.createdAt 
-                        ? new Date(patientData.createdAt).toLocaleDateString() 
-                        : "-"}
+                      value={
+                        patientData.createdAt
+                          ? new Date(patientData.createdAt).toLocaleDateString()
+                          : "-"
+                      }
                       disabled
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
                     />
@@ -464,21 +460,24 @@ export default function PatientDetails() {
                 </h2>
 
                 <div className="flex-1 overflow-y-auto pr-2 -mr-2">
-                  {appointment?.vitals && Object.keys(appointment.vitals).length > 0 ? (
+                  {appointment?.vitals &&
+                  Object.keys(appointment.vitals).length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                      {Object.entries(appointment.vitals).map(([label, value]) => (
-                        <div
-                          key={label}
-                          className="bg-blue-50/50 border border-blue-100/50 rounded-xl p-4 flex flex-col justify-center"
-                        >
-                          <p className="text-xs sm:text-sm text-gray-500 mb-1 capitalize">
-                            {label.replace(/([A-Z])/g, ' $1').trim()}
-                          </p>
-                          <p className="text-base sm:text-lg font-bold text-gray-900">
-                            {value}
-                          </p>
-                        </div>
-                      ))}
+                      {Object.entries(appointment.vitals).map(
+                        ([label, value]) => (
+                          <div
+                            key={label}
+                            className="bg-blue-50/50 border border-blue-100/50 rounded-xl p-4 flex flex-col justify-center"
+                          >
+                            <p className="text-xs sm:text-sm text-gray-500 mb-1 capitalize">
+                              {label.replace(/([A-Z])/g, " $1").trim()}
+                            </p>
+                            <p className="text-base sm:text-lg font-bold text-gray-900">
+                              {value}
+                            </p>
+                          </div>
+                        ),
+                      )}
                     </div>
                   ) : (
                     <div className="flex items-center justify-center h-full text-gray-400">
@@ -520,7 +519,9 @@ export default function PatientDetails() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-                  <span className="text-gray-500 font-medium">Payment Method</span>
+                  <span className="text-gray-500 font-medium">
+                    Payment Method
+                  </span>
                   <span className="font-semibold text-gray-900">
                     {appointment?.paymentMethod || "-"}
                   </span>
@@ -534,13 +535,17 @@ export default function PatientDetails() {
                   </div>
                 )}
                 <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-                  <span className="text-gray-500 font-medium">Consultation Fee</span>
+                  <span className="text-gray-500 font-medium">
+                    Consultation Fee
+                  </span>
                   <span className="font-semibold text-gray-900">
                     ₹{appointment?.consultationFee || 0}
                   </span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-                  <span className="text-gray-500 font-medium">Registration Fee</span>
+                  <span className="text-gray-500 font-medium">
+                    Registration Fee
+                  </span>
                   <span className="font-semibold text-gray-900">
                     ₹{appointment?.registrationFee || 0}
                   </span>
@@ -548,7 +553,9 @@ export default function PatientDetails() {
                 <div className="flex justify-between items-center pt-1">
                   <span className="text-gray-500 font-medium">Total Bill</span>
                   <span className="font-semibold text-gray-900">
-                    ₹{(appointment?.consultationFee || 0) + (appointment?.registrationFee || 0)}
+                    ₹
+                    {(appointment?.consultationFee || 0) +
+                      (appointment?.registrationFee || 0)}
                   </span>
                 </div>
               </div>
@@ -590,13 +597,17 @@ export default function PatientDetails() {
                   <span className="text-gray-500 font-medium">Date</span>
                   <span className="font-semibold text-gray-900">
                     {appointment?.appointmentDate
-                      ? new Date(appointment.appointmentDate).toLocaleDateString()
+                      ? new Date(
+                          appointment.appointmentDate,
+                        ).toLocaleDateString()
                       : "-"}
                   </span>
                 </div>
                 {appointment?.complaints && (
                   <div className="flex flex-col items-start pb-3 border-b border-gray-100">
-                    <span className="text-gray-500 font-medium mb-1">Chief Complaint</span>
+                    <span className="text-gray-500 font-medium mb-1">
+                      Chief Complaint
+                    </span>
                     <p className="text-gray-900 text-sm">
                       {appointment.complaints}
                     </p>
@@ -625,7 +636,8 @@ export default function PatientDetails() {
               </h2>
               <div className="bg-blue-50/50 border border-blue-100/50 rounded-xl p-5 max-h-48 overflow-y-auto flex-1">
                 <p className="text-base sm:text-lg text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {appointment?.jdObservations || "No junior doctor observations recorded"}
+                  {appointment?.jdObservations ||
+                    "No junior doctor observations recorded"}
                 </p>
               </div>
             </div>
@@ -637,7 +649,8 @@ export default function PatientDetails() {
               </h2>
               <div className="bg-yellow-50/50 border border-yellow-100/50 rounded-xl p-5 max-h-48 overflow-y-auto flex-1">
                 <p className="text-base sm:text-lg text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {appointment?.sdObservations || "No senior doctor observations recorded"}
+                  {appointment?.sdObservations ||
+                    "No senior doctor observations recorded"}
                 </p>
               </div>
             </div>
@@ -645,46 +658,58 @@ export default function PatientDetails() {
         )}
 
         {/* Procedures Section */}
-        {hasAdvancedAccess && appointment?.procedure && appointment.procedure.length > 0 && (
-          <div className="mt-6 bg-white border border-gray-200 shadow-sm rounded-2xl p-5 sm:p-6 lg:p-8">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-900">
-              Procedures
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {appointment.procedure.map((proc, index) => (
-                <div key={index} className="bg-purple-50/50 border border-purple-100/50 rounded-xl p-4">
-                  <p className="font-semibold text-gray-900">{proc.procedureName || proc}</p>
-                  {proc.amount && (
-                    <p className="text-sm text-gray-600">₹{proc.amount}</p>
-                  )}
-                </div>
-              ))}
+        {hasAdvancedAccess &&
+          appointment?.procedure &&
+          appointment.procedure.length > 0 && (
+            <div className="mt-6 bg-white border border-gray-200 shadow-sm rounded-2xl p-5 sm:p-6 lg:p-8">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-900">
+                Procedures
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {appointment.procedure.map((proc, index) => (
+                  <div
+                    key={index}
+                    className="bg-purple-50/50 border border-purple-100/50 rounded-xl p-4"
+                  >
+                    <p className="font-semibold text-gray-900">
+                      {proc.procedureName || proc}
+                    </p>
+                    {proc.amount && (
+                      <p className="text-sm text-gray-600">₹{proc.amount}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Medicines Section */}
-        {hasAdvancedAccess && appointment?.medicine && appointment.medicine.length > 0 && (
-          <div className="mt-6 bg-white border border-gray-200 shadow-sm rounded-2xl p-5 sm:p-6 lg:p-8">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-900">
-              Prescribed Medicines
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {appointment.medicine.map((med, index) => (
-                <div key={index} className="bg-green-50/50 border border-green-100/50 rounded-xl p-4">
-                  <p className="font-semibold text-gray-900">
-                    {med.medicine?.medicinename || med.medicine || "Unknown"}
-                  </p>
-                  <div className="mt-1 text-sm text-gray-600 space-y-1">
-                    {med.days && <p>Duration: {med.days} days</p>}
-                    {med.frequency && <p>Frequency: {med.frequency}</p>}
-                    {med.quantity && <p>Quantity: {med.quantity}</p>}
+        {hasAdvancedAccess &&
+          appointment?.medicine &&
+          appointment.medicine.length > 0 && (
+            <div className="mt-6 bg-white border border-gray-200 shadow-sm rounded-2xl p-5 sm:p-6 lg:p-8">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-900">
+                Prescribed Medicines
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {appointment.medicine.map((med, index) => (
+                  <div
+                    key={index}
+                    className="bg-green-50/50 border border-green-100/50 rounded-xl p-4"
+                  >
+                    <p className="font-semibold text-gray-900">
+                      {med.medicine?.medicinename || med.medicine || "Unknown"}
+                    </p>
+                    <div className="mt-1 text-sm text-gray-600 space-y-1">
+                      {med.days && <p>Duration: {med.days} days</p>}
+                      {med.frequency && <p>Frequency: {med.frequency}</p>}
+                      {med.quantity && <p>Quantity: {med.quantity}</p>}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </Layout>
   );
