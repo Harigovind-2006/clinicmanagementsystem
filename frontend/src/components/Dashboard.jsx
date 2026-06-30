@@ -156,7 +156,6 @@ function getSpecialization(appointment, doctorsList) {
   if (appointment.doctor?.specialization) {
     return appointment.doctor.specialization;
   }
-  // FIXED: Check for specialisation (British spelling) first
   if (appointment.specialization) {
     return appointment.specialization;
   }
@@ -558,23 +557,21 @@ export default function ManagerDashboard({ role }) {
         patientId = newAppointmentData.pid;
       }
 
-      // ============================================================
-      // CORRECT APPOINTMENT DATA STRUCTURE - MATCHES BACKEND MODEL
-      // ============================================================
+      
       const appointmentData = {
-        patient: patientId, // ✅ Backend expects 'patient'
-        doctor: newAppointmentData.assignedDoctorId, // ✅ Backend expects 'doctor'
-        specialization: newAppointmentData.specialization, // ✅ Backend expects 'specialisation' (British spelling)
+        patient: patientId, 
+        doctor: newAppointmentData.assignedDoctorId, 
+        specialization: newAppointmentData.specialization, 
         appointmentDate: newAppointmentData.appointmentDate,
         appointmentTime: newAppointmentData.appointmentTime,
         paymentMethod: newAppointmentData.paymentMethod,
         consultationFee: newAppointmentData.consultationFee,
         registrationFee:
-          patientMode === "new" ? newAppointmentData.registrationFee : 0, // ✅ Only for new patients
+          patientMode === "new" ? newAppointmentData.registrationFee : 0, 
         upiId:
           newAppointmentData.paymentMethod === "UPI"
             ? newAppointmentData.upiId
-            : "", // ✅ Only for UPI payments
+            : "", 
         from: newAppointmentData.from || "OPD",
       };
 
