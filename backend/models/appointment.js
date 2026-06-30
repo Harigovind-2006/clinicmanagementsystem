@@ -102,6 +102,11 @@ const appointmentSchema = new mongoose.Schema(
       default: 500,
       min: [0, "Consultation fee cannot be negative"],
     },
+    registrationFee: {
+      type: Number,
+      default: 150,
+      min: 0,
+    },
     paymentTimestamp: {
       type: Date,
       default: null,
