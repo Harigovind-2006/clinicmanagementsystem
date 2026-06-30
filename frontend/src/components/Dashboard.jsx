@@ -520,8 +520,8 @@ export default function ManagerDashboard({ role }) {
       }
 
       const appointmentData = {
-        patient: patientId, // Changed from patientId
-        doctor: newAppointmentData.assignedDoctorId, // Changed from doctorId
+        patient: patientId,
+        doctor: newAppointmentData.assignedDoctorId,
         specialization: newAppointmentData.specialization,
         appointmentDate: newAppointmentData.appointmentDate,
         appointmentTime: newAppointmentData.appointmentTime,
@@ -530,6 +530,15 @@ export default function ManagerDashboard({ role }) {
         consultationFee: newAppointmentData.consultationFee,
         from: newAppointmentData.from || "OP",
       };
+
+      if (newAppointmentData.isNewPatient) {
+        appointmentData.registrationFee = newAppointmentData.registrationFee;
+      }
+
+      // Add UPI ID only if payment method is UPI
+      if (newAppointmentData.paymentMethod === "UPI") {
+        appointmentData.upiId = newAppointmentData.upiId;
+      }
 
       const appointmentRes = await api.post("/appoinmentapi", appointmentData);
       const newAppointment = appointmentRes.data.data || appointmentRes.data;
