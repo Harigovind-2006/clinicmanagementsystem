@@ -41,7 +41,7 @@ const appointmentSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Doctor reference is required"],
     },
-    specialisation: {
+    specialization: {
       type: String,
       required: true,
     },
