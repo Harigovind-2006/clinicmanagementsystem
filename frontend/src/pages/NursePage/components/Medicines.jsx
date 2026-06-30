@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import api from "../../../api/axios";
 
 export default function Medicines({ isSeniorDoctor = false }) {
   const [search, setSearch] = useState("");
@@ -7,19 +8,23 @@ export default function Medicines({ isSeniorDoctor = false }) {
 
   const [days, setDays] = useState("");
   const [frequency, setFrequency] = useState("");
-
+  const [medicineMaster, setMedicineMaster] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
   const dropdownRef = useRef(null);
 
-  const medicineMaster = [
-    { name: "Paracetamol", scientificName: "Acetaminophen" },
-    { name: "Augmentin", scientificName: "Amoxicillin + Clavulanic Acid" },
-    { name: "Azithral", scientificName: "Azithromycin" },
-    { name: "Crocin", scientificName: "Acetaminophen" },
-    { name: "Metformin", scientificName: "Metformin Hydrochloride" },
-    { name: "Aspirin", scientificName: "Acetylsalicylic Acid" },
-  ];
-
+  useEffect(() => {
+    // Fetch medicine master data from the API
+    const fetchMedicineMaster = async () => { 
+      try {
+        const response = await api.get(`/medicineapi/`);
+        const data = response.data;
+        setMedicineMaster(data);
+      } catch (error) {
+        console.error("Error fetching medicine master data:", error);
+      }
+    };
+    fetchMedicineMaster();
+  }, []);
   // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event) {
@@ -32,7 +37,7 @@ export default function Medicines({ isSeniorDoctor = false }) {
   }, []);
 
   const filteredMedicines = medicineMaster.filter((med) =>
-    med.name.toLowerCase().includes(search.toLowerCase())
+    med.medicinename.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleAddMedicine = () => {
@@ -57,8 +62,8 @@ export default function Medicines({ isSeniorDoctor = false }) {
     // Latest prescription is prepended to show at the top of the table list
     setPrescriptions([
       {
-        medicine: medicine.name,
-        scientificName: medicine.scientificName,
+        medicinename: medicine.medicinename,
+        scientificname: medicine.scientificname,
         days: parsedDays,
         frequency: frequency.trim(),
         given: false,

@@ -17,7 +17,7 @@ export default function MedicineInventory() {
   const [showRestockModal, setShowRestockModal] = useState(false);
   const [restockMedicine, setRestockMedicine] = useState(null);
   const [restockQty, setRestockQty] = useState("");
-  const isManager = userRole === "manager" || userRole === "pharmacist";
+  const isManager = userRole === "manager" ;
 
   const [form, setForm] = useState({
     medicinename: "",
@@ -31,7 +31,7 @@ export default function MedicineInventory() {
       try {
         const userId = localStorage.getItem("userId");
         if (!userId) return;
-        const { data } = await api.get(`/userapi/userget/${userId}`);
+        const { data } = await api.get(`/userapi/${userId}`);
         setUserRole(data.role);
       } catch (err) {
         console.error("Failed to fetch user role:", err);
@@ -355,8 +355,10 @@ export default function MedicineInventory() {
                         >
                           Restock
                         </button>
+                        
 
                         {isManager && (
+                          
                           <button
                             onClick={() => openEditModal(medicine)}
                             title="Edit Medicine"

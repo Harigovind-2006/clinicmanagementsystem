@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Counter from "./counter.js"
 
 const BillDetailsSchema = new mongoose.Schema({
   billName: {
@@ -76,6 +77,11 @@ const patientSchema = new mongoose.Schema({
     type: Map,
     of: BillDetailsSchema,
     default: {}
+  },
+  patientType:{
+    type:String,
+    enum:["op","ip"],
+    default:"op"
   }
 }, 
 {

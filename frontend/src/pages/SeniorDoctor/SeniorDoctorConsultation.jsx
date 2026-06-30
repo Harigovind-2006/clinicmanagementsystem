@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Layout from "../../components/Layout";
 import Medicines from "../NursePage/components/Medicines";
 import Procedure from "../NursePage/components/Procedure";
+import api from "../../api/axios";
 
 export default function SeniorDoctorConsultation() {
+  const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -13,51 +15,166 @@ export default function SeniorDoctorConsultation() {
   const [nurseInstructions, setNurseInstructions] = useState("");
   const [saved, setSaved] = useState(false);
   const [patientType, setPatientType] = useState("OP");
+  const [patient, setPatient] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const [medicinesAdded, setMedicinesAdded] = useState(true); 
+  const [medicinesAdded, setMedicinesAdded] = useState(true);
   const [proceduresAdded, setProceduresAdded] = useState(true);
 
-  const patient = location.state || {
-    pid: "P005",
-    pname: "Suresh Rao",
-    dob: "12/05/1995",
-    gender: "Male",
-    blood: "AB+",
-    phone: "9876543210",
-    bp: "120/80",
-    pulse: "72 bpm",
-    temp: "98.6°F",
-    weight: "75 kg",
-    observations: "Patient is responding well to treatment. Vital signs are steady with normal parameters maintained over a 24-hour cycle. Cardiovascular sounds are normal; no peripheral edema noted. Continued tracking is advised.",
-    complaints: "Patient presents with recurrent sub-sternal chest tightness radiating slightly to the left shoulder, primarily brought on by physical exertion over the last 3 weeks. Reports experiencing progressive generalized fatigue, frequent unprovoked morning lethargy, and dynamic lightheadedness upon standing quickly from a recumbent posture. Notes intermittent nocturnal dyspnea and minor sleep disruptions.",
-    token: "4",
-    time: "11:00 AM",
-    date: "21/06/2026",
+  // Fetch appointment data on component mount
+  useEffect(() => {
+    if (id) {
+      fetchAppointment();
+    } else if (location.state) {
+      // Fallback to location state if available
+      setPatient(location.state);
+      setLoading(false);
+    } else {
+      setErrorMsg("No patient data found");
+      setLoading(false);
+    }
+  }, [id, location.state]);
+
+  const fetchAppointment = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg("");
+      const res = await api.get(`/appoinmentapi/${id}`);
+      const appointment = res.data;
+      
+      console.log("Appointment Response:", appointment);
+
+      // Convert vitals Map to normal object if needed
+      const vitals =
+        appointment.vitals instanceof Map
+          ? Object.fromEntries(appointment.vitals)
+          : appointment.vitals || {};
+
+      // Option 1: Keep doctor as object
+      const patientData = {
+        _id: appointment._id,
+        pid: appointment.patient?.pid || "N/A",
+        pname: appointment.patient?.name || "Unknown",
+        dob: appointment.patient?.dob 
+          ? new Date(appointment.patient.dob).toLocaleDateString() 
+          : "N/A",
+        gender: appointment.patient?.gender || "N/A",
+        blood: appointment.patient?.bloodGroup || "N/A",
+        phone: appointment.patient?.mobilePhone || "N/A",
+
+        token: appointment.tokenNumber,
+        time: appointment.appointmentTime,
+        date: appointment.appointmentDate 
+          ? new Date(appointment.appointmentDate).toLocaleDateString() 
+          : "N/A",
+
+        // Store the FULL doctor object (includes fullname, specialisation, etc.)
+        doctor: appointment.doctor || null,
+        
+        // Store specialization separately for easy access
+        specialization: appointment.doctor?.specialisation || "N/A",
+
+        complaints: appointment.complaints || "",
+        observations: appointment.jdObservations || "",
+
+        bp: vitals["Blood Pressure"] || "N/A",
+        pulse: vitals["Pulse Rate"] || "N/A",
+        temp: vitals["Temperature"] || "N/A",
+        weight: vitals["Weight"] || "N/A",
+
+        status: appointment.status || "scheduled",
+        patientType: appointment.patientType || "OP",
+      };
+
+      setPatient(patientData);
+      setPatientType(patientData.patientType === "ip" ? "IP" : "OP");
+      
+      setConsultation(appointment.sdObservations || "");
+      setNurseInstructions(appointment.nurseNote || "");
+
+    } catch (error) {
+      console.error("Error fetching appointment:", error);
+      setErrorMsg(error.response?.data?.message || "Failed to load patient data. Please try again.");
+      setPatient(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!patient) {
+      setErrorMsg("No patient data available");
+      return;
+    }
+
     if (!consultation.trim()) {
-      alert("Please complete the Consultation Notes field before saving.");
+      setErrorMsg("Please complete the Consultation Notes field before saving.");
       return;
     }
 
     if (patientType === "IP") {
       if (!nurseInstructions.trim()) {
-        alert("Instructions to Nurse are mandatory for IP admissions.");
-        return;
-      }
-    } else {
-      if (!medicinesAdded || !proceduresAdded) {
-        alert("Please ensure both Medicines and Procedures are filled out for Outpatients.");
+        setErrorMsg("Instructions to Nurse are mandatory for IP admissions.");
         return;
       }
     }
 
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-    }, 3000);
+    try {
+      const updateData = {
+        sdObservations: consultation,
+        nurseNote: nurseInstructions,
+        status: "completed",
+        patientType: patientType === "IP" ? "ip" : "op",
+      };
+
+      await api.put(`/appoinmentapi/${patient._id}`, updateData);
+
+      setSaved(true);
+      setErrorMsg("");
+      setTimeout(() => {
+        setSaved(false);
+        navigate("/senior-dashboard");
+      }, 2000);
+
+    } catch (error) {
+      console.error("Error saving consultation:", error);
+      setErrorMsg(error.response?.data?.message || "Failed to save consultation. Please try again.");
+    }
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500">Loading patient data...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Patient not found
+  if (!patient) {
+    return (
+      <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="p-10">
+          <h1 className="text-2xl font-bold text-red-600">Patient Not Found</h1>
+          <p className="mt-2 text-gray-600">Appointment ID: {id}</p>
+          {errorMsg && <p className="mt-2 text-red-500">{errorMsg}</p>}
+          <button
+            onClick={() => navigate("/senior-dashboard")}
+            className="mt-4 text-blue-600 hover:text-blue-800"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -69,11 +186,27 @@ export default function SeniorDoctorConsultation() {
             onClick={() => navigate(-1)}
             className="text-blue-600 font-medium hover:text-blue-800"
           >
-            Back to Queue
+            ← Back to Queue
           </button>
           <span className="text-gray-400">&gt;</span>
           <span className="font-medium text-gray-900">{patient.pname}</span>
+          <span className="ml-auto text-sm text-gray-500">
+            Token {patient.token ? `#${patient.token}` : "N/A"}
+          </span>
         </div>
+
+        {/* Error Message */}
+        {errorMsg && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center justify-between">
+            <span>{errorMsg}</span>
+            <button
+              onClick={() => setErrorMsg("")}
+              className="text-red-500 hover:text-red-700"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Master Balanced Dashboard Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-6 items-stretch">
@@ -89,6 +222,8 @@ export default function SeniorDoctorConsultation() {
                 <InfoRow label="Gender" value={patient.gender} />
                 <InfoRow label="Blood Group" value={patient.blood} />
                 <InfoRow label="Phone" value={patient.phone} />
+                {/* FIXED: Use patient.doctor.fullname instead of patient.doctor */}
+                <InfoRow label="Doctor" value={patient.doctor?.fullname || "N/A"} />
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Type</span>
                   <span
@@ -99,6 +234,18 @@ export default function SeniorDoctorConsultation() {
                     }`}
                   >
                     {patientType}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Status</span>
+                  <span
+                    className={`px-3 py-1 rounded-lg text-sm font-medium border ${
+                      patient.status === "completed"
+                        ? "bg-green-50 text-green-700 border-green-100"
+                        : "bg-yellow-50 text-yellow-700 border-yellow-100"
+                    }`}
+                  >
+                    {patient.status?.charAt(0).toUpperCase() + patient.status?.slice(1) || "N/A"}
                   </span>
                 </div>
               </div>
@@ -136,10 +283,11 @@ export default function SeniorDoctorConsultation() {
               <div className="md:col-span-4 bg-white rounded-2xl shadow-sm p-6 py-[29px] border border-gray-200 flex flex-col justify-between">
                 <h2 className="text-xl font-semibold">Appointment Details</h2>
                 <div className="space-y-4 my-auto">
-                  <InfoRow label="Token" value={`#${patient.token}`} />
+                  <InfoRow label="Token" value={patient.token ? `#${patient.token}` : "N/A"} />
                   <InfoRow label="Time" value={patient.time} />
                   <InfoRow label="Date" value={patient.date} />
-                  <InfoRow label="Specialization" value="Cardiology" />
+                  {/* FIXED: Use patient.specialization directly since we mapped it */}
+                  <InfoRow label="Specialization" value={patient.specialization} />
                 </div>
               </div>
             </div>
@@ -151,7 +299,7 @@ export default function SeniorDoctorConsultation() {
                   Patient Complaints
                 </h3>
                 <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap break-words overflow-y-auto flex-1 pr-1">
-                  {patient.complaints}
+                  {patient.complaints || "No complaints recorded"}
                 </div>
               </div>
 
@@ -160,7 +308,7 @@ export default function SeniorDoctorConsultation() {
                   JD Observations
                 </h3>
                 <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap break-words overflow-y-auto flex-1 pr-1">
-                  {patient.observations}
+                  {patient.observations || "No observations recorded"}
                 </div>
               </div>
             </div>
@@ -178,7 +326,7 @@ export default function SeniorDoctorConsultation() {
                 <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-lg">Optional for IP</span>
               )}
             </div>
-            <Medicines isSeniorDoctor />
+            <Medicines isSeniorDoctor appointmentId={patient._id} />
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
@@ -188,7 +336,7 @@ export default function SeniorDoctorConsultation() {
                 <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-lg">Optional for IP</span>
               )}
             </div>
-            <Procedure isSeniorDoctor />
+            <Procedure isSeniorDoctor appointmentId={patient._id} />
           </div>
         </div>
 
@@ -222,14 +370,19 @@ export default function SeniorDoctorConsultation() {
         </div>
 
         {/* Floating Action Bar */}
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 right-6 z-50 flex gap-3">
+          {saved && (
+            <div className="bg-green-600 text-white px-6 py-3.5 rounded-xl shadow-lg flex items-center gap-2">
+              <span>✓</span> Changes Saved
+            </div>
+          )}
           <button
             onClick={handleSave}
             className={`px-8 py-3.5 rounded-xl shadow-lg text-white font-medium transition-all ${
               saved ? "bg-green-600" : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {saved ? "✓ Changes Saved" : "Save Consultation"}
+            {saved ? "✓ Changes Saved" : "Complete Consultation"}
           </button>
         </div>
 
@@ -242,7 +395,7 @@ function InfoRow({ label, value }) {
   return (
     <div className="flex justify-between items-center text-sm">
       <span className="text-gray-500">{label}</span>
-      <span className="font-medium text-gray-900">{value}</span>
+      <span className="font-medium text-gray-900">{value || "N/A"}</span>
     </div>
   );
 }
@@ -251,7 +404,7 @@ function VitalCard({ title, value }) {
   return (
     <div className="bg-gray-50/60 rounded-xl p-4 border border-gray-100">
       <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">{title}</p>
-      <h3 className="font-semibold text-base mt-1 text-gray-800">{value}</h3>
+      <h3 className="font-semibold text-base mt-1 text-gray-800">{value || "N/A"}</h3>
     </div>
   );
 }

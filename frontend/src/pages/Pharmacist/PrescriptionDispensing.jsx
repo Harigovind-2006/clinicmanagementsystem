@@ -65,7 +65,7 @@ export default function PrescriptionDispensing() {
       {
         state: {
           prescriptionId: id,
-          patientName: patient.name,
+          name: patient.name,
           medicines,
         },
       }
