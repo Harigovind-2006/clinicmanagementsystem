@@ -131,7 +131,7 @@ export default function JuniorDoctor() {
                         {patient.doctor?.fullname || "N/A"}
                       </td>
                       <td className="px-6 py-4.5 text-[#64748B]">
-                        {patient.doctor?.specialisation || "N/A"}
+                        {patient.doctor?.specialization || "N/A"}
                       </td>
                       <td className="px-6 py-4.5 text-[#64748B]">
                         {patient.appointmentTime || "N/A"}

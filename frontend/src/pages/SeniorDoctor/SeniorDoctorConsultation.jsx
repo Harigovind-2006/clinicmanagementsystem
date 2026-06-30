@@ -73,7 +73,7 @@ export default function SeniorDoctorConsultation() {
         doctor: appointment.doctor || null,
         
         // Store specialization separately for easy access
-        specialization: appointment.doctor?.specialisation || "N/A",
+        specialization: appointment.doctor?.specialization || "N/A",
 
         complaints: appointment.complaints || "",
         observations: appointment.jdObservations || "",

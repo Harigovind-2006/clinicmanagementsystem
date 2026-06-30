@@ -153,25 +153,25 @@ function getDoctorName(appointment, doctorsList) {
 }
 
 function getSpecialization(appointment, doctorsList) {
-  if (appointment.doctor?.specialisation) {
-    return appointment.doctor.specialisation;
+  if (appointment.doctor?.specialization) {
+    return appointment.doctor.specialization;
   }
   // FIXED: Check for specialisation (British spelling) first
-  if (appointment.specialisation) {
-    return appointment.specialisation;
+  if (appointment.specialization) {
+    return appointment.specialization;
   }
   if (appointment.specialization) {
     return appointment.specialization;
   }
   if (appointment.doctorId) {
     const doc = doctorsList?.find((d) => d._id === appointment.doctorId);
-    if (doc) return doc.specialisation;
+    if (doc) return doc.specialization;
   }
   if (appointment.assignedDoctorId) {
     const doc = doctorsList?.find(
       (d) => d._id === appointment.assignedDoctorId,
     );
-    if (doc) return doc.specialisation;
+    if (doc) return doc.specialization;
   }
   return "N/A";
 }
@@ -356,7 +356,7 @@ export default function ManagerDashboard({ role }) {
   );
 
   const availableDoctors = doctors.filter(
-    (d) => d.specialisation === newAppointmentData.specialization,
+    (d) => d.specialization === newAppointmentData.specialization,
   );
 
   const getAvailableTimeSlots = () => {
@@ -429,7 +429,7 @@ export default function ManagerDashboard({ role }) {
 
   const openNewAppointmentModal = () => {
     const initialDocs = doctors.filter(
-      (d) => d.specialisation === specializationsList[0],
+      (d) => d.specialization === specializationsList[0],
     );
     setNewAppointmentData({
       id: Date.now(),
@@ -564,7 +564,7 @@ export default function ManagerDashboard({ role }) {
       const appointmentData = {
         patient: patientId, // ✅ Backend expects 'patient'
         doctor: newAppointmentData.assignedDoctorId, // ✅ Backend expects 'doctor'
-        specialisation: newAppointmentData.specialization, // ✅ Backend expects 'specialisation' (British spelling)
+        specialization: newAppointmentData.specialization, // ✅ Backend expects 'specialisation' (British spelling)
         appointmentDate: newAppointmentData.appointmentDate,
         appointmentTime: newAppointmentData.appointmentTime,
         paymentMethod: newAppointmentData.paymentMethod,
@@ -1318,7 +1318,7 @@ export default function ManagerDashboard({ role }) {
                               onChange={(e) => {
                                 const newSpec = e.target.value;
                                 const docs = doctors.filter(
-                                  (d) => d.specialisation === newSpec,
+                                  (d) => d.specialization === newSpec,
                                 );
                                 setNewAppointmentData({
                                   ...newAppointmentData,
