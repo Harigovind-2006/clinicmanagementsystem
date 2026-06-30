@@ -509,7 +509,8 @@ export default function ManagerDashboard({ role }) {
         };
 
         const patientRes = await api.post("/patientapi", patientData);
-        patientId = patientRes.data.data?._id || patientRes.data._id;
+        const createdPatient = patientRes.data.data || patientRes.data;
+        patientId = createdPatient._id;
 
         setNewAppointmentData((prev) => ({
           ...prev,
@@ -518,7 +519,6 @@ export default function ManagerDashboard({ role }) {
         }));
       }
 
-      // Use correct field names that match backend expectations
       const appointmentData = {
         patient: patientId, // Changed from patientId
         doctor: newAppointmentData.assignedDoctorId, // Changed from doctorId
