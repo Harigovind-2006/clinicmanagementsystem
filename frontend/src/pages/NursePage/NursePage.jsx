@@ -1,42 +1,102 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SearchBar from "../../components/SearchBar";
 import Layout from "../../components/Layout";
+import api from "../../api/axios";
 
 export default function NursePage() {
   const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [name, setName] = useState("");
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const rooms = [
-    {
-      id: 101,
-      blood: "O+",
-      gender: "Male",
-      pname: "Ravi Kumar",
-      pid: "P003",
-      date: "21/02/2026",
-      medicines: "0/0",
-      procedure: "0/0",
-    },
-    {
-      id: 102,
-      blood: "AB+",
-      gender: "Male",
-      pname: "Suresh Rao",
-      pid: "P005",
-      date: "12/10/2025",
-      medicines: "0/0",
-      procedure: "0/0",
-    },
-  ];
+  useEffect(() => {
+    const fetchRoomsData = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/roomsapi");
+        const allRooms = response.data.data || [];
+        
+        // Filter only occupied rooms and format them to match what the component expects
+        const occupiedRooms = await Promise.all(
+          allRooms
+            .filter((room) => room.status === "occupied" && room.currentPatient)
+            .map(async (room) => {
+              try {
+                const patientId = room.currentPatient._id;
+                const pRes = await api.get(`/patientapi/${patientId}`);
+                const patientData = pRes.data;
+                
+                // Get the medicines and procedures count
+                const historyRes = await api.get(`/appoinmentapi/history/${patientId}`);
+                const appointments = historyRes.data.data || historyRes.data || [];
+                const latestApp = appointments[0] || {};
+                
+                const medCount = latestApp.medicine?.length || 0;
+                const medGivenCount = latestApp.medicine?.filter(m => m.given).length || 0;
+                
+                const procCount = latestApp.procedure?.length || 0;
+                const procDoneCount = 0; // fallback local status flag
+                
+                return {
+                  id: room.roomId || "N/A",
+                  blood: patientData.bloodGroup || "--",
+                  gender: patientData.gender || "--",
+                  pname: patientData.name || "Unknown",
+                  pid: patientData.pid || room.currentPatient.pid || patientId,
+                  dbId: patientId, // keep reference to actual database ID if needed
+                  date: room.occupiedDate ? new Date(room.occupiedDate).toLocaleDateString() : "--",
+                  medicines: `${medGivenCount}/${medCount}`,
+                  procedure: `${procDoneCount}/${procCount}`,
+                };
+              } catch (err) {
+                console.error("Error fetching patient details for room:", err);
+                return {
+                  id: room.roomId || "N/A",
+                  blood: "--",
+                  gender: "--",
+                  pname: room.currentPatient?.name || "Unknown",
+                  pid: room.currentPatient?.pid || "N/A",
+                  dbId: room.currentPatient?._id || "N/A",
+                  date: room.occupiedDate ? new Date(room.occupiedDate).toLocaleDateString() : "--",
+                  medicines: "0/0",
+                  procedure: "0/0",
+                };
+              }
+            })
+        );
+        
+        setRooms(occupiedRooms);
+      } catch (error) {
+        console.error("Error fetching rooms:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoomsData();
+  }, []);
 
   const filteredRooms = rooms.filter(
     (room) =>
       room.pid.toLowerCase().includes(name.toLowerCase()) ||
       room.pname.toLowerCase().includes(name.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading patient list...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout

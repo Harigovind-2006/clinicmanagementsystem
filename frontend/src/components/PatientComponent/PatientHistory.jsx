@@ -1,63 +1,84 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "../../components/Layout";
 import PatientVisitTabs from "./PatientVisitTabs"; // Import the unified component
 import { Clock, Calendar, Stethoscope, FileText, Lock, CheckCircle2 } from "lucide-react";
-
-// Mock Database to simulate fetching patient data based on PID
-const mockPatientsDb = {
-  "P001": { name: "John Doe", bp: "120/80", pulse: "72 bpm", weight: "75 kg" },
-  "P002": { name: "Mathew Joseph", bp: "118/76", pulse: "68 bpm", weight: "82 kg" },
-  "P003": { name: "Daniel Joshy", bp: "122/82", pulse: "75 bpm", weight: "70 kg" },
-  "P004": { name: "Afiya Fathima", bp: "110/70", pulse: "80 bpm", weight: "55 kg" },
-};
+import api from "../../api/axios";
 
 export default function PatientHistory() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [consultationNotes, setConsultationNotes] = useState("");
   
-  // Grab the PID from URL params
-  const { pid } = useParams();
+  // Grab the PID / id from URL params
+  const { pid, id } = useParams();
+  const patientId = pid || id;
 
-  // Fetch patient data (fallback if PID not found in mock DB)
-  const patientData = mockPatientsDb[pid] || { 
-    name: "Unknown Patient", bp: "--/--", pulse: "-- bpm", weight: "-- kg" 
-  };
+  const [patientData, setPatientData] = useState(null);
+  const [patientHistory, setPatientHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Fetch role from local storage
   const storedRole = (localStorage.getItem("role") || "").toLowerCase();
   
   const isManager = storedRole === "manager";
-  const isSeniorDoctor = storedRole === "senior doctor";
+  const isSeniorDoctor = storedRole === "senior doctor" || storedRole === "seniordoctor";
   const canViewHistory = isManager || isSeniorDoctor;
 
-  // Mock History Data
-  const patientHistory = [
-    {
-      id: 1,
-      token: "#0",
-      date: "2026-05-20",
-      time: "09:00 AM",
-      doctor: "Dr. Amit Sharma",
-      specialization: "Cardiology",
-      observations: "Mild chest discomfort, advised rest.",
-      notes: "Prescribed Atorvastatin 10mg. Follow up in 3 weeks.",
-      prescriptions: ["Atorvastatin x30"],
-      status: "Completed",
-    },
-    {
-      id: 2,
-      token: "#1",
-      date: "2026-06-19",
-      time: "09:00 AM",
-      doctor: "Dr. John Doe",
-      specialization: "Cardiology",
-      observations: "Patient complains of chest pain and shortness of breath.",
-      notes: "ECG suggested. Continue medication and review after test.",
-      prescriptions: ["ECG", "Atorvastatin 10mg"],
-      status: "Completed",
-    },
-  ];
+  useEffect(() => {
+    const fetchPatientAndHistory = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch patient basic details
+        const patientRes = await api.get(`/patientapi/${patientId}`);
+        setPatientData(patientRes.data);
+
+        // Fetch patient history/appointments
+        const historyRes = await api.get(`/appoinmentapi/history/${patientId}`);
+        const appointments = historyRes.data.data || historyRes.data || [];
+        
+        // Sort history by date/time (newest first)
+        appointments.sort(
+          (a, b) => new Date(b.appointmentDate) - new Date(a.appointmentDate)
+        );
+        
+        const formattedHistory = appointments.map((visit) => ({
+          id: visit._id,
+          token: visit.tokenNumber ? `#${visit.tokenNumber}` : "N/A",
+          date: visit.appointmentDate ? new Date(visit.appointmentDate).toLocaleDateString() : "N/A",
+          time: visit.appointmentTime || "N/A",
+          doctor: visit.doctor?.fullname || "Unknown Doctor",
+          specialization: visit.specialization || "N/A",
+          observations: visit.jdObservations || "No observations recorded.",
+          notes: visit.sdObservations || "No notes recorded.",
+          prescriptions: visit.medicine?.map((med) => {
+            const medName = med.medicine?.medicinename || "Unknown Medicine";
+            return `${medName} (${med.frequency}, ${med.days} days)`;
+          }) || [],
+          status: visit.status ? visit.status.charAt(0).toUpperCase() + visit.status.slice(1) : "Completed",
+          vitals: visit.vitals || {}
+        }));
+
+        setPatientHistory(formattedHistory);
+      } catch (error) {
+        console.error("Error fetching patient history:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (patientId && canViewHistory) {
+      fetchPatientAndHistory();
+    } else {
+      setLoading(false);
+    }
+  }, [patientId, canViewHistory]);
+
+  const latestVitals = patientHistory[0]?.vitals || {};
+  const currentBP = latestVitals["Blood Pressure"] || "--";
+  const currentPulse = latestVitals["Pulse Rate"] || "--";
+  const currentWeight = latestVitals["Weight"] || "--";
+
 
   // --- UNAUTHORIZED VIEW (FOS) ---
   if (!canViewHistory) {
@@ -76,6 +97,35 @@ export default function PatientHistory() {
     );
   }
 
+  // --- LOADING VIEW ---
+  if (loading) {
+    return (
+      <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading patient history...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // --- NOT FOUND VIEW ---
+  if (!patientData) {
+    return (
+      <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="p-10 text-center">
+          <h1 className="text-2xl font-bold text-red-600">Patient Not Found</h1>
+          <p className="mt-2 text-gray-600">Patient ID: {patientId}</p>
+          <Link to="/patients" className="mt-4 inline-block text-blue-600 hover:text-blue-800">
+            ← Back to Patients List
+          </Link>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
       <div className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto flex flex-col h-full min-h-screen">
@@ -87,7 +137,7 @@ export default function PatientHistory() {
               Patients
             </Link>
             <span className="text-gray-400">{">"}</span>
-            <Link to={`/patients/${pid}`} className="text-gray-900 font-medium cursor-pointer hover:underline transition-colors title='Back to Details'">
+            <Link to={`/patients/${patientId}`} className="text-gray-900 font-medium cursor-pointer hover:underline transition-colors" title='Back to Details'>
               {patientData.name}
             </Link>
           </div>
@@ -95,7 +145,7 @@ export default function PatientHistory() {
 
         {/* --- Unified Tabs Component --- */}
         <PatientVisitTabs 
-          pid={pid} 
+          pid={patientId} 
           historyCount={patientHistory.length} 
           activeTab="history" 
         />
@@ -237,15 +287,15 @@ export default function PatientHistory() {
                   </div>
                   <div>
                     <span className="text-gray-500 text-xs uppercase font-bold block mb-0.5">Vitals (BP)</span>
-                    <span className="font-semibold text-gray-900">{patientData.bp}</span>
+                    <span className="font-semibold text-gray-900">{currentBP}</span>
                   </div>
                   <div>
                     <span className="text-gray-500 text-xs uppercase font-bold block mb-0.5">Pulse</span>
-                    <span className="font-semibold text-gray-900">{patientData.pulse}</span>
+                    <span className="font-semibold text-gray-900">{currentPulse}</span>
                   </div>
                   <div>
                     <span className="text-gray-500 text-xs uppercase font-bold block mb-0.5">Weight</span>
-                    <span className="font-semibold text-gray-900">{patientData.weight}</span>
+                    <span className="font-semibold text-gray-900">{currentWeight}</span>
                   </div>
                 </div>
 

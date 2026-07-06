@@ -30,7 +30,7 @@ export default function PatientVisitTabs({ pid, historyCount = 0, activeTab }) {
             : "bg-white text-gray-700 border border-l-0 border-gray-300 hover:bg-gray-50"
         }`}
       >
-        History (2)
+        History ({historyCount})
       </button>
     </div>
   );

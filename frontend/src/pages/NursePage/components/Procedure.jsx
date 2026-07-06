@@ -1,21 +1,52 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
+import api from "../../../api/axios";
 
-export default function Procedure({ isSeniorDoctor = false }) {
+export default function Procedure({ isSeniorDoctor = false, appointmentId }) {
+  const { id } = useParams();
+  const activeAppointmentId = appointmentId || id;
+
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedProcedure, setSelectedProcedure] = useState("");
 
   const [procedures, setProcedures] = useState([]);
+  const [procedureMaster, setProcedureMaster] = useState([]);
   const dropdownRef = useRef(null);
 
-  const procedureMaster = [
-    { name: "Blood Test", description: "Complete Blood Count (CBC)" },
-    { name: "ECG", description: "Electrocardiogram" },
-    { name: "X-Ray", description: "Chest X-Ray" },
-    { name: "Ultrasound", description: "Abdominal Ultrasound" },
-    { name: "MRI Scan", description: "Magnetic Resonance Imaging" },
-    { name: "CT Scan", description: "Computed Tomography Scan" },
-  ];
+  useEffect(() => {
+    const fetchMasterList = async () => {
+      try {
+        const response = await api.get("/procedureapi");
+        const data = response.data.data || response.data || [];
+        setProcedureMaster(data);
+      } catch (error) {
+        console.error("Error fetching procedure master list:", error);
+      }
+    };
+    fetchMasterList();
+  }, []);
+
+  const fetchAppointmentProcedures = async () => {
+    if (!activeAppointmentId) return;
+    try {
+      const response = await api.get(`/appoinmentapi/${activeAppointmentId}`);
+      const appointment = response.data;
+      const mappedProcedures = (appointment.procedure || []).map((proc) => ({
+        id: proc._id,
+        name: proc.procedureName,
+        description: `Cost: ₹${proc.amount}`,
+        done: false, // local status flag
+      }));
+      setProcedures(mappedProcedures);
+    } catch (error) {
+      console.error("Error fetching appointment procedures:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAppointmentProcedures();
+  }, [activeAppointmentId]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -29,28 +60,42 @@ export default function Procedure({ isSeniorDoctor = false }) {
   }, []);
 
   const filteredProcedures = procedureMaster.filter((procedure) =>
-    procedure.name.toLowerCase().includes(search.toLowerCase())
+    procedure.procedureName?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleAddProcedure = () => {
+  const handleAddProcedure = async () => {
     if (!selectedProcedure) {
       alert("Please select a procedure from the dropdown list.");
       return;
     }
 
-    const procedure = procedureMaster.find((p) => p.name === selectedProcedure);
+    const procedureObj = procedureMaster.find((p) => p.procedureName === selectedProcedure);
+    if (!procedureObj) return;
 
-    // Prepends new items to show latest entry first
-    setProcedures([
-      {
-        ...procedure,
-        done: false,
-      },
-      ...procedures,
-    ]);
-
-    setSearch("");
-    setSelectedProcedure("");
+    try {
+      if (activeAppointmentId) {
+        await api.put(`/appoinmentapi/${activeAppointmentId}/add-procedure`, {
+          procedureId: procedureObj._id
+        });
+        await fetchAppointmentProcedures();
+      } else {
+        // Fallback local-only state in case there is no active appointment context
+        setProcedures([
+          {
+            id: procedureObj._id,
+            name: procedureObj.procedureName,
+            description: `Cost: ₹${procedureObj.amount}`,
+            done: false,
+          },
+          ...procedures,
+        ]);
+      }
+      setSearch("");
+      setSelectedProcedure("");
+    } catch (error) {
+      console.error("Error adding procedure:", error);
+      alert("Failed to add procedure. Please try again.");
+    }
   };
 
   const markProcedureDone = (index) => {
@@ -59,8 +104,22 @@ export default function Procedure({ isSeniorDoctor = false }) {
     setProcedures(updated);
   };
 
-  const handleDelete = (index) => {
-    setProcedures(procedures.filter((_, i) => i !== index));
+  const handleDelete = async (index) => {
+    if (activeAppointmentId) {
+      try {
+        const updatedProcedureIds = procedures
+          .filter((_, i) => i !== index)
+          .map((p) => p.id);
+        await api.put(`/appoinmentapi/${activeAppointmentId}`, {
+          procedure: updatedProcedureIds
+        });
+        await fetchAppointmentProcedures();
+      } catch (error) {
+        console.error("Error deleting procedure:", error);
+      }
+    } else {
+      setProcedures(procedures.filter((_, i) => i !== index));
+    }
   };
 
   return (
@@ -70,10 +129,10 @@ export default function Procedure({ isSeniorDoctor = false }) {
       <div className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col justify-between">
         <div>
           <h2 className="text-xl font-semibold mb-6 text-gray-800">Add Procedure</h2>
-
+ 
           <div className="relative" ref={dropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-2">Procedure *</label>
-
+ 
             <input
               type="text"
               placeholder="Search procedure..."
@@ -85,22 +144,22 @@ export default function Procedure({ isSeniorDoctor = false }) {
               onFocus={() => setShowDropdown(true)}
               className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500"
             />
-
+ 
             {showDropdown && (
               <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                 {filteredProcedures.length > 0 ? (
                   filteredProcedures.map((procedure) => (
                     <div
-                      key={procedure.name}
+                      key={procedure._id}
                       onClick={() => {
-                        setSelectedProcedure(procedure.name);
-                        setSearch(procedure.name);
+                        setSelectedProcedure(procedure.procedureName);
+                        setSearch(procedure.procedureName);
                         setShowDropdown(false);
                       }}
                       className="p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-50 last:border-none"
                     >
-                      <p className="font-medium text-sm text-gray-800">{procedure.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{procedure.description}</p>
+                      <p className="font-medium text-sm text-gray-800">{procedure.procedureName}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Cost: ₹{procedure.amount}</p>
                     </div>
                   ))
                 ) : (
@@ -110,7 +169,7 @@ export default function Procedure({ isSeniorDoctor = false }) {
             )}
           </div>
         </div>
-
+ 
         <button
           onClick={handleAddProcedure}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors mt-6 text-sm"
