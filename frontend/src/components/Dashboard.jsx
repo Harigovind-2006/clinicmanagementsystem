@@ -15,7 +15,6 @@ const specializationsList = [
 ];
 const bloodGroupsList = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
-// FIXED: Status colors to match backend values (lowercase)
 const statusColors = {
   waiting: "bg-amber-100 text-amber-600 border-amber-300 px-5",
   scheduled: "bg-blue-100 text-blue-600 border-blue-200 px-2",
@@ -26,7 +25,6 @@ const statusColors = {
   cleared: "bg-green-100 text-green-700 border-green-200",
 };
 
-// Helper functions for error messages
 const getErrorMessage = (error) => {
   if (!error.response) {
     return "Unable to connect to the server. Please check your internet connection.";
@@ -111,7 +109,6 @@ const getErrorMessage = (error) => {
   return msg || "Something went wrong. Please try again.";
 };
 
-// Helper functions for patient data
 function getPatientName(appointment) {
   if (appointment.name) return appointment.name;
   if (appointment.patient?.name) return appointment.patient.name;
@@ -126,29 +123,33 @@ function getPatientPid(appointment) {
   return "N/A";
 }
 
-// Helper functions for doctor data
+// FIX 1: Corrected getDoctorName to properly handle doctor field
 function getDoctorName(appointment, doctorsList) {
-  if (appointment.doctor?.name) {
-    return appointment.doctor.name;
+  // Check if doctor object exists with fullname
+  if (appointment.doctor?.fullname) {
+    return appointment.doctor.fullname;
   }
+
+  // Check if doctorId is a string reference
   if (appointment.doctorId) {
     const doc = doctorsList?.find((d) => d._id === appointment.doctorId);
-    if (doc) return doc.name;
+    if (doc) return doc.fullname;
   }
+
+  // Check if assignedDoctorId is used
   if (appointment.assignedDoctorId) {
     const doc = doctorsList?.find(
-      (d) => d._id === appointment.assignedDoctorId,
+      (d) => d._id === appointment.assignedDoctorId
     );
-    if (doc) return doc.name;
+    if (doc) return doc.fullname;
   }
-  if (appointment.assignedDoctorName) {
-    const doc = doctorsList?.find(
-      (d) =>
-        d._id === appointment.assignedDoctorName ||
-        d.name === appointment.assignedDoctorName,
-    );
-    return doc?.name || appointment.assignedDoctorName;
+
+  // Check if doctor is an ID string
+  if (typeof appointment.doctor === 'string') {
+    const doc = doctorsList?.find((d) => d._id === appointment.doctor);
+    if (doc) return doc.fullname;
   }
+
   return "N/A";
 }
 
@@ -159,9 +160,6 @@ function getSpecialization(appointment, doctorsList) {
   if (appointment.specialization) {
     return appointment.specialization;
   }
-  if (appointment.specialization) {
-    return appointment.specialization;
-  }
   if (appointment.doctorId) {
     const doc = doctorsList?.find((d) => d._id === appointment.doctorId);
     if (doc) return doc.specialization;
@@ -172,10 +170,13 @@ function getSpecialization(appointment, doctorsList) {
     );
     if (doc) return doc.specialization;
   }
+  if (typeof appointment.doctor === 'string') {
+    const doc = doctorsList?.find((d) => d._id === appointment.doctor);
+    if (doc) return doc.specialization;
+  }
   return "N/A";
 }
 
-// Discharge helper functions
 function getDischargePatientName(discharge) {
   if (discharge.patient?.name) return discharge.patient.name;
   if (discharge.name) return discharge.name;
@@ -254,21 +255,17 @@ export default function ManagerDashboard({ role }) {
     fetchDischarges();
   }, []);
 
-  // FIXED: fetchAppointments with proper response handling
   const fetchAppointments = async () => {
     try {
       setLoading(true);
       const res = await api.get("/appoinmentapi");
       console.log("Appointments API Response:", res.data);
 
-      // Handle different response structures
       let appointmentsData = [];
 
       if (Array.isArray(res.data)) {
-        // Direct array response (from getAllActiveAppoinments)
         appointmentsData = res.data;
       } else if (res.data?.data && Array.isArray(res.data.data)) {
-        // Nested data array (from getTodayAppointments)
         appointmentsData = res.data.data;
       } else if (res.data?.data?.appointments) {
         appointmentsData = res.data.data.appointments;
@@ -278,6 +275,7 @@ export default function ManagerDashboard({ role }) {
         appointmentsData = [];
       }
 
+      console.log("First appointment doctor:", appointmentsData[0]?.doctor);
       setAppointments(appointmentsData);
     } catch (err) {
       console.error("Error fetching appointments:", err);
@@ -332,7 +330,6 @@ export default function ManagerDashboard({ role }) {
     }
   };
 
-  // Filter appointments - shows today's appointments by default
   const filtered = appointments.filter((a) => {
     const appointmentDate = a.appointmentDate?.split("T")[0];
 
@@ -343,7 +340,6 @@ export default function ManagerDashboard({ role }) {
 
     const matchesDate = appointmentDate === selectedDate;
 
-    // FIXED: Check all possible doctor reference formats
     const matchesDoctor =
       !selectedDoctor || getDoctorName(a, doctors) === selectedDoctor;
 
@@ -391,7 +387,6 @@ export default function ManagerDashboard({ role }) {
 
     const doctorId = newAppointmentData.assignedDoctorId;
 
-    // FIXED: Check all possible doctor reference formats
     const bookedSlots = appointments
       .filter((a) => {
         const appointmentDate = a.appointmentDate?.split("T")[0];
@@ -518,9 +513,6 @@ export default function ManagerDashboard({ role }) {
     }
   };
 
-  // ============================================================
-  // CRITICAL FIX: This is the main function that creates the appointment
-  // ============================================================
   const saveNewAppointment = async () => {
     try {
       setLoading(true);
@@ -532,7 +524,6 @@ export default function ManagerDashboard({ role }) {
       let patientId;
 
       if (patientMode === "new") {
-        // Create new patient
         const patientData = {
           name: newAppointmentData.name,
           mobilePhone: newAppointmentData.mobilePhone,
@@ -553,25 +544,23 @@ export default function ManagerDashboard({ role }) {
           paymentTimestamp,
         }));
       } else {
-        // Use existing patient ID
         patientId = newAppointmentData.pid;
       }
 
-      
       const appointmentData = {
-        patient: patientId, 
-        doctor: newAppointmentData.assignedDoctorId, 
-        specialization: newAppointmentData.specialization, 
+        patient: patientId,
+        doctor: newAppointmentData.assignedDoctorId,
+        specialization: newAppointmentData.specialization,
         appointmentDate: newAppointmentData.appointmentDate,
         appointmentTime: newAppointmentData.appointmentTime,
         paymentMethod: newAppointmentData.paymentMethod,
         consultationFee: newAppointmentData.consultationFee,
         registrationFee:
-          patientMode === "new" ? newAppointmentData.registrationFee : 0, 
+          patientMode === "new" ? newAppointmentData.registrationFee : 0,
         upiId:
           newAppointmentData.paymentMethod === "UPI"
             ? newAppointmentData.upiId
-            : "", 
+            : "",
         from: newAppointmentData.from || "OP",
       };
 
@@ -580,7 +569,6 @@ export default function ManagerDashboard({ role }) {
       const appointmentRes = await api.post("/appoinmentapi", appointmentData);
       const newAppointment = appointmentRes.data.data || appointmentRes.data;
 
-      // ✅ Read patient.pid from response (not patientId)
       setNewAppointmentData((prev) => ({
         ...prev,
         tokenNumber: newAppointment.tokenNumber,
@@ -589,7 +577,6 @@ export default function ManagerDashboard({ role }) {
 
       setWizardStep(4);
 
-      // FIXED: Use await to ensure appointments are refreshed
       await fetchAppointments();
 
       setErrorMsg("");
@@ -742,8 +729,8 @@ export default function ManagerDashboard({ role }) {
                   >
                     <option value="">All Doctors</option>
                     {doctors.map((doctor) => (
-                      <option key={doctor._id} value={doctor.name}>
-                        {doctor.name}
+                      <option key={doctor._id} value={doctor.fullname}>
+                        {doctor.fullname} ({doctor.specialization})
                       </option>
                     ))}
                   </select>
@@ -962,7 +949,6 @@ export default function ManagerDashboard({ role }) {
               </div>
             )}
 
-            {/* MODAL: NEW APPOINTMENT */}
             {showModal && isNewAppointmentWizard && (
               <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh]">
@@ -1353,7 +1339,7 @@ export default function ManagerDashboard({ role }) {
                             >
                               {availableDoctors.map((doc) => (
                                 <option key={doc._id} value={doc._id}>
-                                  {doc.name}
+                                  {doc.fullname}
                                 </option>
                               ))}
                             </select>
@@ -1498,7 +1484,7 @@ export default function ManagerDashboard({ role }) {
                               Doctor
                             </span>
                             <span className="font-semibold text-gray-900">
-                              {selectedDoctorInfo?.name || "N/A"}
+                              {selectedDoctorInfo?.fullname || "N/A"}
                             </span>
                           </div>
                           <div className="w-px h-8 bg-blue-200"></div>
@@ -1634,7 +1620,7 @@ export default function ManagerDashboard({ role }) {
                             <div className="flex justify-between">
                               <span className="text-gray-500">Doctor</span>
                               <span className="text-gray-900 font-medium">
-                                {selectedDoctorInfo?.name || "N/A"}
+                                {selectedDoctorInfo?.fullname || "N/A"}
                               </span>
                             </div>
                             <div className="flex justify-between">
@@ -1733,7 +1719,6 @@ export default function ManagerDashboard({ role }) {
               </div>
             )}
 
-            {/* MODAL: DISCHARGE PAYMENT */}
             {dischargeModal && (
               <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col">
@@ -1887,7 +1872,6 @@ export default function ManagerDashboard({ role }) {
         </Layout>
       </div>
 
-      {/* PRINT ONLY UI */}
       <div className="hidden print:block w-full text-black font-sans">
         <div className="max-w-2xl mx-auto border border-gray-200 p-8 rounded-lg">
           <div className="text-center mb-8 border-b-2 border-gray-800 pb-6">
@@ -1930,7 +1914,7 @@ export default function ManagerDashboard({ role }) {
                 Doctor
               </span>
               <span className="font-bold text-gray-900">
-                {selectedDoctorInfo?.name || "N/A"}
+                {selectedDoctorInfo?.fullname || "N/A"}
               </span>
             </div>
             <div className="flex justify-between border-b border-gray-100 pb-3">

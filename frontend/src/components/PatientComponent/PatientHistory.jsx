@@ -256,7 +256,7 @@ export default function PatientHistory() {
                         </p>
                         <p className="font-medium text-gray-700">
                           {visit.specialization ||
-                            visit.specialisation ||
+                            visit.specialization ||
                             "N/A"}
                         </p>
                       </div>
