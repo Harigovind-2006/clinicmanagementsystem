@@ -1,31 +1,54 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../../../api/axios";
 
-export default function Medicines({ isSeniorDoctor = false }) {
+export default function Medicines({ isSeniorDoctor = false, appointmentId }) {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState("");
-
   const [days, setDays] = useState("");
   const [frequency, setFrequency] = useState("");
   const [medicineMaster, setMedicineMaster] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
+  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    // Fetch medicine master data from the API
-    const fetchMedicineMaster = async () => { 
-      try {
-        const response = await api.get(`/medicineapi/`);
-        const data = response.data;
-        setMedicineMaster(data);
-      } catch (error) {
-        console.error("Error fetching medicine master data:", error);
-      }
-    };
     fetchMedicineMaster();
+    fetchPrescriptions();
   }, []);
-  // Close dropdown on click outside
+
+  const fetchMedicineMaster = async () => {
+    try {
+      const response = await api.get("/medicineapi/");
+      const data = response.data.data || response.data;
+      setMedicineMaster(data);
+    } catch (error) {
+      console.error("Error fetching medicine master data:", error);
+    }
+  };
+
+  const fetchPrescriptions = async () => {
+    if (!appointmentId) return;
+    try {
+      const response = await api.get(`/appoinmentapi/${appointmentId}`);
+      const appointment = response.data.data || response.data;
+      if (appointment.medicine && Array.isArray(appointment.medicine)) {
+        const meds = appointment.medicine.map((med) => ({
+          medicineId: med.medicine?._id || med.medicine,
+          medicine: med.medicine?.medicinename || "Unknown",
+          scientificName: med.medicine?.medScientificName || "",
+          days: med.days || 0,
+          frequency: med.frequency || "",
+          given: med.given || false,
+          quantity: med.quantity || 0,
+        }));
+        setPrescriptions(meds);
+      }
+    } catch (error) {
+      console.error("Error fetching prescriptions:", error);
+    }
+  };
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -36,11 +59,13 @@ export default function Medicines({ isSeniorDoctor = false }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredMedicines = medicineMaster.filter((med) =>
-    med.medicinename.toLowerCase().includes(search.toLowerCase())
+  const filteredMedicines = medicineMaster.filter(
+    (med) =>
+      med.medicinename &&
+      med.medicinename.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleAddMedicine = () => {
+  const handleAddMedicine = async () => {
     if (!selectedMedicine) {
       alert("Please select a medicine from the dropdown list.");
       return;
@@ -57,41 +82,55 @@ export default function Medicines({ isSeniorDoctor = false }) {
       return;
     }
 
-    const medicine = medicineMaster.find((med) => med.name === selectedMedicine);
+    const medicine = medicineMaster.find((med) => med._id === selectedMedicine);
+    if (!medicine) {
+      alert("Selected medicine not found.");
+      return;
+    }
 
-    // Latest prescription is prepended to show at the top of the table list
-    setPrescriptions([
-      {
-        medicinename: medicine.medicinename,
-        scientificname: medicine.scientificname,
+    try {
+      setLoading(true);
+      await api.put(`/appoinmentapi/${appointmentId}/prescribe-medicine`, {
+        medicineId: medicine._id,
         days: parsedDays,
         frequency: frequency.trim(),
-        given: false,
-      },
-      ...prescriptions,
-    ]);
+      });
 
-    // Reset entry controls safely
-    setSearch("");
-    setSelectedMedicine("");
-    setDays("");
-    setFrequency("");
+      await fetchPrescriptions();
+
+      setSearch("");
+      setSelectedMedicine("");
+      setDays("");
+      setFrequency("");
+      setShowDropdown(false);
+    } catch (error) {
+      console.error("Error adding prescription:", error);
+      alert(error.response?.data?.message || "Failed to add prescription. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGiven = (index) => {
+  const handleGiven = async (index) => {
+    const prescription = prescriptions[index];
+    // This would typically call an API to mark as given
+    // For now, update locally
     const updated = [...prescriptions];
     updated[index] = { ...updated[index], given: true };
     setPrescriptions(updated);
   };
 
-  const handleDelete = (index) => {
-    setPrescriptions(prescriptions.filter((_, i) => i !== index));
+  const handleDelete = async (index) => {
+    const prescription = prescriptions[index];
+    // This would typically call an API to delete
+    // For now, update locally
+    const updated = prescriptions.filter((_, i) => i !== index);
+    setPrescriptions(updated);
   };
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
       
-      {/* Add Medicine Section */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col justify-between">
         <div>
           <h2 className="text-xl font-semibold mb-6 text-gray-800">Add Medicine</h2>
@@ -116,16 +155,16 @@ export default function Medicines({ isSeniorDoctor = false }) {
                   {filteredMedicines.length > 0 ? (
                     filteredMedicines.map((med) => (
                       <div
-                        key={med.name}
+                        key={med._id}
                         onClick={() => {
-                          setSelectedMedicine(med.name);
-                          setSearch(med.name);
+                          setSelectedMedicine(med._id);
+                          setSearch(med.medicinename);
                           setShowDropdown(false);
                         }}
                         className="p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-50 last:border-none"
                       >
-                        <p className="font-medium text-sm text-gray-800">{med.name}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{med.scientificName}</p>
+                        <p className="font-medium text-sm text-gray-800">{med.medicinename}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{med.scientificname}</p>
                       </div>
                     ))
                   ) : (
@@ -162,13 +201,13 @@ export default function Medicines({ isSeniorDoctor = false }) {
 
         <button
           onClick={handleAddMedicine}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors mt-6 text-sm"
+          disabled={loading}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors mt-6 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Add To Prescription
+          {loading ? "Adding..." : "Add To Prescription"}
         </button>
       </div>
 
-      {/* Current Prescription View - Scrollable list handling container setup */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col h-full">
         <h2 className="text-xl font-semibold mb-6 text-gray-800">Current Prescriptions</h2>
 

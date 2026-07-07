@@ -22,12 +22,10 @@ export default function SeniorDoctorConsultation() {
   const [medicinesAdded, setMedicinesAdded] = useState(true);
   const [proceduresAdded, setProceduresAdded] = useState(true);
 
-  // Fetch appointment data on component mount
   useEffect(() => {
     if (id) {
       fetchAppointment();
     } else if (location.state) {
-      // Fallback to location state if available
       setPatient(location.state);
       setLoading(false);
     } else {
@@ -40,63 +38,27 @@ export default function SeniorDoctorConsultation() {
     try {
       setLoading(true);
       setErrorMsg("");
+
       const res = await api.get(`/appoinmentapi/${id}`);
-      const appointment = res.data;
-      
-      console.log("Appointment Response:", appointment);
+      const appointment = res.data.data || res.data;
 
-      // Convert vitals Map to normal object if needed
-      const vitals =
-        appointment.vitals instanceof Map
-          ? Object.fromEntries(appointment.vitals)
-          : appointment.vitals || {};
+      console.log("Appointment:", appointment);
 
-      // Option 1: Keep doctor as object
-      const patientData = {
-        _id: appointment._id,
-        pid: appointment.patient?.pid || "N/A",
-        pname: appointment.patient?.name || "Unknown",
-        dob: appointment.patient?.dob 
-          ? new Date(appointment.patient.dob).toLocaleDateString() 
-          : "N/A",
-        gender: appointment.patient?.gender || "N/A",
-        blood: appointment.patient?.bloodGroup || "N/A",
-        phone: appointment.patient?.mobilePhone || "N/A",
+      setPatient(appointment);
 
-        token: appointment.tokenNumber,
-        time: appointment.appointmentTime,
-        date: appointment.appointmentDate 
-          ? new Date(appointment.appointmentDate).toLocaleDateString() 
-          : "N/A",
+      setPatientType(
+        appointment.patientType === "ip" ? "IP" : "OP"
+      );
 
-        // Store the FULL doctor object (includes fullname, specialisation, etc.)
-        doctor: appointment.doctor || null,
-        
-        // Store specialization separately for easy access
-        specialization: appointment.doctor?.specialization || "N/A",
-
-        complaints: appointment.complaints || "",
-        observations: appointment.jdObservations || "",
-
-        bp: vitals["Blood Pressure"] || "N/A",
-        pulse: vitals["Pulse Rate"] || "N/A",
-        temp: vitals["Temperature"] || "N/A",
-        weight: vitals["Weight"] || "N/A",
-
-        status: appointment.status || "scheduled",
-        patientType: appointment.patientType || "OP",
-      };
-
-      setPatient(patientData);
-      setPatientType(patientData.patientType === "ip" ? "IP" : "OP");
-      
       setConsultation(appointment.sdObservations || "");
       setNurseInstructions(appointment.nurseNote || "");
 
     } catch (error) {
-      console.error("Error fetching appointment:", error);
-      setErrorMsg(error.response?.data?.message || "Failed to load patient data. Please try again.");
-      setPatient(null);
+      console.error(error);
+      setErrorMsg(
+        error.response?.data?.message ||
+        "Failed to load appointment."
+      );
     } finally {
       setLoading(false);
     }
@@ -143,7 +105,6 @@ export default function SeniorDoctorConsultation() {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -157,7 +118,6 @@ export default function SeniorDoctorConsultation() {
     );
   }
 
-  // Patient not found
   if (!patient) {
     return (
       <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -180,7 +140,6 @@ export default function SeniorDoctorConsultation() {
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
       <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
         
-        {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <button
             onClick={() => navigate(-1)}
@@ -189,13 +148,12 @@ export default function SeniorDoctorConsultation() {
             ← Back to Queue
           </button>
           <span className="text-gray-400">&gt;</span>
-          <span className="font-medium text-gray-900">{patient.pname}</span>
+          <span className="font-medium text-gray-900">{patient.patient?.name || "Unknown"}</span>
           <span className="ml-auto text-sm text-gray-500">
-            Token {patient.token ? `#${patient.token}` : "N/A"}
+            Token {patient.tokenNumber ? `#${patient.tokenNumber}` : "N/A"}
           </span>
         </div>
 
-        {/* Error Message */}
         {errorMsg && (
           <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center justify-between">
             <span>{errorMsg}</span>
@@ -208,22 +166,19 @@ export default function SeniorDoctorConsultation() {
           </div>
         )}
 
-        {/* Master Balanced Dashboard Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-6 items-stretch">
           
-          {/* Column 1: Patient Information Card */}
           <div className="xl:col-span-3 bg-white rounded-2xl shadow-sm p-6 border border-gray-200 flex flex-col justify-between">
             <div>
               <h2 className="text-xl font-semibold mb-6">Patient Information</h2>
               <div className="space-y-4">
-                <InfoRow label="PID" value={patient.pid} />
-                <InfoRow label="Name" value={patient.pname} />
-                <InfoRow label="DOB" value={patient.dob} />
-                <InfoRow label="Gender" value={patient.gender} />
-                <InfoRow label="Blood Group" value={patient.blood} />
-                <InfoRow label="Phone" value={patient.phone} />
-                {/* FIXED: Use patient.doctor.fullname instead of patient.doctor */}
-                <InfoRow label="Doctor" value={patient.doctor?.fullname || "N/A"} />
+                <InfoRow label="PID" value={patient.patient?.pid} />
+                <InfoRow label="Name" value={patient.patient?.name} />
+                <InfoRow label="DOB" value={patient.patient?.dob ? new Date(patient.patient.dob).toLocaleDateString() : "N/A"} />
+                <InfoRow label="Gender" value={patient.patient?.gender} />
+                <InfoRow label="Blood Group" value={patient.patient?.bloodGroup} />
+                <InfoRow label="Phone" value={patient.patient?.mobilePhone} />
+                <InfoRow label="Doctor" value={patient.doctor?.name} />
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Type</span>
                   <span
@@ -242,7 +197,9 @@ export default function SeniorDoctorConsultation() {
                     className={`px-3 py-1 rounded-lg text-sm font-medium border ${
                       patient.status === "completed"
                         ? "bg-green-50 text-green-700 border-green-100"
-                        : "bg-yellow-50 text-yellow-700 border-yellow-100"
+                        : patient.status === "waiting"
+                        ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+                        : "bg-blue-50 text-blue-700 border-blue-100"
                     }`}
                   >
                     {patient.status?.charAt(0).toUpperCase() + patient.status?.slice(1) || "N/A"}
@@ -263,36 +220,30 @@ export default function SeniorDoctorConsultation() {
             </button>
           </div>
 
-          {/* Combined Column Matrix to Align Right Side Blocks */}
           <div className="xl:col-span-9 flex flex-col gap-6">
             
-            {/* Vitals + Appointment Details Side-by-Side */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-              {/* Vitals Panel */}
               <div className="md:col-span-8 bg-white rounded-2xl shadow-sm p-6 border border-gray-200 flex flex-col justify-between">
                 <h2 className="text-xl font-semibold mb-4">Vitals</h2>
                 <div className="grid grid-cols-2 gap-3 my-auto">
-                  <VitalCard title="BP" value={patient.bp} />
-                  <VitalCard title="Pulse" value={patient.pulse} />
-                  <VitalCard title="Temperature" value={patient.temp} />
-                  <VitalCard title="Weight" value={patient.weight} />
+                  <VitalCard title="BP" value={patient.vitals?.["Blood Pressure"]} />
+                  <VitalCard title="Pulse" value={patient.vitals?.["Pulse Rate"]} />
+                  <VitalCard title="Temperature" value={patient.vitals?.["Temperature"]} />
+                  <VitalCard title="Weight" value={patient.vitals?.["Weight"]} />
                 </div>
               </div>
 
-              {/* Appointment Details Panel */}
               <div className="md:col-span-4 bg-white rounded-2xl shadow-sm p-6 py-[29px] border border-gray-200 flex flex-col justify-between">
                 <h2 className="text-xl font-semibold">Appointment Details</h2>
                 <div className="space-y-4 my-auto">
-                  <InfoRow label="Token" value={patient.token ? `#${patient.token}` : "N/A"} />
-                  <InfoRow label="Time" value={patient.time} />
-                  <InfoRow label="Date" value={patient.date} />
-                  {/* FIXED: Use patient.specialization directly since we mapped it */}
-                  <InfoRow label="Specialization" value={patient.specialization} />
+                  <InfoRow label="Token" value={patient.tokenNumber ? `#${patient.tokenNumber}` : "N/A"} />
+                  <InfoRow label="Time" value={patient.appointmentTime} />
+                  <InfoRow label="Date" value={patient.appointmentDate ? new Date(patient.appointmentDate).toLocaleDateString() : "N/A"} />
+                  <InfoRow label="Specialization" value={patient.doctor?.specialization} />
                 </div>
               </div>
             </div>
 
-            {/* Extended-Width Clinical Complaints and Observations Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200 flex flex-col h-60">
                 <h3 className="font-semibold text-lg mb-3 flex-shrink-0">
@@ -308,7 +259,7 @@ export default function SeniorDoctorConsultation() {
                   JD Observations
                 </h3>
                 <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap break-words overflow-y-auto flex-1 pr-1">
-                  {patient.observations || "No observations recorded"}
+                  {patient.jdObservations || "No observations recorded"}
                 </div>
               </div>
             </div>
@@ -317,7 +268,6 @@ export default function SeniorDoctorConsultation() {
 
         </div>
 
-        {/* Prescription and Procedures Sections */}
         <div className="space-y-6 mb-6">
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
             <div className="flex items-center justify-between mb-6">
@@ -340,7 +290,6 @@ export default function SeniorDoctorConsultation() {
           </div>
         </div>
 
-        {/* Dynamic Consultation & Nursing Workspace */}
         <div className={`grid grid-cols-1 gap-6 mb-24 ${patientType === "IP" ? "lg:grid-cols-2" : "grid-cols-1"}`}>
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">Consultation Notes</h2>
@@ -369,7 +318,6 @@ export default function SeniorDoctorConsultation() {
           )}
         </div>
 
-        {/* Floating Action Bar */}
         <div className="fixed bottom-6 right-6 z-50 flex gap-3">
           {saved && (
             <div className="bg-green-600 text-white px-6 py-3.5 rounded-xl shadow-lg flex items-center gap-2">

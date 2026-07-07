@@ -1,7 +1,7 @@
 import Patient from "../models/patient.js";
-import { processRoomReleaseAndRent } from "./roomController.js"; // Fixed: Added curly braces for named import
-import user from "../models/user.js";
-import mongoose from "mongoose"; // Fixed: Added missing mongoose import
+import { processRoomReleaseAndRent } from "./roomController.js";
+import User from "../models/user.js";
+import mongoose from "mongoose";
 
 export const createPatient = async (req, res) => {
     try {
@@ -104,7 +104,7 @@ export const getPatientInvoice = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid Patient ID format" });
         }
 
-        const invoiceData = await mongoose.model("Patient").aggregate([
+        const invoiceData = await Patient.aggregate([
             { $match: { _id: new mongoose.Types.ObjectId(id) } },
             {
                 $project: {
@@ -189,7 +189,7 @@ export const dischargePatient = async (req, res) => {
         const managerId = req.params.id; 
         const { patientId } = req.body;  
 
-        const staffUser = await user.findById(managerId);
+        const staffUser = await User.findById(managerId);
         if (!staffUser || staffUser.role !== "manager") {
             return res.status(403).json({ 
                 success: false, 
@@ -197,7 +197,7 @@ export const dischargePatient = async (req, res) => {
             });
         }
 
-        const targetPatient = await mongoose.model("Patient").findById(patientId);
+        const targetPatient = await Patient.findById(patientId);
         if (!targetPatient) {
             return res.status(404).json({ success: false, message: "Patient record not found" });
         }
@@ -216,7 +216,7 @@ export const dischargePatient = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: `Patient ${targetPatient.name} successfully discharged by Manager ${staffUser.fullname}`,
+            message: `Patient ${targetPatient.name} successfully discharged by Manager ${staffUser.name}`,
             patientTypeNow: targetPatient.patientType,
             billingSummary: roomBillingSummary
         });

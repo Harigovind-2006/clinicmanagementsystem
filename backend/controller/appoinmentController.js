@@ -27,19 +27,13 @@ export const createAppoinment = async (req, res) => {
 
     const savedAppointment = await appointment.save();
 
-    const patient = await Patient.findById(savedAppointment.patient)
-      .select("pid name mobilePhone email dob gender bloodGroup address");
+    const populatedAppointment = await Appointment.findById(savedAppointment._id)
+      .populate("patient", "pid name mobilePhone email dob gender bloodGroup address")
+      .populate("doctor", "name specialization email mobile")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost");
 
-    const doctor = await User.findById(savedAppointment.doctor)
-      .select("name specialization email mobile");
-
-    const result = {
-      ...savedAppointment.toObject(),
-      patient: patient,
-      doctor: doctor
-    };
-
-    return res.status(201).json(result);
+    return res.status(201).json(populatedAppointment.toObject({ flattenMaps: true }));
   } catch (error) {
     console.error("===== CREATE APPOINTMENT ERROR =====");
     console.error(error);
@@ -62,32 +56,54 @@ export const createAppoinment = async (req, res) => {
   }
 };
 
+export const removeProcedure = async (req, res) => {
+  try {
+    const { id, procedureId } = req.params;
+
+    const appointment = await Appointment.findByIdAndUpdate(
+      id,
+      {
+        $pull: {
+          procedure: procedureId,
+        },
+      },
+      { new: true }
+    ).populate("procedure");
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: appointment,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
 export const getAllActiveAppoinments = async (req, res) => {
   try {
     const activeAppoinments = await Appointment.find({ isActive: true })
+      .populate("patient", "pid name mobilePhone email")
+      .populate("doctor", "name specialization email mobile")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost")
       .sort({ appointmentDate: 1, appointmentTime: 1 });
 
     if (!activeAppoinments || activeAppoinments.length === 0) {
       return res.status(404).json({ message: "No Appointments found" });
     }
 
-    const populatedAppointments = await Promise.all(
-      activeAppoinments.map(async (appointment) => {
-        const patient = await Patient.findById(appointment.patient)
-          .select("pid name mobilePhone email");
-
-        const doctor = await User.findById(appointment.doctor)
-          .select("name specialization email mobile");
-
-        return {
-          ...appointment.toObject({ flattenMaps: true }),
-          patient: patient,
-          doctor: doctor
-        };
-      })
+    return res.status(200).json(
+      activeAppoinments.map(app => app.toObject({ flattenMaps: true }))
     );
-
-    return res.status(200).json(populatedAppointments);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -96,45 +112,17 @@ export const getAllActiveAppoinments = async (req, res) => {
 export const getAppoinmentById = async (req, res) => {
   try {
     const appoinmentId = req.params.id;
-    const foundAppoinment = await Appointment.findById(appoinmentId);
+    const foundAppoinment = await Appointment.findById(appoinmentId)
+      .populate("patient", "pid name mobilePhone email dob gender bloodGroup address")
+      .populate("doctor", "name specialization email mobile")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost");
 
     if (!foundAppoinment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
-    const patient = await Patient.findById(foundAppoinment.patient)
-      .select("pid name mobilePhone email dob gender bloodGroup address");
-
-    const doctor = await User.findById(foundAppoinment.doctor)
-      .select("name specialization email mobile");
-
-    const medicineDetails = await Promise.all(
-      (foundAppoinment.medicine || []).map(async (med) => {
-        const medicine = await Medicine.findById(med.medicine)
-          .select("medicinename medScientificName unitcost");
-        return {
-          ...med.toObject(),
-          medicine: medicine
-        };
-      })
-    );
-
-    const procedureDetails = await Promise.all(
-      (foundAppoinment.procedure || []).map(async (procId) => {
-        return await Procedure.findById(procId)
-          .select("procedureName amount");
-      })
-    );
-
-    const result = {
-      ...foundAppoinment.toObject({ flattenMaps: true }),
-      patient: patient,
-      doctor: doctor,
-      medicine: medicineDetails,
-      procedure: procedureDetails
-    };
-
-    return res.status(200).json(result);
+    return res.status(200).json(foundAppoinment.toObject({ flattenMaps: true }));
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -143,29 +131,53 @@ export const getAppoinmentById = async (req, res) => {
 export const updateAppoinment = async (req, res) => {
   try {
     const appoinmentId = req.params.id;
-    const updatedAppoinment = await Appointment.findByIdAndUpdate(
-      appoinmentId,
-      { $set: req.body },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedAppoinment) {
+    
+    const appointment = await Appointment.findById(appoinmentId);
+    if (!appointment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
-    const patient = await Patient.findById(updatedAppoinment.patient)
-      .select("pid name mobilePhone email");
+    if (req.body.vitals !== undefined) {
+      appointment.vitals = req.body.vitals;
+    }
 
-    const doctor = await User.findById(updatedAppoinment.doctor)
-      .select("name specialization email mobile");
+    if (req.body.complaints !== undefined) {
+      appointment.complaints = req.body.complaints;
+    }
 
-    const result = {
-      ...updatedAppoinment.toObject(),
-      patient: patient,
-      doctor: doctor
-    };
+    if (req.body.jdObservations !== undefined) {
+      appointment.jdObservations = req.body.jdObservations;
+    }
 
-    return res.status(200).json(result);
+    if (req.body.sdObservations !== undefined) {
+      appointment.sdObservations = req.body.sdObservations;
+    }
+
+    if (req.body.nurseNote !== undefined) {
+      appointment.nurseNote = req.body.nurseNote;
+    }
+
+    if (req.body.status !== undefined) {
+      appointment.status = req.body.status;
+    }
+
+    if (req.body.patientType !== undefined) {
+      appointment.patientType = req.body.patientType;
+    }
+
+    if (req.body.from !== undefined) {
+      appointment.from = req.body.from;
+    }
+
+    await appointment.save();
+
+    const populatedAppointment = await Appointment.findById(appoinmentId)
+      .populate("patient", "pid name mobilePhone email dob gender bloodGroup address")
+      .populate("doctor", "name specialization email mobile")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost");
+
+    return res.status(200).json(populatedAppointment.toObject({ flattenMaps: true }));
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
@@ -205,31 +217,15 @@ export const doctorAddsProcedure = async (req, res) => {
       id,
       { $push: { procedure: procedureId } },
       { new: true }
-    );
+    )
+      .populate("patient", "pid name")
+      .populate("doctor", "name specialization")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost");
 
     if (!appointment) {
       return res.status(404).json({ success: false, message: "Appointment not found" });
     }
-
-    const patient = await Patient.findById(appointment.patient)
-      .select("pid name");
-
-    const doctor = await User.findById(appointment.doctor)
-      .select("name specialization");
-
-    const procedures = await Promise.all(
-      (appointment.procedure || []).map(async (procId) => {
-        return await Procedure.findById(procId)
-          .select("procedureName amount");
-      })
-    );
-
-    const result = {
-      ...appointment.toObject({ flattenMaps: true }),
-      patient: patient,
-      doctor: doctor,
-      procedure: procedures
-    };
 
     const billUpdate = {};
     billUpdate[`billItems.${procedureDetails.procedureName}`] = {
@@ -241,7 +237,7 @@ export const doctorAddsProcedure = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Procedure ordered and logged to billing",
-      data: result
+      data: appointment.toObject({ flattenMaps: true })
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -265,40 +261,20 @@ export const doctorPrescribesMedicine = async (req, res) => {
       id,
       { $push: { medicine: { medicine: medicineId, days, frequency } } },
       { new: true }
-    );
+    )
+      .populate("patient", "pid name")
+      .populate("doctor", "name specialization")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost");
 
     if (!appointment) {
       return res.status(404).json({ success: false, message: "Appointment not found" });
     }
 
-    const patient = await Patient.findById(appointment.patient)
-      .select("pid name");
-
-    const doctor = await User.findById(appointment.doctor)
-      .select("name specialization");
-
-    const medicineDetails = await Promise.all(
-      (appointment.medicine || []).map(async (med) => {
-        const medicine = await Medicine.findById(med.medicine)
-          .select("medicinename medScientificName");
-        return {
-          ...med.toObject(),
-          medicine: medicine
-        };
-      })
-    );
-
-    const result = {
-      ...appointment.toObject({ flattenMaps: true }),
-      patient: patient,
-      doctor: doctor,
-      medicine: medicineDetails
-    };
-
     res.status(200).json({
       success: true,
       message: "Prescription saved for Pharmacist clearance",
-      data: result
+      data: appointment.toObject({ flattenMaps: true })
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -317,7 +293,12 @@ export const pharmacistDispenseAndBill = async (req, res) => {
       });
     }
 
-    const appointment = await Appointment.findById(id);
+    const appointment = await Appointment.findById(id)
+      .populate("patient", "pid name")
+      .populate("doctor", "name specialization")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost");
+
     if (!appointment) {
       return res.status(404).json({ success: false, message: "Appointment reference not found" });
     }
@@ -365,37 +346,17 @@ export const pharmacistDispenseAndBill = async (req, res) => {
 
     await Patient.findByIdAndUpdate(appointment.patient, { $set: dynamicBillUpdates });
 
-    const updatedAppointment = await Appointment.findById(id);
-
-    const patient = await Patient.findById(updatedAppointment.patient)
-      .select("pid name");
-
-    const doctor = await User.findById(updatedAppointment.doctor)
-      .select("name specialization");
-
-    const medicineDetails = await Promise.all(
-      (updatedAppointment.medicine || []).map(async (med) => {
-        const medicine = await Medicine.findById(med.medicine)
-          .select("medicinename medScientificName unitcost");
-        return {
-          ...med.toObject(),
-          medicine: medicine
-        };
-      })
-    );
-
-    const result = {
-      ...updatedAppointment.toObject(),
-      patient: patient,
-      doctor: doctor,
-      medicine: medicineDetails
-    };
+    const updatedAppointment = await Appointment.findById(id)
+      .populate("patient", "pid name")
+      .populate("doctor", "name specialization")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost");
 
     res.status(200).json({
       success: true,
       message: "Pharmacy inventory updated and transaction posted to patient invoice!",
       data: {
-        appointment: result,
+        appointment: updatedAppointment.toObject({ flattenMaps: true }),
         dispensedItems: dispensedItems,
         totalBill: Object.values(dynamicBillUpdates).reduce((sum, item) => sum + item.amount, 0)
       }
@@ -420,6 +381,9 @@ export const getPatientHistory = async (req, res) => {
       patient: patientId,
       status: "completed"
     })
+      .populate("doctor", "name specialization email mobile")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost")
       .sort({ appointmentDate: -1, appointmentTime: -1 });
 
     if (!history || history.length === 0) {
@@ -431,42 +395,10 @@ export const getPatientHistory = async (req, res) => {
       });
     }
 
-    const populatedHistory = await Promise.all(
-      history.map(async (appointment) => {
-        const doctor = await User.findById(appointment.doctor)
-          .select("name specialization email mobile");
-
-        const medicineDetails = await Promise.all(
-          (appointment.medicine || []).map(async (med) => {
-            const medicine = await Medicine.findById(med.medicine)
-              .select("medicinename medScientificName unitcost");
-            return {
-              ...med.toObject(),
-              medicine: medicine
-            };
-          })
-        );
-
-        const procedureDetails = await Promise.all(
-          (appointment.procedure || []).map(async (procId) => {
-            return await Procedure.findById(procId)
-              .select("procedureName amount");
-          })
-        );
-
-        return {
-          ...appointment.toObject({ flattenMaps: true }),
-          doctor: doctor,
-          medicine: medicineDetails,
-          procedure: procedureDetails
-        };
-      })
-    );
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: history.length,
-      data: populatedHistory
+      data: history.map(app => app.toObject({ flattenMaps: true }))
     });
   } catch (error) {
     res.status(500).json({
@@ -491,28 +423,16 @@ export const getTodayAppointments = async (req, res) => {
       },
       isActive: true
     })
+      .populate("patient", "pid name mobilePhone")
+      .populate("doctor", "name specialization email mobile")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost")
       .sort({ appointmentTime: 1 });
-
-    const populatedAppointments = await Promise.all(
-      appointments.map(async (appointment) => {
-        const patient = await Patient.findById(appointment.patient)
-          .select("pid name mobilePhone");
-
-        const doctor = await User.findById(appointment.doctor)
-          .select("name specialization email mobile");
-
-        return {
-          ...appointment.toObject({ flattenMaps: true }),
-          patient: patient,
-          doctor: doctor
-        };
-      })
-    );
 
     return res.status(200).json({
       success: true,
       count: appointments.length,
-      data: populatedAppointments
+      data: appointments.map(app => app.toObject({ flattenMaps: true }))
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -538,28 +458,16 @@ export const getAppointmentsByDoctor = async (req, res) => {
     }
 
     const appointments = await Appointment.find(query)
+      .populate("patient", "pid name mobilePhone")
+      .populate("doctor", "name specialization email mobile")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost")
       .sort({ appointmentDate: 1, appointmentTime: 1 });
-
-    const populatedAppointments = await Promise.all(
-      appointments.map(async (appointment) => {
-        const patient = await Patient.findById(appointment.patient)
-          .select("pid name mobilePhone");
-
-        const doctor = await User.findById(appointment.doctor)
-          .select("name specialization email mobile");
-
-        return {
-          ...appointment.toObject({ flattenMaps: true }),
-          patient: patient,
-          doctor: doctor
-        };
-      })
-    );
 
     return res.status(200).json({
       success: true,
       count: appointments.length,
-      data: populatedAppointments
+      data: appointments.map(app => app.toObject({ flattenMaps: true }))
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });

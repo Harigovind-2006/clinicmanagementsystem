@@ -8,7 +8,8 @@ import {
   doctorAddsProcedure,
   doctorPrescribesMedicine,
   pharmacistDispenseAndBill,
-  getPatientHistory
+  getPatientHistory,
+  removeProcedure
 } from "../controller/appoinmentController.js";
 
 const route = express.Router();
@@ -23,6 +24,7 @@ route.route("/:id")
   .delete(deleteAppoinment);
 
 
+route.delete("/:id/remove-procedure/:procedureId", removeProcedure);
 
   // Button Action 1: Doctor clicks "Add Procedure"
 route.put("/:id/add-procedure", doctorAddsProcedure);
