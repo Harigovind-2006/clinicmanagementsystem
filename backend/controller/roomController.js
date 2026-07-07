@@ -53,7 +53,7 @@ export const managerAssignsRoom = async (req, res) => {
 
         res.status(200).json({ 
             success: true, 
-            message: `Room assigned successfully by Manager ${staffUser.fullname}`, 
+            message: `Room assigned successfully by Manager ${staffUser.name}`, 
             data: targetRoom 
         });
     } catch (error) {
@@ -83,7 +83,7 @@ export const managerUpdatesRoom = async (req, res) => {
 
         res.status(200).json({ 
             success: true, 
-            message: `Room configurations updated by Manager ${staffUser.fullname}`, 
+            message: `Room configurations updated by Manager ${staffUser.name}`, 
             data: updatedRoom 
         });
     } catch (error) {

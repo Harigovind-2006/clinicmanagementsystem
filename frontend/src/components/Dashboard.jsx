@@ -11,7 +11,7 @@ const specializationsList = [
   "Orthopedics",
   "Dermatology",
   "Pediatrics",
-  "General Medicine",
+  "General medicine",
 ];
 const bloodGroupsList = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -126,14 +126,14 @@ function getPatientPid(appointment) {
 // FIX 1: Corrected getDoctorName to properly handle doctor field
 function getDoctorName(appointment, doctorsList) {
   // Check if doctor object exists with fullname
-  if (appointment.doctor?.fullname) {
-    return appointment.doctor.fullname;
+  if (appointment.doctor?.name) {
+    return appointment.doctor.name;
   }
 
   // Check if doctorId is a string reference
   if (appointment.doctorId) {
     const doc = doctorsList?.find((d) => d._id === appointment.doctorId);
-    if (doc) return doc.fullname;
+    if (doc) return doc.name;
   }
 
   // Check if assignedDoctorId is used
@@ -141,13 +141,13 @@ function getDoctorName(appointment, doctorsList) {
     const doc = doctorsList?.find(
       (d) => d._id === appointment.assignedDoctorId
     );
-    if (doc) return doc.fullname;
+    if (doc) return doc.name;
   }
 
   // Check if doctor is an ID string
   if (typeof appointment.doctor === 'string') {
     const doc = doctorsList?.find((d) => d._id === appointment.doctor);
-    if (doc) return doc.fullname;
+    if (doc) return doc.name;
   }
 
   return "N/A";
@@ -729,8 +729,8 @@ export default function ManagerDashboard({ role }) {
                   >
                     <option value="">All Doctors</option>
                     {doctors.map((doctor) => (
-                      <option key={doctor._id} value={doctor.fullname}>
-                        {doctor.fullname} ({doctor.specialization})
+                      <option key={doctor._id} value={doctor.name}>
+                        {doctor.name} ({doctor.specialization})
                       </option>
                     ))}
                   </select>
@@ -1339,7 +1339,7 @@ export default function ManagerDashboard({ role }) {
                             >
                               {availableDoctors.map((doc) => (
                                 <option key={doc._id} value={doc._id}>
-                                  {doc.fullname}
+                                  {doc.name}
                                 </option>
                               ))}
                             </select>
@@ -1484,7 +1484,7 @@ export default function ManagerDashboard({ role }) {
                               Doctor
                             </span>
                             <span className="font-semibold text-gray-900">
-                              {selectedDoctorInfo?.fullname || "N/A"}
+                              {selectedDoctorInfo?.name || "N/A"}
                             </span>
                           </div>
                           <div className="w-px h-8 bg-blue-200"></div>
@@ -1620,7 +1620,7 @@ export default function ManagerDashboard({ role }) {
                             <div className="flex justify-between">
                               <span className="text-gray-500">Doctor</span>
                               <span className="text-gray-900 font-medium">
-                                {selectedDoctorInfo?.fullname || "N/A"}
+                                {selectedDoctorInfo?.name || "N/A"}
                               </span>
                             </div>
                             <div className="flex justify-between">
@@ -1914,7 +1914,7 @@ export default function ManagerDashboard({ role }) {
                 Doctor
               </span>
               <span className="font-bold text-gray-900">
-                {selectedDoctorInfo?.fullname || "N/A"}
+                {selectedDoctorInfo?.name || "N/A"}
               </span>
             </div>
             <div className="flex justify-between border-b border-gray-100 pb-3">
