@@ -6,12 +6,8 @@ export default function Admission() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [showAssignModal, setShowAssignModal] = useState(false);
-  
-  // New Patient Detail Modal States
   const [showPatientModal, setShowPatientModal] = useState(false);
   const [selectedPatientData, setSelectedPatientData] = useState(null);
-
-  // Form Field States
   const [selectedPatient, setSelectedPatient] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
   const [advance, setAdvance] = useState("");
@@ -21,12 +17,10 @@ export default function Admission() {
   const [fromDate, setFromDate] = useState(today);
   const [paymentUpto, setPaymentUpto] = useState("");
 
-  // State for API data
   const [roomData, setRoomData] = useState([]);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchRooms();
     fetchPatients();
@@ -36,9 +30,12 @@ export default function Admission() {
     try {
       setLoading(true);
       const res = await api.get("/roomsapi");
+      console.log("First Room:", res.data.data[0]);
       setRoomData(res.data.data || res.data);
     } catch (err) {
-      console.error("Error fetching rooms:", err);
+      console.log(err.response);
+      console.log(err.response?.data);
+      console.log(err.message);
       setErrorMsg("Failed to load room data.");
     } finally {
       setLoading(false);
@@ -55,12 +52,22 @@ export default function Admission() {
     }
   };
 
-  // Filter rooms based on search
-  const filteredRooms = roomData.filter(
-    (room) =>
+  const getRoomPrice = (room) => {
+    if (room.charge) return room.charge;
+    if (room.price) return room.price;
+    if (room.roomCategory === "small") return 1000;
+    if (room.roomCategory === "medium") return 1500;
+    if (room.roomCategory === "large") return 2500;
+    return 0;
+  };
+
+  const filteredRooms = roomData.filter((room) => {
+    const patientName = room.currentPatient?.name || "";
+    return (
       room.roomId?.toString().includes(search) ||
-      room.currentPatient?.name?.toLowerCase().includes(search.toLowerCase())
-  );
+      patientName.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
   const handlePatientClick = (room) => {
     const patientInfo =
@@ -86,7 +93,6 @@ export default function Admission() {
   };
 
   const handleAssignRoom = async () => {
-    // Advance payment is mandatory along with patient and room selection
     if (!selectedPatient || !selectedRoom || !advance) {
       setErrorMsg("Please fill all required fields, including Advance Payment.");
       return;
@@ -95,15 +101,12 @@ export default function Admission() {
     try {
       const managerId = localStorage.getItem("userId");
 
-      await api.put(`/roomsapi/assign/${managerId}`, {
+      await api.put(`/roomsapi/assign/by-manager/${managerId}`, {
         roomId: selectedRoom,
         patientId: selectedPatient,
-        advancePaid: Number(advance),
-        fromDate: fromDate,
-        paymentUpto: paymentUpto || undefined,
+        advancePaid: Number(advance)
       });
 
-      // Reset fields & close modal
       setShowAssignModal(false);
       setSelectedPatient("");
       setSelectedRoom("");
@@ -112,7 +115,6 @@ export default function Admission() {
       setPaymentUpto("");
       setErrorMsg("");
       
-      // Refresh room data
       fetchRooms();
     } catch (err) {
       console.error("Error assigning room:", err);
@@ -120,21 +122,19 @@ export default function Admission() {
     }
   };
 
-  // Toggle Room between Available and Closed
   const toggleRoomStatus = async (roomId, currentStatus) => {
     const newStatus = currentStatus === "Available" ? "Closed" : "Available";
     
     try {
       const managerId = localStorage.getItem("userId");
       
-      await api.put(`/roomsapi/update/${managerId}`, {
-        roomId: roomId,
+      await api.put(`/roomsapi/update/by-manager/${managerId}`, {
+        roomId,
         updateData: {
           status: newStatus.toLowerCase()
         }
       });
 
-      // Refresh room data
       fetchRooms();
     } catch (err) {
       console.error("Error updating room status:", err);
@@ -142,7 +142,6 @@ export default function Admission() {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -160,7 +159,6 @@ export default function Admission() {
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
       <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
         
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Admissions</h1>
@@ -175,7 +173,6 @@ export default function Admission() {
           </button>
         </div>
 
-        {/* Error Message */}
         {errorMsg && (
           <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center justify-between">
             <span>{errorMsg}</span>
@@ -188,7 +185,6 @@ export default function Admission() {
           </div>
         )}
 
-        {/* Search */}
         <div className="bg-white border border-gray-200 rounded-2xl mb-6 overflow-hidden shadow-sm">
           <input
             type="text"
@@ -199,7 +195,6 @@ export default function Admission() {
           />
         </div>
 
-        {/* Desktop Table */}
         <div className="hidden lg:block bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -221,7 +216,7 @@ export default function Admission() {
                   <tr key={room._id} className="hover:bg-gray-50/70 transition-colors">
                     <td className="p-4 text-sm font-bold text-gray-900">Room {room.roomId}</td>
                     <td className="p-4 text-sm text-gray-600">{room.facilities || room.roomCategory || "—"}</td>
-                    <td className="p-4 text-sm text-gray-900 font-medium">₹{room.charge || room.price || 0}</td>
+                    <td className="p-4 text-sm text-gray-900 font-medium">₹{getRoomPrice(room)}</td>
                     <td className="p-4">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium border ${
@@ -248,7 +243,7 @@ export default function Admission() {
                       )}
                     </td>
                     <td className="p-4 text-sm text-gray-600">
-                      {room.admittedAt ? new Date(room.admittedAt).toLocaleDateString() : <span className="text-gray-400">—</span>}
+                      {room.occupiedDate ? new Date(room.occupiedDate).toLocaleDateString() : <span className="text-gray-400">—</span>}
                     </td>
                     <td className="p-4 text-sm text-gray-900 font-medium">
                       {room.advancePaid ? `₹${room.advancePaid}` : <span className="text-gray-400">—</span>}
@@ -281,7 +276,6 @@ export default function Admission() {
           </div>
         </div>
 
-        {/* Mobile Cards */}
         <div className="lg:hidden space-y-4">
           {filteredRooms.map((room) => (
             <div key={room._id} className="bg-white rounded-2xl shadow-sm p-5 border border-gray-200">
@@ -303,7 +297,7 @@ export default function Admission() {
               <p className="text-gray-600 text-sm mb-2">{room.facilities || room.roomCategory || "—"}</p>
               <div className="grid grid-cols-2 gap-y-2 text-sm pt-3 border-t border-gray-100 mt-3">
                 <span className="text-gray-500">Price:</span>
-                <span className="font-medium text-gray-900">₹{room.charge || room.price || 0}/night</span>
+                <span className="font-medium text-gray-900">₹{getRoomPrice(room)}/night</span>
                 
                 <span className="text-gray-500">Patient:</span>
                 <span>
@@ -348,7 +342,6 @@ export default function Admission() {
           ))}
         </div>
 
-        {/* Patient Details Modal */}
         {showPatientModal && selectedPatientData && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 animate-fade-in">
             <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
@@ -371,7 +364,7 @@ export default function Admission() {
                     <p><strong className="text-gray-600">Room:</strong> Room {selectedPatientData.room.roomId}</p>
                     <p><strong className="text-gray-600">Status:</strong> {selectedPatientData.room.status}</p>
                     <p><strong className="text-gray-600">Facilities:</strong> {selectedPatientData.room.facilities || selectedPatientData.room.roomCategory || "—"}</p>
-                    <p><strong className="text-gray-600">Per Night:</strong> Rs. {selectedPatientData.room.charge || selectedPatientData.room.price || 0}</p>
+                    <p><strong className="text-gray-600">Per Night:</strong> Rs. {getRoomPrice(selectedPatientData.room)}</p>
                   </div>
                 </div>
 
@@ -384,7 +377,7 @@ export default function Admission() {
                     <p><strong className="text-gray-600">Gender:</strong> {selectedPatientData.patient.gender}</p>
                     <p><strong className="text-gray-600">Blood Group:</strong> {selectedPatientData.patient.bloodGroup}</p>
                     <p><strong className="text-gray-600">Mobile:</strong> {selectedPatientData.patient.mobilePhone}</p>
-                    <p><strong className="text-gray-600">Admitted:</strong> {selectedPatientData.room.admittedAt ? new Date(selectedPatientData.room.admittedAt).toLocaleDateString() : "—"}</p>
+                    <p><strong className="text-gray-600">Admitted:</strong> {selectedPatientData.room.occupiedDate ? new Date(selectedPatientData.room.occupiedDate).toLocaleDateString() : "—"}</p>
                     <p><strong className="text-gray-600">Payment Upto:</strong> {selectedPatientData.patient.paymentUpto || "—"}</p>
                   </div>
                 </div>
@@ -413,7 +406,6 @@ export default function Admission() {
           </div>
         )}
 
-        {/* Assign Room Modal (Compact Design) */}
         {showAssignModal && (
           <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50 p-4 animate-fade-in backdrop-blur-sm">
             <div className="bg-white rounded-2xl w-full max-w-2xl p-6 md:p-8 shadow-2xl">
@@ -433,7 +425,6 @@ export default function Admission() {
                 </div>
               )}
 
-              {/* Grid Layout for compact height */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1.5">Patient <span className="text-red-500">*</span></label>
@@ -465,7 +456,7 @@ export default function Admission() {
                       .filter((room) => room.status === "Available" || room.status === "available")
                       .map((room) => (
                         <option key={room._id} value={room._id}>
-                          Room {room.roomId} (₹{room.charge || room.price || 0}/night)
+                          Room {room.roomId} (₹{getRoomPrice(room)}/night)
                         </option>
                       ))}
                   </select>

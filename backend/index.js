@@ -48,3 +48,4 @@ app.use("/medicineapi", medicineRoute);
 app.use("/appoinmentapi", appoinmentRoute);
 app.use("/procedureapi", procedureRoute);
 app.use("/roomsapi", roomRoutes);
+
