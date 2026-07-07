@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
 import api from "../../api/axios";
+
 export default function JuniorDoctor() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -9,7 +10,6 @@ export default function JuniorDoctor() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch appointments on component mount
   useEffect(() => {
     fetchAppointments();
   }, []);
@@ -18,6 +18,12 @@ export default function JuniorDoctor() {
     try {
       const res = await api.get("/appoinmentapi");
       const data = res.data.data || res.data;
+      
+      // Debug logging
+      console.log("Appointments:", data);
+      console.log("First appointment:", data[0]);
+      console.log("Doctor field:", data[0]?.doctor);
+      
       setAppointments(data);
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -27,13 +33,10 @@ export default function JuniorDoctor() {
     }
   };
 
-  // Filter appointments based on status
-  // For Assessment: Show appointments with status "scheduled" (new appointments)
   const assessmentPatients = appointments.filter(
     (a) => a.status === "scheduled"
   );
 
-  // Waiting/Submitted: Show appointments with status "waiting" (awaiting Senior Doctor)
   const submittedPatients = appointments.filter(
     (a) => a.status === "waiting"
   );
@@ -43,7 +46,6 @@ export default function JuniorDoctor() {
       ? assessmentPatients
       : submittedPatients;
 
-  // Loading state
   if (loading) {
     return (
       <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -60,7 +62,6 @@ export default function JuniorDoctor() {
   return (
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
       <div className="w-full">
-        {/* Title Block */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-[#0F172A] tracking-tight">
             Junior Doctor Dashboard
@@ -70,7 +71,6 @@ export default function JuniorDoctor() {
           </p>
         </div>
 
-        {/* Custom Pill Tab Controls */}
         <div className="flex gap-2 mb-8 bg-[#F1F5F9] p-1.5 rounded-xl w-fit border border-[#E2E8F0]">
           <button
             onClick={() => setActiveTab("assessment")}
@@ -95,7 +95,6 @@ export default function JuniorDoctor() {
           </button>
         </div>
 
-        {/* Main Records Frame Table */}
         <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden w-full">
           <div className="overflow-x-auto w-full">
             <table className="w-full min-w-max table-auto text-left border-collapse">
@@ -128,7 +127,8 @@ export default function JuniorDoctor() {
                         {patient.patient?.name || "Unknown"}
                       </td>
                       <td className="px-6 py-4.5 text-[#64748B]">
-                        {patient.doctor?.fullname || "N/A"}
+                        {/* FIXED: Use .name instead of .fullname */}
+                        {patient.doctor?.name || "N/A"}
                       </td>
                       <td className="px-6 py-4.5 text-[#64748B]">
                         {patient.doctor?.specialization || "N/A"}
