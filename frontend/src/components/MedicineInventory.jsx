@@ -40,7 +40,7 @@ export default function MedicineInventory() {
 
     const fetchMedicines = async () => {
       try {
-        const { data } = await api.get("/medicineapi/medicineget");
+        const { data } = await api.get("/medicineapi");
         setMedicines(data);
       } catch (error) {
         console.error("Fetch Error:", error);
@@ -68,7 +68,7 @@ export default function MedicineInventory() {
     }
 
     try {
-      await api.post("/medicineapi/medicinein", {
+      await api.post("/medicineapi", {
         medicinename: form.medicinename,
         scientificname: form.scientificname,
         unitcost: Number(form.unitcost),
@@ -77,7 +77,7 @@ export default function MedicineInventory() {
 
       closeModals();
 
-      const { data } = await api.get("/medicineapi/medicineget");
+      const { data } = await api.get("/medicineapi");
       setMedicines(data);
     } catch (err) {
       console.error(err.response?.data);
@@ -112,7 +112,7 @@ export default function MedicineInventory() {
     }
 
     try {
-      await api.put(`/medicineapi/update/medicine/${selectedMedicine._id}`, {
+      await api.put(`/medicineapi/${selectedMedicine._id}`, {
         medicinename: form.medicinename,
         scientificname: form.scientificname,
         unitcost: Number(form.unitcost),
@@ -121,7 +121,7 @@ export default function MedicineInventory() {
 
       closeModals();
 
-      const { data } = await api.get("/medicineapi/medicineget");
+      const { data } = await api.get("/medicineapi");
       setMedicines(data);
     } catch (err) {
       console.error(err.response?.data);
@@ -138,10 +138,10 @@ export default function MedicineInventory() {
   const confirmDelete = async () => {
     try {
       await api.delete(
-        `/medicineapi/delete/medicine/${medicineToDelete._id}`
+        `/medicineapi/${medicineToDelete._id}`
       );
 
-      const { data } = await api.get("/medicineapi/medicineget");
+      const { data } = await api.get("/medicineapi");
       setMedicines(data);
 
       setShowDeleteModal(false);
@@ -162,11 +162,11 @@ export default function MedicineInventory() {
     if (!qty || qty <= 0) return;
 
     try {
-      await api.put(`/medicineapi/update/medicine/${restockMedicine._id}`, {
+      await api.put(`/medicineapi/${restockMedicine._id}`, {
         quantity: restockMedicine.quantity + qty,
       });
 
-      const { data } = await api.get("/medicineapi/medicineget");
+      const { data } = await api.get("/medicineapi");
       setMedicines(data);
 
       setShowRestockModal(false);
