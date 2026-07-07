@@ -53,12 +53,16 @@ export default function Admission() {
   };
 
   const getRoomPrice = (room) => {
-    if (room.charge) return room.charge;
-    if (room.price) return room.price;
-    if (room.roomCategory === "small") return 1000;
-    if (room.roomCategory === "medium") return 1500;
-    if (room.roomCategory === "large") return 2500;
-    return 0;
+    switch (room.roomCategory) {
+      case "small":
+        return 1000;
+      case "medium":
+        return 1500;
+      case "large":
+        return 2500;
+      default:
+        return 0;
+    }
   };
 
   const filteredRooms = roomData.filter((room) => {
@@ -123,7 +127,7 @@ export default function Admission() {
   };
 
   const toggleRoomStatus = async (roomId, currentStatus) => {
-    const newStatus = currentStatus === "Available" ? "Closed" : "Available";
+    const newStatus = currentStatus === "available" ? "closed" : "available";
     
     try {
       const managerId = localStorage.getItem("userId");
@@ -131,7 +135,7 @@ export default function Admission() {
       await api.put(`/roomsapi/update/by-manager/${managerId}`, {
         roomId,
         updateData: {
-          status: newStatus.toLowerCase()
+          status: newStatus
         }
       });
 
@@ -201,11 +205,11 @@ export default function Admission() {
               <thead className="bg-gray-50/70 border-b border-gray-200">
                 <tr>
                   <th className="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Room</th>
-                  <th className="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Facilities</th>
+                  <th className="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Category</th>
                   <th className="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Per Night</th>
                   <th className="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                   <th className="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Patient</th>
-                  <th className="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Admitted</th>
+                  <th className="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Occupied Date</th>
                   <th className="p-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Advance</th>
                   <th className="p-4 text-right text-sm font-semibold text-gray-600 uppercase tracking-wider">Action</th>
                 </tr>
@@ -214,20 +218,20 @@ export default function Admission() {
               <tbody className="divide-y divide-gray-200">
                 {filteredRooms.map((room) => (
                   <tr key={room._id} className="hover:bg-gray-50/70 transition-colors">
-                    <td className="p-4 text-sm font-bold text-gray-900">Room {room.roomId}</td>
-                    <td className="p-4 text-sm text-gray-600">{room.facilities || room.roomCategory || "—"}</td>
+                    <td className="p-4 text-sm font-bold text-gray-900">{room.roomId}</td>
+                    <td className="p-4 text-sm text-gray-600 capitalize">{room.roomCategory || "—"}</td>
                     <td className="p-4 text-sm text-gray-900 font-medium">₹{getRoomPrice(room)}</td>
                     <td className="p-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                          room.status === "Occupied" || room.status === "occupied"
+                        className={`px-3 py-1 rounded-full text-xs font-medium border capitalize ${
+                          room.status === "occupied"
                             ? "bg-blue-50 text-blue-700 border-blue-200"
-                            : room.status === "Available" || room.status === "available"
+                            : room.status === "available"
                             ? "bg-green-50 text-green-700 border-green-200"
                             : "bg-gray-100 text-gray-600 border-gray-300"
                         }`}
                       >
-                        {room.status || "Available"}
+                        {room.status || "available"}
                       </span>
                     </td>
                     <td className="p-4 text-sm">
@@ -243,13 +247,13 @@ export default function Admission() {
                       )}
                     </td>
                     <td className="p-4 text-sm text-gray-600">
-                      {room.occupiedDate ? new Date(room.occupiedDate).toLocaleDateString() : <span className="text-gray-400">—</span>}
+                      {room.occupiedDate ? new Date(room.occupiedDate).toLocaleDateString("en-IN") : <span className="text-gray-400">—</span>}
                     </td>
                     <td className="p-4 text-sm text-gray-900 font-medium">
                       {room.advancePaid ? `₹${room.advancePaid}` : <span className="text-gray-400">—</span>}
                     </td>
                     <td className="p-4 text-right">
-                      {(room.status === "Available" || room.status === "available") && (
+                      {room.status === "available" && (
                         <button
                           onClick={() => toggleRoomStatus(room._id, room.status)}
                           className="text-xs font-medium border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
@@ -257,7 +261,7 @@ export default function Admission() {
                           Mark Closed
                         </button>
                       )}
-                      {(room.status === "Closed" || room.status === "closed") && (
+                      {room.status === "closed" && (
                         <button
                           onClick={() => toggleRoomStatus(room._id, room.status)}
                           className="text-xs font-medium border border-green-300 text-green-700 px-3 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"
@@ -265,7 +269,7 @@ export default function Admission() {
                           Mark Available
                         </button>
                       )}
-                      {(room.status === "Occupied" || room.status === "occupied") && (
+                      {room.status === "occupied" && (
                         <span className="text-gray-400 text-xs italic">In Use</span>
                       )}
                     </td>
@@ -282,19 +286,19 @@ export default function Admission() {
               <div className="flex justify-between items-start mb-3">
                 <h3 className="font-bold text-lg text-gray-900">Room {room.roomId}</h3>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                    room.status === "Occupied" || room.status === "occupied"
+                  className={`px-3 py-1 rounded-full text-xs font-medium border capitalize ${
+                    room.status === "occupied"
                       ? "bg-blue-50 text-blue-700 border-blue-200"
-                      : room.status === "Available" || room.status === "available"
+                      : room.status === "available"
                       ? "bg-green-50 text-green-700 border-green-200"
                       : "bg-gray-100 text-gray-600 border-gray-300"
                   }`}
                 >
-                  {room.status || "Available"}
+                  {room.status || "available"}
                 </span>
               </div>
 
-              <p className="text-gray-600 text-sm mb-2">{room.facilities || room.roomCategory || "—"}</p>
+              <p className="text-gray-600 text-sm mb-2 capitalize">{room.roomCategory || "—"}</p>
               <div className="grid grid-cols-2 gap-y-2 text-sm pt-3 border-t border-gray-100 mt-3">
                 <span className="text-gray-500">Price:</span>
                 <span className="font-medium text-gray-900">₹{getRoomPrice(room)}/night</span>
@@ -318,7 +322,7 @@ export default function Admission() {
               </div>
 
               <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
-                {(room.status === "Available" || room.status === "available") && (
+                {room.status === "available" && (
                   <button
                     onClick={() => toggleRoomStatus(room._id, room.status)}
                     className="w-full text-sm font-medium border border-gray-300 text-gray-600 py-2 rounded-xl hover:bg-gray-100 transition-colors"
@@ -326,7 +330,7 @@ export default function Admission() {
                     Mark Closed for Cleaning
                   </button>
                 )}
-                {(room.status === "Closed" || room.status === "closed") && (
+                {room.status === "closed" && (
                   <button
                     onClick={() => toggleRoomStatus(room._id, room.status)}
                     className="w-full text-sm font-medium border border-green-300 text-green-700 py-2 rounded-xl bg-green-50 hover:bg-green-100 transition-colors"
@@ -334,7 +338,7 @@ export default function Admission() {
                     Mark as Available
                   </button>
                 )}
-                {(room.status === "Occupied" || room.status === "occupied") && (
+                {room.status === "occupied" && (
                   <p className="w-full text-center text-gray-400 text-sm italic">Room is currently in use</p>
                 )}
               </div>
@@ -362,8 +366,8 @@ export default function Admission() {
                   <h3 className="font-semibold text-lg mb-3 text-gray-800">Room Information</h3>
                   <div className="space-y-2 text-sm">
                     <p><strong className="text-gray-600">Room:</strong> Room {selectedPatientData.room.roomId}</p>
-                    <p><strong className="text-gray-600">Status:</strong> {selectedPatientData.room.status}</p>
-                    <p><strong className="text-gray-600">Facilities:</strong> {selectedPatientData.room.facilities || selectedPatientData.room.roomCategory || "—"}</p>
+                    <p><strong className="text-gray-600">Status:</strong> <span className="capitalize">{selectedPatientData.room.status}</span></p>
+                    <p><strong className="text-gray-600">Category:</strong> <span className="capitalize">{selectedPatientData.room.roomCategory || "—"}</span></p>
                     <p><strong className="text-gray-600">Per Night:</strong> Rs. {getRoomPrice(selectedPatientData.room)}</p>
                   </div>
                 </div>
@@ -377,7 +381,7 @@ export default function Admission() {
                     <p><strong className="text-gray-600">Gender:</strong> {selectedPatientData.patient.gender}</p>
                     <p><strong className="text-gray-600">Blood Group:</strong> {selectedPatientData.patient.bloodGroup}</p>
                     <p><strong className="text-gray-600">Mobile:</strong> {selectedPatientData.patient.mobilePhone}</p>
-                    <p><strong className="text-gray-600">Admitted:</strong> {selectedPatientData.room.occupiedDate ? new Date(selectedPatientData.room.occupiedDate).toLocaleDateString() : "—"}</p>
+                    <p><strong className="text-gray-600">Occupied Date:</strong> {selectedPatientData.room.occupiedDate ? new Date(selectedPatientData.room.occupiedDate).toLocaleDateString("en-IN") : "—"}</p>
                     <p><strong className="text-gray-600">Payment Upto:</strong> {selectedPatientData.patient.paymentUpto || "—"}</p>
                   </div>
                 </div>
@@ -453,7 +457,7 @@ export default function Admission() {
                   >
                     <option value="">Select available room...</option>
                     {roomData
-                      .filter((room) => room.status === "Available" || room.status === "available")
+                      .filter((room) => room.status === "available")
                       .map((room) => (
                         <option key={room._id} value={room._id}>
                           Room {room.roomId} (₹{getRoomPrice(room)}/night)
