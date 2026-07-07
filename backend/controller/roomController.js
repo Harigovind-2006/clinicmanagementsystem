@@ -1,7 +1,6 @@
 import Room from "../models/room.js";
 import User from "../models/user.js";
 import Patient from "../models/patient.js";
-import mongoose from "mongoose";
 
 export const createRoom = async (req, res) => {
     try {
@@ -32,9 +31,12 @@ export const managerAssignsRoom = async (req, res) => {
             return res.status(403).json({ success: false, message: "Access Denied. Authorization required." });
         }
 
-        const patient = await mongoose.model("Patient").findById(patientId);
-        if (!patient || patient.patientType !== "ip") {
-            return res.status(400).json({ success: false, message: "Allocation Denied. Target must be an In-Patient (ip)." });
+        const patient = await Patient.findById(patientId);
+        if (!patient) {
+            return res.status(404).json({ success: false, message: "Patient not found" });
+        }
+        if (patient.patientType !== "ip") {
+            return res.status(400).json({ success: false, message: "Only IP patients can be assigned rooms" });
         }
 
         const targetRoom = await Room.findById(roomId);
@@ -115,7 +117,7 @@ export const processRoomReleaseAndRent = async (patientId) => {
     
     billingLineItem[`billItems.${mapKeyName}`] = {
         amount: netRoomCharge, 
-        status: "unpaid" // Fixed: Added status parameter back for invoicing pipeline
+        status: "unpaid"
     };
 
     await Patient.findByIdAndUpdate(patientId, { $set: billingLineItem });
