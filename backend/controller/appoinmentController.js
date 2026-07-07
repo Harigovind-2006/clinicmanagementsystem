@@ -68,7 +68,11 @@ export const removeProcedure = async (req, res) => {
         },
       },
       { new: true }
-    ).populate("procedure");
+    )
+      .populate("patient", "pid name mobilePhone email dob gender bloodGroup address")
+      .populate("doctor", "name specialization email mobile")
+      .populate("procedure", "procedureName amount")
+      .populate("medicine.medicine", "medicinename medScientificName unitcost");
 
     if (!appointment) {
       return res.status(404).json({
@@ -79,7 +83,7 @@ export const removeProcedure = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: appointment,
+      data: appointment.toObject({ flattenMaps: true }),
     });
   } catch (err) {
     res.status(500).json({
@@ -88,10 +92,11 @@ export const removeProcedure = async (req, res) => {
     });
   }
 };
+
 export const getAllActiveAppoinments = async (req, res) => {
   try {
     const activeAppoinments = await Appointment.find({ isActive: true })
-      .populate("patient", "pid name mobilePhone email")
+      .populate("patient", "pid name dob gender bloodGroup mobilePhone email address")
       .populate("doctor", "name specialization email mobile")
       .populate("procedure", "procedureName amount")
       .populate("medicine.medicine", "medicinename medScientificName unitcost")
@@ -218,8 +223,8 @@ export const doctorAddsProcedure = async (req, res) => {
       { $push: { procedure: procedureId } },
       { new: true }
     )
-      .populate("patient", "pid name")
-      .populate("doctor", "name specialization")
+      .populate("patient", "pid name mobilePhone email dob gender bloodGroup address")
+      .populate("doctor", "name specialization email mobile")
       .populate("procedure", "procedureName amount")
       .populate("medicine.medicine", "medicinename medScientificName unitcost");
 
@@ -262,8 +267,8 @@ export const doctorPrescribesMedicine = async (req, res) => {
       { $push: { medicine: { medicine: medicineId, days, frequency } } },
       { new: true }
     )
-      .populate("patient", "pid name")
-      .populate("doctor", "name specialization")
+      .populate("patient", "pid name mobilePhone email dob gender bloodGroup address")
+      .populate("doctor", "name specialization email mobile")
       .populate("procedure", "procedureName amount")
       .populate("medicine.medicine", "medicinename medScientificName unitcost");
 
@@ -294,8 +299,8 @@ export const pharmacistDispenseAndBill = async (req, res) => {
     }
 
     const appointment = await Appointment.findById(id)
-      .populate("patient", "pid name")
-      .populate("doctor", "name specialization")
+      .populate("patient", "pid name mobilePhone email dob gender bloodGroup address")
+      .populate("doctor", "name specialization email mobile")
       .populate("procedure", "procedureName amount")
       .populate("medicine.medicine", "medicinename medScientificName unitcost");
 
@@ -347,8 +352,8 @@ export const pharmacistDispenseAndBill = async (req, res) => {
     await Patient.findByIdAndUpdate(appointment.patient, { $set: dynamicBillUpdates });
 
     const updatedAppointment = await Appointment.findById(id)
-      .populate("patient", "pid name")
-      .populate("doctor", "name specialization")
+      .populate("patient", "pid name mobilePhone email dob gender bloodGroup address")
+      .populate("doctor", "name specialization email mobile")
       .populate("procedure", "procedureName amount")
       .populate("medicine.medicine", "medicinename medScientificName unitcost");
 
@@ -381,6 +386,7 @@ export const getPatientHistory = async (req, res) => {
       patient: patientId,
       status: "completed"
     })
+      .populate("patient", "pid name dob gender bloodGroup mobilePhone email address")
       .populate("doctor", "name specialization email mobile")
       .populate("procedure", "procedureName amount")
       .populate("medicine.medicine", "medicinename medScientificName unitcost")
@@ -423,7 +429,7 @@ export const getTodayAppointments = async (req, res) => {
       },
       isActive: true
     })
-      .populate("patient", "pid name mobilePhone")
+      .populate("patient", "pid name dob gender bloodGroup mobilePhone email address")
       .populate("doctor", "name specialization email mobile")
       .populate("procedure", "procedureName amount")
       .populate("medicine.medicine", "medicinename medScientificName unitcost")
@@ -458,7 +464,7 @@ export const getAppointmentsByDoctor = async (req, res) => {
     }
 
     const appointments = await Appointment.find(query)
-      .populate("patient", "pid name mobilePhone")
+      .populate("patient", "pid name dob gender bloodGroup mobilePhone email address")
       .populate("doctor", "name specialization email mobile")
       .populate("procedure", "procedureName amount")
       .populate("medicine.medicine", "medicinename medScientificName unitcost")

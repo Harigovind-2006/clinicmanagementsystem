@@ -19,9 +19,6 @@ export default function SeniorDoctorConsultation() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const [medicinesAdded, setMedicinesAdded] = useState(true);
-  const [proceduresAdded, setProceduresAdded] = useState(true);
-
   useEffect(() => {
     if (id) {
       fetchAppointment();
@@ -96,7 +93,7 @@ export default function SeniorDoctorConsultation() {
       setErrorMsg("");
       setTimeout(() => {
         setSaved(false);
-        navigate("/senior-dashboard");
+        navigate("/senior-doctor");
       }, 2000);
 
     } catch (error) {
@@ -126,7 +123,7 @@ export default function SeniorDoctorConsultation() {
           <p className="mt-2 text-gray-600">Appointment ID: {id}</p>
           {errorMsg && <p className="mt-2 text-red-500">{errorMsg}</p>}
           <button
-            onClick={() => navigate("/senior-dashboard")}
+            onClick={() => navigate("/senior-doctor")}
             className="mt-4 text-blue-600 hover:text-blue-800"
           >
             ← Back to Dashboard
@@ -318,12 +315,7 @@ export default function SeniorDoctorConsultation() {
           )}
         </div>
 
-        <div className="fixed bottom-6 right-6 z-50 flex gap-3">
-          {saved && (
-            <div className="bg-green-600 text-white px-6 py-3.5 rounded-xl shadow-lg flex items-center gap-2">
-              <span>✓</span> Changes Saved
-            </div>
-          )}
+        <div className="fixed bottom-6 right-6 z-50">
           <button
             onClick={handleSave}
             className={`px-8 py-3.5 rounded-xl shadow-lg text-white font-medium transition-all ${
