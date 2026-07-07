@@ -31,7 +31,6 @@ export default function PatientAssessment() {
     "Respiratory Rate",
   ];
 
-  // Fetch appointment on component mount
   useEffect(() => {
     fetchAppointment();
   }, [pid]);
@@ -42,28 +41,24 @@ export default function PatientAssessment() {
       setErrorMsg("");
 
       const res = await api.get(`/appoinmentapi/${pid}`);
-      const appointment = res.data;
+      const appointment = res.data.data || res.data;
+
+      console.log("Appointment Response:", appointment);
+      console.log("Vitals:", appointment.vitals);
+      console.log("Entries:", Object.entries(appointment.vitals || {}));
 
       setPatient(appointment);
 
-      // Load saved vitals if they exist
-      if (appointment.vitals && typeof appointment.vitals === 'object') {
-        // Check if vitals is a Map or plain object
-        const vitalsArray = Object.entries(appointment.vitals).map(
-          ([name, value]) => ({
-            name,
-            value: value || "",
-          })
-        );
-        setVitals(vitalsArray);
-      } else {
-        setVitals([]);
-      }
+      const vitalsArray = Object.entries(appointment.vitals || {}).map(
+        ([name, value]) => ({
+          name,
+          value: String(value),
+        })
+      );
 
-      // Load saved complaints
+      setVitals(vitalsArray);
+
       setComplaints(appointment.complaints || "");
-
-      // Load saved observations (jdObservations from backend)
       setObservations(appointment.jdObservations || "");
 
     } catch (error) {
@@ -75,7 +70,6 @@ export default function PatientAssessment() {
     }
   };
 
-  // Handle click outside dropdown
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -139,10 +133,8 @@ export default function PatientAssessment() {
   };
 
   const handleSave = async () => {
-    // Clear previous error
     setErrorMsg("");
 
-    // Validation
     if (vitals.length === 0) {
       setErrorMsg("Please add at least one vital metric before saving.");
       return;
@@ -165,7 +157,6 @@ export default function PatientAssessment() {
     }
 
     try {
-      // Convert vitals array to object for storage
       const vitalsObject = {};
       vitals.forEach((v) => {
         vitalsObject[v.name] = v.value;
@@ -177,7 +168,7 @@ export default function PatientAssessment() {
         vitals: vitalsObject,
         jdObservations: observations,
         complaints: complaints,
-        status: newStatus, // Moves to "Waiting/Submitted" tab
+        status: newStatus,
       });
 
       await fetchAppointment();
@@ -191,7 +182,6 @@ export default function PatientAssessment() {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -205,7 +195,6 @@ export default function PatientAssessment() {
     );
   }
 
-  // Patient not found
   if (!patient) {
     return (
       <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
@@ -228,7 +217,6 @@ export default function PatientAssessment() {
     <Layout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
       <div className="p-4 md:p-8 min-h-screen pb-24 relative">
         
-        {/* Header */}
         <div className="flex items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <button
@@ -257,7 +245,6 @@ export default function PatientAssessment() {
           </div>
         </div>
 
-        {/* Error Message */}
         {errorMsg && (
           <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center justify-between">
             <span>{errorMsg}</span>
@@ -270,10 +257,8 @@ export default function PatientAssessment() {
           </div>
         )}
 
-        {/* 4 Box Grid Layout (2 per row) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           
-          {/* Row 1 - Box 1: Patient Information */}
           <div className="bg-white rounded-xl shadow p-6 h-[400px] border border-gray-200 overflow-y-auto">
             <h2 className="text-xl font-semibold mb-4">
               Patient Information
@@ -300,7 +285,6 @@ export default function PatientAssessment() {
             </div>
           </div>
 
-          {/* Row 1 - Box 2: Vitals Module (Fixed Outside Height Frame with Internal Scrolling) */}
           <div className="bg-white rounded-xl shadow p-6 h-[400px] flex flex-col border border-gray-200" ref={dropdownRef}>
             <h2 className="text-xl font-semibold mb-4 flex-shrink-0">
               Vitals
@@ -364,7 +348,6 @@ export default function PatientAssessment() {
               )}
             </div>
 
-            {/* Scrollable Container Window for Active Vitals Stack */}
             <div className="overflow-y-auto flex-1 pr-1 space-y-3">
               {vitals.map((vital, index) => (
                 <div key={vital.name + index} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
@@ -406,7 +389,6 @@ export default function PatientAssessment() {
             </div>
           </div>
 
-          {/* Row 2 - Box 3: Patient Complaints */}
           <div className="bg-white rounded-xl shadow p-6 border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">
               Patient Complaints
@@ -420,7 +402,6 @@ export default function PatientAssessment() {
             />
           </div>
 
-          {/* Row 2 - Box 4: Clinical Observations */}
           <div className="bg-white rounded-xl shadow p-6 border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">
               Clinical Observations
@@ -437,7 +418,6 @@ export default function PatientAssessment() {
         </div>
       </div>
 
-      {/* Floating Save Button */}
       <button
         onClick={handleSave}
         className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-lg shadow-lg z-50 font-medium transition"
@@ -446,4 +426,4 @@ export default function PatientAssessment() {
       </button>
     </Layout>
   );
-} 
+}

@@ -80,7 +80,7 @@ export const getAllActiveAppoinments = async (req, res) => {
           .select("name specialization email mobile");
 
         return {
-          ...appointment.toObject(),
+          ...appointment.toObject({ flattenMaps: true }),
           patient: patient,
           doctor: doctor
         };
@@ -127,7 +127,7 @@ export const getAppoinmentById = async (req, res) => {
     );
 
     const result = {
-      ...foundAppoinment.toObject(),
+      ...foundAppoinment.toObject({ flattenMaps: true }),
       patient: patient,
       doctor: doctor,
       medicine: medicineDetails,
@@ -225,7 +225,7 @@ export const doctorAddsProcedure = async (req, res) => {
     );
 
     const result = {
-      ...appointment.toObject(),
+      ...appointment.toObject({ flattenMaps: true }),
       patient: patient,
       doctor: doctor,
       procedure: procedures
@@ -289,7 +289,7 @@ export const doctorPrescribesMedicine = async (req, res) => {
     );
 
     const result = {
-      ...appointment.toObject(),
+      ...appointment.toObject({ flattenMaps: true }),
       patient: patient,
       doctor: doctor,
       medicine: medicineDetails
@@ -455,7 +455,7 @@ export const getPatientHistory = async (req, res) => {
         );
 
         return {
-          ...appointment.toObject(),
+          ...appointment.toObject({ flattenMaps: true }),
           doctor: doctor,
           medicine: medicineDetails,
           procedure: procedureDetails
@@ -502,7 +502,7 @@ export const getTodayAppointments = async (req, res) => {
           .select("name specialization email mobile");
 
         return {
-          ...appointment.toObject(),
+          ...appointment.toObject({ flattenMaps: true }),
           patient: patient,
           doctor: doctor
         };
@@ -549,7 +549,7 @@ export const getAppointmentsByDoctor = async (req, res) => {
           .select("name specialization email mobile");
 
         return {
-          ...appointment.toObject(),
+          ...appointment.toObject({ flattenMaps: true }),
           patient: patient,
           doctor: doctor
         };
