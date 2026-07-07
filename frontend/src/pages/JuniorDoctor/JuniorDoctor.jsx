@@ -18,12 +18,20 @@ export default function JuniorDoctor() {
     try {
       const res = await api.get("/appoinmentapi");
       const data = res.data.data || res.data;
-      
-      // Debug logging
+
       console.log("Appointments:", data);
-      console.log("First appointment:", data[0]);
-      console.log("Doctor field:", data[0]?.doctor);
       
+      // Debug: Show key fields in a table format
+      console.table(
+        data.map((a) => ({
+          token: a.tokenNumber,
+          status: a.status,
+          active: a.isActive,
+          patient: a.patient?.name,
+          doctor: a.doctor?.name,
+        }))
+      );
+
       setAppointments(data);
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -33,12 +41,18 @@ export default function JuniorDoctor() {
     }
   };
 
+  // Filter for assessment - only active scheduled appointments
   const assessmentPatients = appointments.filter(
-    (a) => a.status === "scheduled"
+    (a) =>
+      a.isActive === true &&
+      a.status === "scheduled"
   );
 
+  // Filter for submitted - only active waiting appointments
   const submittedPatients = appointments.filter(
-    (a) => a.status === "waiting"
+    (a) =>
+      a.isActive === true &&
+      a.status === "waiting"
   );
 
   const displayedPatients =
@@ -118,23 +132,22 @@ export default function JuniorDoctor() {
                       className="hover:bg-[#F8FAFC] transition-colors"
                     >
                       <td className="px-6 py-4.5 text-[#0F172A] font-medium">
-                        #{patient.tokenNumber || "-"}
+                        #{patient.tokenNumber ?? "-"}
                       </td>
                       <td className="px-6 py-4.5 text-[#64748B]">
-                        {patient.patient?.pid || "N/A"}
+                        {patient.patient?.pid ?? "N/A"}
                       </td>
                       <td className="px-6 py-4.5 font-semibold text-[#0F172A]">
-                        {patient.patient?.name || "Unknown"}
+                        {patient.patient?.name ?? "Unknown"}
                       </td>
                       <td className="px-6 py-4.5 text-[#64748B]">
-                        {/* FIXED: Use .name instead of .fullname */}
-                        {patient.doctor?.name || "N/A"}
+                        {patient.doctor?.name ?? "N/A"}
                       </td>
                       <td className="px-6 py-4.5 text-[#64748B]">
-                        {patient.doctor?.specialization || "N/A"}
+                        {patient.doctor?.specialization ?? "N/A"}
                       </td>
                       <td className="px-6 py-4.5 text-[#64748B]">
-                        {patient.appointmentTime || "N/A"}
+                        {patient.appointmentTime ?? "N/A"}
                       </td>
                       <td className="px-6 py-4.5">
                         <span
@@ -143,7 +156,9 @@ export default function JuniorDoctor() {
                               ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
                               : patient.status === "scheduled"
                               ? "bg-blue-50 text-blue-700 border border-blue-200"
-                              : "bg-green-50 text-green-600 border border-green-100"
+                              : patient.status === "completed"
+                              ? "bg-green-50 text-green-600 border border-green-100"
+                              : "bg-gray-50 text-gray-600 border border-gray-200"
                           }`}
                         >
                           {patient.status 

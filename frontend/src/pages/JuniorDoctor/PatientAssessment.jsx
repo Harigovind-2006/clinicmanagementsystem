@@ -180,8 +180,11 @@ export default function PatientAssessment() {
         status: newStatus, // Moves to "Waiting/Submitted" tab
       });
 
-      alert("Assessment saved successfully.");
-      navigate("/junior-doctor");
+      await fetchAppointment();
+
+      navigate("/junior-doctor", {
+        replace: true,
+      });
     } catch (error) {
       console.error("Error saving assessment:", error);
       setErrorMsg(error.response?.data?.message || "Unable to save assessment. Please try again.");
@@ -278,7 +281,7 @@ export default function PatientAssessment() {
             <div className="space-y-2">
               <p><strong>PID:</strong> {patient.patient?.pid || "N/A"}</p>
               <p><strong>Name:</strong> {patient.patient?.name || "Unknown"}</p>
-              <p><strong>Doctor:</strong> {patient.doctor?.fullname || "N/A"}</p>
+              <p><strong>Doctor:</strong> {patient.doctor?.name || "N/A"}</p>
               <p><strong>Specialization:</strong> {patient.doctor?.specialization || "N/A"}</p>
               <p><strong>Token:</strong> #{patient.tokenNumber || "N/A"}</p>
               <p><strong>Date:</strong> {patient.appointmentDate ? new Date(patient.appointmentDate).toLocaleDateString() : "N/A"}</p>

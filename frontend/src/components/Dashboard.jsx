@@ -562,6 +562,7 @@ export default function ManagerDashboard({ role }) {
             ? newAppointmentData.upiId
             : "",
         from: newAppointmentData.from || "OP",
+        status: "scheduled"
       };
 
       console.log(JSON.stringify(appointmentData, null, 2));
